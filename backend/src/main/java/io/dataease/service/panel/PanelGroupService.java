@@ -1,6 +1,7 @@
 package io.dataease.service.panel;
 
 import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -61,6 +62,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static io.dataease.commons.constants.ExportConstants.EXPORT_DATA_CACHE;
 
 /**
  * Author: wangjiahao
@@ -658,7 +661,7 @@ public class PanelGroupService {
      * @return
      */
     public ExportStatusDTO getExportPanelViewStatus(String exportKey) {
-        String json = Objects.toString(CacheUtils.get("export_data", exportKey));
+        String json = Objects.toString(CacheUtils.get(EXPORT_DATA_CACHE, exportKey));
         return JSONUtil.toBean(json, ExportStatusDTO.class);
     }
 
@@ -731,10 +734,12 @@ public class PanelGroupService {
                 long totalItems = (Objects.nonNull(request.getTotalItems()) && request.getTotalItems() > 0 ? request.getTotalItems() : 1);
                 long percent = Math.round(exportedRowCount * 1.0 / totalItems * 100);
                 LOGGER.debug("完成百分比：{}%, 导出数据行数：{}, 数据总行数：{}", percent, exportedRowCount, request.getTotalItems());
-                statusDTO.setTotalItems(totalItems);
-                statusDTO.setPercent(percent);
-                statusDTO.setCompletedItems(exportedRowCount);
-                CacheUtils.put("export_data", request.getExportKey(), JSONUtil.toJsonStr(statusDTO), timeTTL, timeTTL);
+                if (StrUtil.isNotBlank(request.getExportKey())) {
+                    statusDTO.setTotalItems(totalItems);
+                    statusDTO.setPercent(percent);
+                    statusDTO.setCompletedItems(exportedRowCount);
+                    CacheUtils.put(EXPORT_DATA_CACHE, request.getExportKey(), JSONUtil.toJsonStr(statusDTO), timeTTL, timeTTL);
+                }
                 if (hasNext) {
                     request.setDetails(new ArrayList<>());
                     goPage += 1;
@@ -763,7 +768,9 @@ public class PanelGroupService {
         } catch (Exception e) {
             DataEaseException.throwException(e);
         } finally {
-            CacheUtils.remove("export_data", request.getExportKey());
+            if (StrUtil.isNotBlank(request.getExportKey())) {
+                CacheUtils.remove(EXPORT_DATA_CACHE, request.getExportKey());
+            }
         }
         if (ObjectUtils.isNotEmpty(AuthUtils.getUser())) {
             String viewId = request.getViewId();
