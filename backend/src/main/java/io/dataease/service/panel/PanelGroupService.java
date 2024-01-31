@@ -1,6 +1,7 @@
 package io.dataease.service.panel;
 
 import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
@@ -14,6 +15,7 @@ import io.dataease.controller.request.chart.ChartExtRequest;
 import io.dataease.controller.request.dataset.DataSetTableRequest;
 import io.dataease.controller.request.panel.*;
 import io.dataease.dto.DatasourceDTO;
+import io.dataease.dto.ExportStatusDTO;
 import io.dataease.dto.PanelGroupExtendDataDTO;
 import io.dataease.dto.SysLogDTO;
 import io.dataease.dto.authModel.VAuthModelDTO;
@@ -649,7 +651,23 @@ public class PanelGroupService {
         CacheUtils.removeAll(AuthConstants.DEPT_PANEL_NAME);
     }
 
+    /**
+     * 查询导出状态
+     *
+     * @param exportKey
+     * @return
+     */
+    public ExportStatusDTO getExportPanelViewStatus(String exportKey) {
+        String json = Objects.toString(CacheUtils.get("export_data", exportKey));
+        return JSONUtil.toBean(json, ExportStatusDTO.class);
+    }
 
+    /**
+     * 导出数据excel
+     *
+     * @param request
+     * @param response
+     */
     public void exportPanelViewDetails(PanelViewDetailsRequest request, HttpServletResponse response) {
         try (OutputStream outputStream = response.getOutputStream()) {
             String snapshot = request.getSnapshot();
@@ -679,7 +697,9 @@ public class PanelGroupService {
             boolean mergeHead = request.isMergeHead();
             long goPage = 1L;
             long pageSize = 1000L;
+            int timeTTL = 60 * 30;
             boolean hasNext = true;
+            ExportStatusDTO statusDTO = new ExportStatusDTO();
             while (hasNext) {
                 findExcelData(request, goPage, pageSize);
                 // 获取buildDetailHead，findExcelData结果
@@ -708,8 +728,13 @@ public class PanelGroupService {
                     }
                 }
                 long exportedRowCount = goPage * pageSize + details.size();
-                long percent = Math.round(exportedRowCount * 1.0 / (Objects.nonNull(request.getTotalItems()) && request.getTotalItems() > 0 ? request.getTotalItems() : 1) * 100);
+                long totalItems = (Objects.nonNull(request.getTotalItems()) && request.getTotalItems() > 0 ? request.getTotalItems() : 1);
+                long percent = Math.round(exportedRowCount * 1.0 / totalItems * 100);
                 LOGGER.debug("完成百分比：{}%, 导出数据行数：{}, 数据总行数：{}", percent, exportedRowCount, request.getTotalItems());
+                statusDTO.setTotalItems(totalItems);
+                statusDTO.setPercent(percent);
+                statusDTO.setCompletedItems(exportedRowCount);
+                CacheUtils.put("export_data", request.getExportKey(), JSONUtil.toJsonStr(statusDTO), timeTTL, timeTTL);
                 if (hasNext) {
                     request.setDetails(new ArrayList<>());
                     goPage += 1;
@@ -737,6 +762,8 @@ public class PanelGroupService {
             outputStream.flush();
         } catch (Exception e) {
             DataEaseException.throwException(e);
+        } finally {
+            CacheUtils.remove("export_data", request.getExportKey());
         }
         if (ObjectUtils.isNotEmpty(AuthUtils.getUser())) {
             String viewId = request.getViewId();

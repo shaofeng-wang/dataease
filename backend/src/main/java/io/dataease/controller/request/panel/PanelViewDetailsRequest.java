@@ -42,6 +42,9 @@ public class PanelViewDetailsRequest {
 
     private Long userId;
 
+    // 导出状态标识key，前端传递
+    private String exportKey;
+
     private boolean mergeHead;
 
     private Long totalItems;
