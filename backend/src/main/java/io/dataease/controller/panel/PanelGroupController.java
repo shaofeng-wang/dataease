@@ -13,6 +13,7 @@ import io.dataease.commons.constants.PanelConstants;
 import io.dataease.commons.constants.ResourceAuthLevel;
 import io.dataease.controller.handler.annotation.I18n;
 import io.dataease.controller.request.panel.*;
+import io.dataease.dto.ExportStatusDTO;
 import io.dataease.dto.PermissionProxy;
 import io.dataease.dto.authModel.VAuthModelDTO;
 import io.dataease.dto.panel.PanelExport2App;
@@ -31,7 +32,6 @@ import springfox.documentation.annotations.ApiIgnore;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -72,8 +72,8 @@ public class PanelGroupController {
     @ApiOperation("保存")
     @PostMapping("/save")
     @DePermissions(value = {
-            @DePermission(type = DePermissionType.PANEL, value = "id"),
-            @DePermission(type = DePermissionType.PANEL, value = "pid", level = ResourceAuthLevel.PANEL_LEVEL_MANAGE)
+        @DePermission(type = DePermissionType.PANEL, value = "id"),
+        @DePermission(type = DePermissionType.PANEL, value = "pid", level = ResourceAuthLevel.PANEL_LEVEL_MANAGE)
     }, logical = Logical.AND)
     @I18n
     public PanelGroupDTO save(@RequestBody PanelGroupRequest request) throws Exception {
@@ -90,8 +90,8 @@ public class PanelGroupController {
     @ApiOperation("更新")
     @PostMapping("/update")
     @DePermissions(value = {
-            @DePermission(type = DePermissionType.PANEL, value = "id"),
-            @DePermission(type = DePermissionType.PANEL, value = "pid", level = ResourceAuthLevel.PANEL_LEVEL_MANAGE)
+        @DePermission(type = DePermissionType.PANEL, value = "id"),
+        @DePermission(type = DePermissionType.PANEL, value = "pid", level = ResourceAuthLevel.PANEL_LEVEL_MANAGE)
     }, logical = Logical.AND)
     @I18n
     public PanelGroupDTO update(@RequestBody PanelGroupRequest request) {
@@ -117,8 +117,7 @@ public class PanelGroupController {
     @DePermissionProxy(paramIndex = 1)
     @DePermission(type = DePermissionType.PANEL, level = ResourceAuthLevel.PANEL_LEVEL_VIEW)
     @PostMapping("/proxy/findOne/{id}")
-    public PanelGroupDTO proxyFindOne(@PathVariable String id, @RequestBody PermissionProxy proxy)
-            throws Exception {
+    public PanelGroupDTO proxyFindOne(@PathVariable String id, @RequestBody PermissionProxy proxy) {
         return panelGroupService.findOne(id);
     }
 
@@ -143,12 +142,19 @@ public class PanelGroupController {
         return panelGroupService.queryPanelComponents(id);
     }
 
+    @ApiOperation("公共连接导出状态查询")
+    @GetMapping("/exportDetailStatus")
+    @I18n
+    public ExportStatusDTO exportDetailStatus(@RequestParam("exportKey") String exportKey) {
+        return panelGroupService.getExportPanelViewStatus(exportKey);
+    }
+
     @ApiOperation("公共连接导出仪表板视图明细")
     @PostMapping("/exportDetails")
     @I18n
-    public void exportDetails(@RequestBody PanelViewDetailsRequest request, HttpServletResponse response) throws IOException {
+    public void exportDetails(@RequestBody PanelViewDetailsRequest request, HttpServletResponse response) {
         HttpServletRequest httpServletRequest = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
-                .getRequest();
+            .getRequest();
         String linkToken = httpServletRequest.getHeader(F2CLinkFilter.LINK_TOKEN_KEY);
         DecodedJWT jwt = JWT.decode(linkToken);
         Long userId = jwt.getClaim("userId").asLong();
@@ -156,11 +162,19 @@ public class PanelGroupController {
         panelGroupService.exportPanelViewDetails(request, response);
     }
 
+    @ApiOperation("站内导出状态查询")
+    @GetMapping("/innerExportDetailStatus")
+    @DePermissionProxy(value = "proxy")
+    @I18n
+    public ExportStatusDTO innerExportDetailStatus(@RequestParam("exportKey") String exportKey) {
+        return panelGroupService.getExportPanelViewStatus(exportKey);
+    }
+
     @ApiOperation("站内导出仪表板视图明细")
     @PostMapping("/innerExportDetails")
     @DePermissionProxy(value = "proxy")
     @I18n
-    public void innerExportDetails(@RequestBody PanelViewDetailsRequest request, HttpServletResponse response) throws IOException {
+    public void innerExportDetails(@RequestBody PanelViewDetailsRequest request, HttpServletResponse response) {
         panelGroupService.exportPanelViewDetails(request, response);
     }
 
@@ -175,8 +189,8 @@ public class PanelGroupController {
     @ApiOperation("自动缓存")
     @PostMapping("/autoCache")
     @DePermissions(value = {
-            @DePermission(type = DePermissionType.PANEL, value = "id"),
-            @DePermission(type = DePermissionType.PANEL, value = "pid", level = ResourceAuthLevel.PANEL_LEVEL_MANAGE)
+        @DePermission(type = DePermissionType.PANEL, value = "id"),
+        @DePermission(type = DePermissionType.PANEL, value = "pid", level = ResourceAuthLevel.PANEL_LEVEL_MANAGE)
     }, logical = Logical.AND)
     public void autoCache(@RequestBody PanelGroupRequest request) {
         panelGroupService.autoCache(request);
