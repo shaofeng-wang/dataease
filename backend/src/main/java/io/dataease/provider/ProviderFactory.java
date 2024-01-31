@@ -3,13 +3,13 @@ package io.dataease.provider;
 import io.dataease.plugins.common.constants.DatasourceTypes;
 import io.dataease.plugins.common.dto.datasource.DataSourceType;
 import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.datasource.provider.Provider;
 import io.dataease.plugins.datasource.query.QueryProvider;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
-import io.dataease.plugins.datasource.provider.Provider;
 
 import java.util.Map;
 

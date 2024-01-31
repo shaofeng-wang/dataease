@@ -5,13 +5,13 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import io.dataease.auth.filter.F2CLinkFilter;
 import io.dataease.commons.constants.SysLogConstants;
 import io.dataease.commons.utils.DeLogUtils;
-import io.dataease.plugins.common.base.domain.PanelGroupWithBLOBs;
-import io.dataease.plugins.common.base.domain.PanelLink;
 import io.dataease.controller.panel.api.LinkApi;
 import io.dataease.controller.request.chart.ChartExtRequest;
 import io.dataease.controller.request.panel.link.*;
 import io.dataease.dto.panel.link.GenerateDto;
 import io.dataease.dto.panel.link.ValidateDto;
+import io.dataease.plugins.common.base.domain.PanelGroupWithBLOBs;
+import io.dataease.plugins.common.base.domain.PanelLink;
 import io.dataease.service.chart.ChartViewService;
 import io.dataease.service.panel.PanelLinkService;
 import org.apache.commons.lang3.ObjectUtils;
@@ -94,8 +94,8 @@ public class LinkServer implements LinkApi {
     }
 
     @Override
-    public Object resourceDetail(@PathVariable String resourceId) {
-        return panelLinkService.resourceInfo(resourceId);
+    public Object resourceDetail(@PathVariable String resourceId,@PathVariable String userId) {
+        return panelLinkService.resourceInfo(resourceId,userId);
     }
 
     @Override
@@ -125,7 +125,7 @@ public class LinkServer implements LinkApi {
             operateType = SysLogConstants.OPERATE_TYPE.MB_VIEW;
         }
         if (ObjectUtils.isEmpty(userId)) return;
-        PanelGroupWithBLOBs panelGroupWithBLOBs = panelLinkService.resourceInfo(panelId);
+        PanelGroupWithBLOBs panelGroupWithBLOBs = panelLinkService.resourceInfo(panelId,String.valueOf(userId));
         String pid = panelGroupWithBLOBs.getPid();
         DeLogUtils.save(operateType, SysLogConstants.SOURCE_TYPE.LINK, panelId, pid, userId, SysLogConstants.SOURCE_TYPE.USER);
     }

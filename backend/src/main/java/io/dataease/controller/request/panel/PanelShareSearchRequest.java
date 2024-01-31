@@ -1,9 +1,9 @@
 package io.dataease.controller.request.panel;
 
-import java.io.Serializable;
-
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import java.io.Serializable;
 
 @Data
 public class PanelShareSearchRequest implements Serializable {

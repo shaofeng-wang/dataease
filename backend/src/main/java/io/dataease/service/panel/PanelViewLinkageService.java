@@ -1,10 +1,10 @@
 package io.dataease.service.panel;
 
-import io.dataease.ext.ExtPanelViewLinkageMapper;
 import io.dataease.commons.utils.AuthUtils;
 import io.dataease.controller.request.panel.PanelLinkageRequest;
 import io.dataease.dto.LinkageInfoDTO;
 import io.dataease.dto.PanelViewLinkageDTO;
+import io.dataease.ext.ExtPanelViewLinkageMapper;
 import io.dataease.plugins.common.base.domain.PanelGroupWithBLOBs;
 import io.dataease.plugins.common.base.domain.PanelViewLinkage;
 import io.dataease.plugins.common.base.domain.PanelViewLinkageField;

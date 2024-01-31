@@ -21,7 +21,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
@@ -123,7 +122,6 @@ public class HttpClientUtil {
             EntityBuilder entityBuilder = EntityBuilder.create();
             entityBuilder.setText(json);
             entityBuilder.setContentType(ContentType.APPLICATION_JSON);
-            entityBuilder.setContentEncoding(config.getCharset());
             HttpEntity requestEntity = entityBuilder.build();
             httpPost.setEntity(requestEntity);
 

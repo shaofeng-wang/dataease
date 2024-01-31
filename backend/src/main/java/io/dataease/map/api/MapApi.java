@@ -2,7 +2,10 @@ package io.dataease.map.api;
 
 import io.dataease.map.dto.entity.AreaEntity;
 import io.dataease.map.dto.request.MapNodeRequest;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;

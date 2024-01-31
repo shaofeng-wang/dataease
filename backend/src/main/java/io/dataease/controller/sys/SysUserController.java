@@ -5,6 +5,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.xiaoymin.knife4j.annotations.ApiSupport;
 import io.dataease.auth.annotation.DeLog;
 import io.dataease.auth.annotation.DePermission;
+import io.dataease.auth.annotation.SqlInjectValidator;
 import io.dataease.auth.api.dto.CurrentUserDto;
 import io.dataease.auth.entity.AccountLockStatus;
 import io.dataease.auth.service.AuthUserService;
@@ -12,22 +13,22 @@ import io.dataease.commons.constants.DePermissionType;
 import io.dataease.commons.constants.ResourceAuthLevel;
 import io.dataease.commons.constants.SysLogConstants;
 import io.dataease.commons.exception.DEException;
-import io.dataease.commons.utils.BeanUtils;
-import io.dataease.controller.sys.request.KeyGridRequest;
-import io.dataease.controller.sys.response.AuthBindDTO;
-import io.dataease.exception.DataEaseException;
-import io.dataease.i18n.Translator;
-import io.dataease.plugins.common.base.domain.SysRole;
 import io.dataease.commons.utils.AuthUtils;
+import io.dataease.commons.utils.BeanUtils;
 import io.dataease.commons.utils.PageUtils;
 import io.dataease.commons.utils.Pager;
 import io.dataease.controller.response.ExistLdapUser;
 import io.dataease.controller.sys.base.BaseGridRequest;
+import io.dataease.controller.sys.request.KeyGridRequest;
 import io.dataease.controller.sys.request.SysUserCreateRequest;
 import io.dataease.controller.sys.request.SysUserPwdRequest;
 import io.dataease.controller.sys.request.SysUserStateRequest;
+import io.dataease.controller.sys.response.AuthBindDTO;
 import io.dataease.controller.sys.response.RoleUserItem;
 import io.dataease.controller.sys.response.SysUserGridResponse;
+import io.dataease.exception.DataEaseException;
+import io.dataease.i18n.Translator;
+import io.dataease.plugins.common.base.domain.SysRole;
 import io.dataease.plugins.common.base.domain.SysUser;
 import io.dataease.plugins.common.base.domain.SysUserAssist;
 import io.dataease.service.sys.SysRoleService;
@@ -36,7 +37,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -78,6 +78,7 @@ public class SysUserController {
             @ApiImplicitParam(paramType = "path", name = "pageSize", value = "页容量", required = true, dataType = "Integer"),
             @ApiImplicitParam(name = "request", value = "查询条件", required = true)
     })
+    @SqlInjectValidator(value = {"create_time", "u.enabled", "nick_name", "u.dept_id"})
     public Pager<List<SysUserGridResponse>> userGrid(@PathVariable int goPage, @PathVariable int pageSize,
                                                      @RequestBody KeyGridRequest request) {
         Page<Object> page = PageHelper.startPage(goPage, pageSize, true);
@@ -102,6 +103,7 @@ public class SysUserController {
 
     @ApiIgnore
     @PostMapping("/userLists")
+    @SqlInjectValidator({"nick_name", "create_time"})
     public List<SysUserGridResponse> userLists(@RequestBody BaseGridRequest request) {
         KeyGridRequest keyGridRequest = BeanUtils.copyBean(new KeyGridRequest(), request);
         return sysUserService.query(keyGridRequest);
@@ -224,6 +226,7 @@ public class SysUserController {
             @ApiImplicitParam(paramType = "path", name = "pageSize", value = "页容量", required = true, dataType = "Integer"),
             @ApiImplicitParam(name = "request", value = "查询条件", required = true)
     })
+    @SqlInjectValidator({"create_time",  "update_time"})
     public Pager<List<SysRole>> roleGrid(@PathVariable int goPage, @PathVariable int pageSize,
                                          @RequestBody BaseGridRequest request) {
         Page<Object> page = PageHelper.startPage(goPage, pageSize, true);

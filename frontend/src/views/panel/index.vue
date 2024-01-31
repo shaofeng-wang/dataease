@@ -19,7 +19,6 @@ import DeMainContainer from '@/components/dataease/DeMainContainer'
 import DeContainer from '@/components/dataease/DeContainer'
 import PanelMain from '@/views/panel/list/PanelMain'
 import PanelEdit from '@/views/panel/edit'
-
 export default {
   name: 'Panel',
   components: { DeMainContainer, DeContainer, PanelMain, PanelEdit },

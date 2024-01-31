@@ -1,6 +1,6 @@
 package io.dataease.controller.request.panel;
 
-import io.dataease.plugins.common.base.domain.Datasource;
+import io.dataease.dto.DatasourceDTO;
 import lombok.Data;
 
 import java.util.List;
@@ -29,5 +29,17 @@ public class PanelAppTemplateApplyRequest {
 
     private String appTemplateId;
 
-    private List<Datasource> datasourceList;
+    private String datasourceFrom;
+
+    private String datasourceHistoryId;
+
+    private String linkJumps;
+
+    private String linkJumpInfos;
+
+    private String linkages;
+
+    private String linkageFields;
+
+    private List<DatasourceDTO> datasourceList;
 }

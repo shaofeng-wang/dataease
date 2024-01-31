@@ -1,17 +1,15 @@
 package io.dataease.config;
 
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.Resource;
-
+import io.dataease.commons.pool.PriorityThreadPoolExecutor;
+import io.dataease.commons.pool.PriorityThreadPoolProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import io.dataease.commons.pool.PriorityThreadPoolExecutor;
-import io.dataease.commons.pool.PriorityThreadPoolProperties;
+import javax.annotation.Resource;
+import java.util.concurrent.TimeUnit;
 
 @EnableAsync(proxyTargetClass = true)
 @Configuration

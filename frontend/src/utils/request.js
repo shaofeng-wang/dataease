@@ -1,7 +1,7 @@
 import axios from 'axios'
 import store from '@/store'
 import { $alert, $error } from './message'
-import { getToken, getIdToken } from '@/utils/auth'
+import { getToken, getIdToken, setToken } from '@/utils/auth'
 import Config from '@/settings'
 import i18n from '@/lang'
 import { tryShowLoading, tryHideLoading } from './loading'
@@ -118,7 +118,7 @@ service.interceptors.response.use(response => {
   if (msg.length > 600) {
     msg = msg.slice(0, 600)
   }
-  !config.hideMsg && (!headers['authentication-status']) && $error(msg)
+  !config.hideMsg && (!headers['authentication-status']) && !msg?.startsWith("MultiLoginError") && $error(msg)
   return Promise.reject(config.url === '/dataset/table/sqlPreview' ? msg : error)
 })
 const checkDownError = response => {
@@ -157,6 +157,7 @@ const checkAuth = response => {
   // token到期后自动续命 刷新token
   if (response.headers[RefreshTokenKey]) {
     const refreshToken = response.headers[RefreshTokenKey]
+    setToken(refreshToken)
     store.dispatch('user/refreshToken', refreshToken)
   }
 

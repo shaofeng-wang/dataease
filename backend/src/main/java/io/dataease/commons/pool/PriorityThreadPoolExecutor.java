@@ -1,10 +1,10 @@
 package io.dataease.commons.pool;
 
+import io.dataease.commons.utils.LogUtil;
+
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-
-import io.dataease.commons.utils.LogUtil;
 
 public class PriorityThreadPoolExecutor extends ThreadPoolExecutor {
 

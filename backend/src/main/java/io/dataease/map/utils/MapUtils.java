@@ -9,10 +9,10 @@ import io.dataease.plugins.common.base.domain.AreaMappingGlobal;
 import io.dataease.plugins.common.base.domain.AreaMappingGlobalExample;
 import io.dataease.plugins.common.base.mapper.AreaMappingGlobalMapper;
 import io.dataease.plugins.common.base.mapper.AreaMappingMapper;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;

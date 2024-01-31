@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <parent>
         <artifactId>dataease-server</artifactId>
         <groupId>io.dataease</groupId>
-        <version>1.17.0</version>
+        <version>${dataease.version}</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -21,7 +22,6 @@
     </properties>
 
     <dependencies>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -118,7 +118,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
-            <version>[1.10.0,)</version>
+            <version>1.10.0</version>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
@@ -185,7 +185,7 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>6.8</version>
+            <version>7.7.0</version>
             <scope>test</scope>
         </dependency>
         <!-- ehcache 缓存 -->
@@ -203,7 +203,6 @@
         <dependency>
             <groupId>io.dataease</groupId>
             <artifactId>dataease-plugin-interface</artifactId>
-            <version>1.17.0</version>
             <exclusions>
                 <exclusion>
                     <artifactId>guava</artifactId>
@@ -214,12 +213,10 @@
         <dependency>
             <groupId>io.dataease</groupId>
             <artifactId>dataease-plugin-view</artifactId>
-            <version>1.17.0</version>
         </dependency>
         <dependency>
             <groupId>io.dataease</groupId>
             <artifactId>dataease-plugin-datasource</artifactId>
-            <version>1.17.0</version>
         </dependency>
         <!-- kettle及数据源依赖 -->
         <dependency>
@@ -487,22 +484,25 @@
                                 <phase>generate-resources</phase>
                                 <configuration>
                                     <target>
-                                        <move todir="src/main/resources/static">
+
+                                        <copy todir="src/main/resources/static">
                                             <fileset dir="../frontend/dist">
                                                 <exclude name="*.html"/>
                                             </fileset>
-                                        </move>
-                                        <move todir="src/main/resources/templates">
+                                        </copy>
+                                        <copy todir="src/main/resources/templates">
                                             <fileset dir="../frontend/dist">
                                                 <include name="*.html"/>
                                             </fileset>
-                                        </move>
+                                        </copy>
+                                        <!--
                                         <copy todir="src/main/resources/static/de-app">
                                             <fileset dir="../mobile/dist">
                                                 <exclude name="*.html"/>
                                             </fileset>
                                         </copy>
-                                        <copy file="../mobile/dist/index.html" tofile="src/main/resources/templates/app.html"/>
+                                        <copy file="../mobile/dist/index.html"
+                                              tofile="src/main/resources/templates/app.html"/> -->
                                     </target>
                                 </configuration>
                                 <goals>
@@ -526,15 +526,20 @@
         <repository>
             <id>pentaho-public</id>
             <name>Pentaho Public</name>
-            <url>https://nexus.pentaho.org/content/groups/omni</url>
+            <url>https://repo.orl.eng.hitachivantara.com/artifactory/pnt-mvn/</url>
             <releases>
                 <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
+                <updatePolicy>daily</updatePolicy>
             </releases>
             <snapshots>
                 <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
+                <updatePolicy>interval:15</updatePolicy>
             </snapshots>
+        </repository>
+
+        <repository>
+            <id>clojars</id>
+            <url>https://repo.clojars.org/</url>
         </repository>
     </repositories>
 

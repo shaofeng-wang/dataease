@@ -4,7 +4,6 @@ import io.dataease.plugins.common.dto.chart.ChartFieldCompareDTO;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * @Author gin

@@ -3,7 +3,6 @@ package io.dataease.map.service;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ArrayUtil;
 import com.google.gson.Gson;
-
 import io.dataease.plugins.common.base.domain.ChartView;
 import io.dataease.plugins.common.base.domain.ChartViewExample;
 import io.dataease.plugins.common.base.domain.ChartViewWithBLOBs;

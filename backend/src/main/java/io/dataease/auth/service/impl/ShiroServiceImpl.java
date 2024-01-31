@@ -81,7 +81,9 @@ public class ShiroServiceImpl implements ShiroService {
 
 
         filterChainDefinitionMap.put("/api/auth/login", ANON);
+        filterChainDefinitionMap.put("/api/auth/seizeLogin", ANON);
         filterChainDefinitionMap.put("/api/auth/logout", ANON);
+        filterChainDefinitionMap.put("/api/auth/mobileLogin", ANON);
         filterChainDefinitionMap.put("/api/auth/isPluginLoaded", ANON);
         filterChainDefinitionMap.put("/system/requestTimeOut", ANON);
         filterChainDefinitionMap.put("/api/auth/validateName", ANON);
@@ -107,6 +109,7 @@ public class ShiroServiceImpl implements ShiroService {
         filterChainDefinitionMap.put("/plugin/lark/callBack*", ANON);
         filterChainDefinitionMap.put("/plugin/lark/bind*", ANON);
         filterChainDefinitionMap.put("/plugin/lark/getQrParam", ANON);
+        filterChainDefinitionMap.put("/plugin/lark/appId", ANON);
         filterChainDefinitionMap.put("/plugin/larksuite/callBack*", ANON);
         filterChainDefinitionMap.put("/plugin/larksuite/bind*", ANON);
         filterChainDefinitionMap.put("/plugin/larksuite/getQrParam", ANON);
@@ -128,7 +131,7 @@ public class ShiroServiceImpl implements ShiroService {
         filterChainDefinitionMap.put("/panel/group/exportDetails", ANON);
         filterChainDefinitionMap.put("/dataset/field/linkMultFieldValues", "link");
         filterChainDefinitionMap.put("/dataset/field/linkMappingFieldValues", "link");
-        filterChainDefinitionMap.put("/systemInfo/proxyUserLoginInfo/**", ANON);
+        filterChainDefinitionMap.put("/systemInfo/proxyUserLoginInfo", ANON);
 
         filterChainDefinitionMap.put("/**", "authc");
 

@@ -1,6 +1,5 @@
 package io.dataease.commons.condition;
 
-import io.dataease.commons.utils.CommonBeanFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;

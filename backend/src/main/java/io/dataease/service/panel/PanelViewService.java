@@ -1,16 +1,16 @@
 package io.dataease.service.panel;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.dataease.ext.ExtChartViewMapper;
-import io.dataease.ext.ExtPanelGroupMapper;
-import io.dataease.ext.ExtPanelViewMapper;
 import io.dataease.commons.utils.AuthUtils;
 import io.dataease.commons.utils.BeanUtils;
 import io.dataease.dto.panel.PanelViewDto;
 import io.dataease.dto.panel.PanelViewTableDTO;
 import io.dataease.dto.panel.po.PanelViewInsertDTO;
 import io.dataease.dto.panel.po.PanelViewPo;
+import io.dataease.ext.ExtChartViewMapper;
+import io.dataease.ext.ExtPanelViewMapper;
 import io.dataease.plugins.common.base.domain.ChartViewWithBLOBs;
 import io.dataease.plugins.common.base.domain.PanelGroupWithBLOBs;
 import io.dataease.plugins.common.base.domain.PanelView;
@@ -19,7 +19,6 @@ import io.dataease.plugins.common.base.mapper.PanelViewMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.pentaho.di.core.util.UUIDUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;

@@ -6,11 +6,9 @@ import io.dataease.auth.entity.TokenInfo;
 import io.dataease.auth.service.AuthUserService;
 import io.dataease.auth.util.JWTUtils;
 import io.dataease.commons.constants.SysLogConstants;
-import io.dataease.commons.utils.CodingUtil;
 import io.dataease.commons.utils.DeLogUtils;
 import io.dataease.commons.utils.LogUtil;
 import io.dataease.commons.utils.ServletUtils;
-
 import io.dataease.controller.ResultHolder;
 import io.dataease.i18n.Translator;
 import io.dataease.service.sys.SysUserService;

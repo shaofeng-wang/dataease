@@ -2,6 +2,7 @@ package io.dataease.mobile.dto;
 
 
 import lombok.Data;
+
 import java.io.Serializable;
 
 @Data

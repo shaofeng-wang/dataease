@@ -11,9 +11,10 @@ import io.dataease.controller.request.dataset.DataSetTableRequest;
 import io.dataease.controller.request.panel.PanelAppTemplateApplyRequest;
 import io.dataease.controller.request.panel.PanelAppTemplateRequest;
 import io.dataease.controller.request.panel.PanelGroupRequest;
+import io.dataease.dto.DatasourceDTO;
 import io.dataease.ext.ExtPanelAppTemplateMapper;
 import io.dataease.plugins.common.base.domain.*;
-import io.dataease.plugins.common.base.mapper.PanelAppTemplateMapper;
+import io.dataease.plugins.common.base.mapper.*;
 import io.dataease.plugins.common.constants.DatasetType;
 import io.dataease.service.chart.ChartViewFieldService;
 import io.dataease.service.chart.ChartViewService;
@@ -71,6 +72,14 @@ public class PanelAppTemplateService {
     private StaticResourceService staticResourceService;
     @Resource
     private ExtractDataService extractDataService;
+    @Resource
+    private PanelLinkJumpMapper panelLinkJumpMapper;
+    @Resource
+    private PanelLinkJumpInfoMapper panelLinkJumpInfoMapper;
+    @Resource
+    private PanelViewLinkageMapper panelViewLinkageMapper;
+    @Resource
+    private PanelViewLinkageFieldMapper panelViewLinkageFieldMapper;
 
     public List<PanelAppTemplateWithBLOBs> list(PanelAppTemplateRequest request) {
         return extPanelAppTemplateMapper.queryBaseInfo(request.getNodeType(), request.getPid());
@@ -102,8 +111,8 @@ public class PanelAppTemplateService {
         PanelAppTemplateWithBLOBs requestTemplate = new PanelAppTemplateWithBLOBs();
         BeanUtils.copyBean(requestTemplate, request);
         //Store static resource into the server
-        if (StringUtils.isNotEmpty(request.getSnapshot())) {
-            String snapshotName = "app-template-" + request.getId() + ".jpeg";
+        if (StringUtils.isNotEmpty(request.getSnapshot()) && request.getSnapshot().indexOf("static-resource") == -1) {
+            String snapshotName = "app-template-" + UUIDUtil.getUUIDAsString() + ".jpeg";
             staticResourceService.saveSingleFileToServe(snapshotName, request.getSnapshot().replace("data:image/jpeg;base64,", ""));
             requestTemplate.setSnapshot("/" + UPLOAD_URL_PREFIX + '/' + snapshotName);
         }
@@ -117,6 +126,16 @@ public class PanelAppTemplateService {
     public String nameCheck(PanelAppTemplateRequest request) {
         return nameCheck(request.getOptType(), request.getName(), request.getPid(), request.getId());
 
+    }
+
+    public void move(PanelAppTemplateRequest request) {
+        if (!CommonConstants.CHECK_RESULT.NONE.equals(nameCheck(CommonConstants.OPT_TYPE.INSERT, request.getName(), request.getPid(), request.getId()))) {
+            throw new RuntimeException("当前名称在目标分类中已经存在！请选择其他分类或修改名称");
+        }
+        PanelAppTemplateWithBLOBs appTemplate = new PanelAppTemplateWithBLOBs();
+        appTemplate.setId(request.getId());
+        appTemplate.setPid(request.getPid());
+        panelAppTemplateMapper.updateByPrimaryKeySelective(appTemplate);
     }
 
     //名称检查
@@ -137,13 +156,18 @@ public class PanelAppTemplateService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public Map<String, String> applyDatasource(List<Datasource> oldDatasourceList, List<Datasource> newDatasourceList) throws Exception {
+    public Map<String, String> applyDatasource(List<Datasource> oldDatasourceList, PanelAppTemplateApplyRequest request) throws Exception {
         Map<String, String> datasourceRealMap = new HashMap<>();
-        for (int i = 0; i < newDatasourceList.size(); i++) {
-            Datasource datasource = newDatasourceList.get(0);
-            datasource.setId(null);
-            Datasource newDatasource = datasourceService.addDatasource(datasource);
-            datasourceRealMap.put(oldDatasourceList.get(i).getId(), newDatasource.getId());
+        if (PanelConstants.APP_DATASOURCE_FROM.HISTORY.equals(request.getDatasourceFrom())) {
+            datasourceRealMap.put(oldDatasourceList.get(0).getId(), request.getDatasourceHistoryId());
+        } else {
+            List<DatasourceDTO> newDatasourceList = request.getDatasourceList();
+            for (int i = 0; i < newDatasourceList.size(); i++) {
+                DatasourceDTO datasource = newDatasourceList.get(0);
+                datasource.setId(null);
+                Datasource newDatasource = datasourceService.addDatasource(datasource);
+                datasourceRealMap.put(oldDatasourceList.get(i).getId(), newDatasource.getId());
+            }
         }
         return datasourceRealMap;
     }
@@ -347,7 +371,7 @@ public class PanelAppTemplateService {
                 //替换datasetId
                 chartViewField.setTableId(datasetsRealMap.get(chartViewField.getTableId()));
                 //替换chartViewId
-                chartViewField.setChartId(chartViewsRealMap.get(chartViewField.getId()));
+                chartViewField.setChartId(chartViewsRealMap.get(chartViewField.getChartId()));
                 //替换datasetFieldId
                 datasetFieldsRealMap.forEach((k, v) -> {
                     chartViewField.setOriginName(chartViewField.getOriginName().replaceAll(k, v));
@@ -366,29 +390,96 @@ public class PanelAppTemplateService {
             datasetGroup.setPid(request.getDatasetGroupPid());
             datasetGroup.setName(request.getDatasetGroupName());
             dataSetGroupService.checkName(datasetGroup);
-            request.getDatasourceList().stream().forEach(datasource -> {
-                datasourceService.checkName(datasource.getName(), datasource.getType(), null);
-            });
+            if (PanelConstants.APP_DATASOURCE_FROM.NEW.equals(request.getDatasourceFrom())) {
+                request.getDatasourceList().stream().forEach(datasource -> {
+                    datasourceService.checkName(datasource.getName(), datasource.getType(), null);
+                });
+            }
         } else {
             DatasetGroup datasetGroup = new DatasetGroup();
             datasetGroup.setPid(request.getDatasetGroupPid());
             datasetGroup.setName(request.getDatasetGroupName());
             datasetGroup.setId(request.getDatasetGroupId());
             dataSetGroupService.checkName(datasetGroup);
-            request.getDatasourceList().stream().forEach(datasource -> {
-                datasourceService.checkName(datasource.getName(), datasource.getType(), datasource.getId());
-            });
+            if (PanelConstants.APP_DATASOURCE_FROM.NEW.equals(request.getDatasourceFrom())) {
+                request.getDatasourceList().stream().forEach(datasource -> {
+                    datasourceService.checkName(datasource.getName(), datasource.getType(), datasource.getId());
+                });
+            }
         }
 
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void editDatasource(List<Datasource> updateDatasourceList) throws Exception {
+    public void editDatasource(List<DatasourceDTO> updateDatasourceList) throws Exception {
         for (int i = 0; i < updateDatasourceList.size(); i++) {
             UpdataDsRequest updataDsRequest = new UpdataDsRequest();
             BeanUtils.copyBean(updataDsRequest, updateDatasourceList.get(i));
             datasourceService.updateDatasource(updataDsRequest);
 
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Map<String,String> applyLinkJumps(List<PanelLinkJump> linkJumps, Map<String, String> chartViewsRealMap, String newPanelId) {
+        Map<String,String> linkJumpIdMap = new HashMap<>();
+        if(!CollectionUtils.isEmpty(linkJumps)){
+            for(PanelLinkJump linkJump :linkJumps){
+                String newLinkJumpId = UUIDUtil.getUUIDAsString();
+                linkJumpIdMap.put(linkJump.getId(),newLinkJumpId);
+                linkJump.setId(newLinkJumpId);
+                linkJump.setSourcePanelId(newPanelId);
+                linkJump.setSourceViewId(chartViewsRealMap.get(linkJump.getSourceViewId()));
+                panelLinkJumpMapper.insertSelective(linkJump);
+            }
+        }
+        return linkJumpIdMap;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void applyLinkJumpInfos(List<PanelLinkJumpInfo> linkJumpInfos, Map<String, String> linkJumpIdMap, Map<String, String> datasetFieldsRealMap) {
+        if(!CollectionUtils.isEmpty(linkJumpInfos)){
+            for(PanelLinkJumpInfo linkJumpInfo :linkJumpInfos){
+                String newLinkJumpInfoId = UUIDUtil.getUUIDAsString();
+                linkJumpInfo.setId(newLinkJumpInfoId);
+                linkJumpInfo.setLinkJumpId(linkJumpIdMap.get(linkJumpInfo.getLinkJumpId()));
+                linkJumpInfo.setSourceFieldId(datasetFieldsRealMap.get(linkJumpInfo.getSourceFieldId()));
+                datasetFieldsRealMap.forEach((k, v) -> {
+                    linkJumpInfo.setContent(linkJumpInfo.getContent().replaceAll(k, v));
+                });
+                panelLinkJumpInfoMapper.insertSelective(linkJumpInfo);
+            }
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Map<String,String> applyLinkages(List<PanelViewLinkage> linkages, Map<String, String> chartViewsRealMap, String newPanelId) {
+        Map<String,String> linkageIdMap = new HashMap<>();
+        if(!CollectionUtils.isEmpty(linkages)){
+            for(PanelViewLinkage linkage :linkages){
+                String newId = UUIDUtil.getUUIDAsString();
+                linkageIdMap.put(linkage.getId(),newId);
+                linkage.setId(newId);
+                linkage.setPanelId(newPanelId);
+                linkage.setSourceViewId(chartViewsRealMap.get(linkage.getSourceViewId()));
+                linkage.setTargetViewId(chartViewsRealMap.get(linkage.getTargetViewId()));
+                panelViewLinkageMapper.insertSelective(linkage);
+            }
+        }
+        return linkageIdMap;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void applyLinkageFields(List<PanelViewLinkageField> linkageFields, Map<String, String> linkageIdMap, Map<String, String> datasetFieldsRealMap) {
+        if(!CollectionUtils.isEmpty(linkageFields)){
+            for(PanelViewLinkageField linkageField :linkageFields){
+                String newId = UUIDUtil.getUUIDAsString();
+                linkageField.setId(newId);
+                linkageField.setLinkageId(linkageIdMap.get(linkageField.getLinkageId()));
+                linkageField.setSourceField(datasetFieldsRealMap.get(linkageField.getSourceField()));
+                linkageField.setTargetField(datasetFieldsRealMap.get(linkageField.getTargetField()));
+                panelViewLinkageFieldMapper.insertSelective(linkageField);
+            }
         }
     }
 }

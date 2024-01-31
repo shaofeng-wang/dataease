@@ -128,7 +128,7 @@
                 />
                 <ul
                   class="infinite-list autochecker-list"
-                  style="overflow: auto"
+                  style="overflow: auto;height: 231px"
                 >
                   <li
                     v-for="i in checkListWithFilter"
@@ -218,7 +218,7 @@
                 </ul>
                 <div class="right-menu-foot">
                   <div class="footer-left">
-                    {{ $t("auth.added") }} {{ checklist.length }}
+                    &nbsp;
                   </div>
                   <div
                     class="confirm-btn"
@@ -626,6 +626,8 @@ export default {
 <style lang="scss">
 .de-el-dropdown-menu {
   .dimension {
+    max-height: 200px;
+    overflow-y: auto;
     padding: 0;
     li {
       font-family: Alibaba-PuHuiTi-Regular, Helvetica Neue, Helvetica, Arial,

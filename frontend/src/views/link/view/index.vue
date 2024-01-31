@@ -77,7 +77,7 @@ export default {
       })
     },
     setPanelInfo() {
-      loadResource(this.resourceId).then(res => {
+      loadResource(this.resourceId,this.user).then(res => {
         this.show = false
         let loadingCount = 0
         const watermarkInfo = {
@@ -151,6 +151,9 @@ export default {
               sourceViewId: jumpParam.sourceViewId,
               sourceFieldId: jumpParam.sourceFieldId,
               targetPanelId: this.resourceId
+            }
+            if (jumpParam.sourceType && jumpParam.sourceType === 'table-pivot') {
+              jumpRequestParam.sourceFieldId = null
             }
             // 刷新跳转目标仪表板联动信息
             queryTargetPanelJumpInfo(jumpRequestParam).then(rsp => {

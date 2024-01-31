@@ -1,12 +1,14 @@
 package io.dataease.listener;
 
-import io.dataease.service.datasource.DatasourceService;
+import io.dataease.listener.util.CacheUtils;
 import io.dataease.service.dataset.DataSetTableService;
+import io.dataease.service.datasource.DatasourceService;
 import io.dataease.service.engine.EngineService;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+
 import javax.annotation.Resource;
 
 @Component
@@ -25,7 +27,8 @@ public class DataSourceInitStartListener implements ApplicationListener<Applicat
         datasourceService.initDsCheckJob();
         dataSetTableService.updateDatasetTableStatus();
         engineService.initSimpleEngine();
-
+        datasourceService.updateDemoDs();
+        CacheUtils.removeAll("ENGINE");
     }
 
 

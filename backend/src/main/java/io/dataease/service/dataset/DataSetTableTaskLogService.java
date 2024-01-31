@@ -1,20 +1,18 @@
 package io.dataease.service.dataset;
 
 import cn.hutool.core.date.DateUtil;
-import io.dataease.commons.constants.SysLogConstants;
-import io.dataease.commons.utils.ServletUtils;
-import io.dataease.exception.DataEaseException;
-import io.dataease.ext.ExtDataSetTaskMapper;
-import io.dataease.ext.query.GridExample;
 import io.dataease.commons.utils.AuthUtils;
+import io.dataease.commons.utils.ServletUtils;
 import io.dataease.controller.sys.base.BaseGridRequest;
 import io.dataease.controller.sys.base.ConditionEntity;
 import io.dataease.dto.dataset.DataSetTaskDTO;
 import io.dataease.dto.dataset.DataSetTaskLogDTO;
+import io.dataease.exception.DataEaseException;
+import io.dataease.ext.ExtDataSetTaskMapper;
+import io.dataease.ext.query.GridExample;
 import io.dataease.i18n.Translator;
 import io.dataease.plugins.common.base.domain.DatasetTableTaskLog;
 import io.dataease.plugins.common.base.domain.DatasetTableTaskLogExample;
-import io.dataease.plugins.common.base.domain.SysLogWithBLOBs;
 import io.dataease.plugins.common.base.mapper.DatasetTableTaskLogMapper;
 import io.dataease.plugins.common.base.mapper.DatasetTableTaskMapper;
 import org.apache.commons.collections4.CollectionUtils;
@@ -80,7 +78,7 @@ public class DataSetTableTaskLogService {
                 row[0] = item.getName();
                 row[1] = item.getDatasetName();
                 row[2] = DateUtil.formatDateTime(new Date(item.getStartTime()));
-                row[3] = DateUtil.formatDateTime(new Date(item.getEndTime()));
+                row[3] = item.getEndTime() != null ? DateUtil.formatDateTime(new Date(item.getEndTime())) : "";
                 row[4] = Translator.get("I18N_TASK_LOG_" + item.getStatus().toUpperCase()) ;
                 return row;
             }).collect(Collectors.toList());
@@ -156,6 +154,12 @@ public class DataSetTableTaskLogService {
         entity2.setOperator("eq");
         entity2.setValue("1");
         conditionEntities.add(entity2);
+        conditionEntities = conditionEntities.stream().map(conditionEntity -> {
+            if(conditionEntity.getField().equals("dataset_table_task.last_exec_status")){
+                conditionEntity.setField("dataset_table_task_log.status");
+            }
+            return conditionEntity;
+        }).collect(Collectors.toList());
         request.setConditions(conditionEntities);
 
         GridExample gridExample = request.convertExample();

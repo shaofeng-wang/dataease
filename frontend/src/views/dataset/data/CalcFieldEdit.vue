@@ -236,24 +236,30 @@
           clearable
         />
         <el-row class="function-height">
-          <el-popover
-            v-for="(item, index) in functionData"
-            :key="index"
-            class="function-pop"
-            placement="right"
-            width="200"
-            trigger="hover"
-            :open-delay="500"
-          >
-            <p class="pop-title">{{ item.name }}</p>
-            <p class="pop-info">{{ item.func }}</p>
-            <p class="pop-info">{{ item.desc }}</p>
-            <span
-              slot="reference"
-              class="function-style"
-              @click="insertParamToCodeMirror(item.func)"
-            >{{ item.func }}</span>
-          </el-popover>
+          <div v-if="functionData && functionData.length > 0">
+            <el-popover
+              v-for="(item, index) in functionData"
+              :key="index"
+              class="function-pop"
+              placement="right"
+              width="200"
+              trigger="hover"
+              :open-delay="500"
+            >
+              <p class="pop-title">{{ item.name }}</p>
+              <p class="pop-info">{{ item.func }}</p>
+              <p class="pop-info">{{ item.desc }}</p>
+              <span
+                slot="reference"
+                class="function-style"
+                @click="insertParamToCodeMirror(item.func)"
+              >{{ item.func }}</span>
+            </el-popover>
+          </div>
+          <div
+            v-else
+            class="class-na"
+          >{{ $t('chart.no_function') }}</div>
         </el-row>
       </div>
     </div>
@@ -543,7 +549,7 @@ export default {
           if (name2Auto) {
             name2Auto.push(nameIdMap[ele])
           }
-          name2Id = name2Id.replace(ele, nameIdMap[ele])
+          name2Id = name2Id.replace(`[${ele}]`, `[${nameIdMap[ele]}]`)
         })
       }
       return name2Id

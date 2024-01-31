@@ -4,7 +4,10 @@
     :style="bg_class"
     style="padding: 8px;width: 100%;height: 100%;overflow: hidden;"
   >
-    <el-row style="height: 100%;">
+    <el-row
+      style="height: 100%;"
+      :style="cssVars"
+    >
       <p
         v-show="title_show"
         ref="title"
@@ -21,6 +24,7 @@
         :row-style="getRowStyle"
         class="table-class"
         :class="chart.id"
+        :merge-cells="mergeCells"
         :show-summary="showSummary"
         :summary-method="summaryMethod"
         :index-config="{seqMethod}"
@@ -32,12 +36,20 @@
         <ux-table-column
           v-for="field in fields"
           :key="field.name"
-          :field="field.dataeaseName"
+          :field="field.child ? '' : field.dataeaseName"
           :resizable="true"
-          sortable
+          :sortable="(!mergeCells || !mergeCells.length) && (!field.child || !field.child.length)"
           :title="field.name"
           :width="columnWidth"
-        />
+        >
+          <ux-table-column
+            v-for="item in field.child"
+            :key="field.name + item.name"
+            :field="item.dataeaseName"
+            :title="item.name"
+            :width="columnWidth"
+          />
+        </ux-table-column>
       </ux-grid>
 
       <el-row
@@ -84,10 +96,9 @@
 <script>
 import { hexColorToRGBA } from '../../chart/util'
 import eventBus from '@/components/canvas/utils/eventBus'
-import { DEFAULT_COLOR_CASE, DEFAULT_SIZE, NOT_SUPPORT_PAGE_DATASET } from '@/views/chart/chart/chart'
+import { DEFAULT_COLOR_CASE, DEFAULT_SCROLL, DEFAULT_SIZE, NOT_SUPPORT_PAGE_DATASET } from '@/views/chart/chart/chart'
 import { mapState } from 'vuex'
 import DePagination from '@/components/deCustomCm/pagination.js'
-
 export default {
   name: 'TableNormal',
   components: { DePagination },
@@ -117,6 +128,7 @@ export default {
   data() {
     return {
       fields: [],
+      detailFields: [],
       height: 'auto',
       title_class: {
         margin: '0 0',
@@ -167,7 +179,14 @@ export default {
       totalStyle: {
         color: '#606266'
       },
-      not_support_page_dataset: NOT_SUPPORT_PAGE_DATASET
+      not_support_page_dataset: NOT_SUPPORT_PAGE_DATASET,
+      mergeCells: [],
+      cssStyleParams: {
+        borderColor: DEFAULT_COLOR_CASE.tableBorderColor,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap'
+      }
     }
   },
   computed: {
@@ -197,7 +216,16 @@ export default {
     },
     ...mapState([
       'previewCanvasScale'
-    ])
+    ]),
+    cssVars() {
+      return {
+        '--color': this.cssStyleParams.borderColor,
+        '--overflow': this.cssStyleParams.overflow,
+        '--text-overflow': this.cssStyleParams.textOverflow,
+        '--white-space': this.cssStyleParams.whiteSpace
+      }
+    }
+
   },
   watch: {
     chart: function() {
@@ -235,7 +263,15 @@ export default {
       let data = []
       this.showPage = false
       if (this.chart.data) {
-        this.fields = JSON.parse(JSON.stringify(this.chart.data.fields))
+        const fields = JSON.parse(JSON.stringify(this.chart.data.fields))
+        if (this.chart.data.detailFields) {
+          fields.forEach(field => {
+            if (field.id === 'DataEase-Detail' && field.dataeaseName === 'detail') {
+              field.child = JSON.parse(JSON.stringify(this.chart.data.detailFields))
+            }
+          })
+        }
+        this.fields = fields
         const attr = JSON.parse(this.chart.customAttr)
         this.currentPage.pageSize = parseInt(attr.size.tablePageSize ? attr.size.tablePageSize : 20)
 
@@ -269,13 +305,38 @@ export default {
         data = []
         this.resetPage()
       }
-      data.forEach(item => {
-        Object.keys(item).forEach(key => {
-          if (typeof item[key] === 'object') {
-            item[key] = ''
+      if (this.chart.data.detailFields?.length) {
+        let result = []
+        let groupRowIndex = 0
+        data.forEach(item => {
+          const baseObj = JSON.parse(JSON.stringify(item))
+          delete baseObj.details
+
+          const details = JSON.parse(JSON.stringify(item.details))
+          let colsIndex = this.fields.length - 1
+          while (colsIndex--) {
+            const mergeItem = {
+              row: groupRowIndex,
+              col: colsIndex,
+              rowspan: details.length,
+              colspan: 1
+            }
+            this.mergeCells.push(mergeItem)
           }
+          groupRowIndex += details.length
+          result = result.concat(details.map(detail => Object.assign(detail, baseObj)))
         })
-      })
+        data = result
+      } else {
+        data.forEach(item => {
+          Object.keys(item).forEach(key => {
+            if (typeof item[key] === 'object') {
+              item[key] = ''
+            }
+          })
+        })
+      }
+
       this.$refs.plxTable.reloadData(data)
       this.$nextTick(() => {
         this.initStyle()
@@ -285,6 +346,7 @@ export default {
     calcHeightRightNow() {
       this.$nextTick(() => {
         if (this.$refs.tableContainer) {
+          const attr = JSON.parse(this.chart.customAttr)
           let pageHeight = 0
           if (this.showPage) {
             pageHeight = 36
@@ -294,17 +356,32 @@ export default {
           let tableHeight
           if (this.chart.data) {
             if (this.chart.type === 'table-info') {
-              tableHeight = (this.currentPage.pageSize + 2) * 36 - pageHeight
+              if (this.showPage) {
+                tableHeight = this.currentPage.pageSize * attr.size.tableItemHeight + attr.size.tableTitleHeight
+              } else {
+                tableHeight = this.chart.data.tableRow.length * attr.size.tableItemHeight + attr.size.tableTitleHeight
+              }
+            } else if (this.chart.data.detailFields?.length) {
+              let rowLength = 0
+              this.chart.data.tableRow.forEach(row => {
+                rowLength += (row?.details?.length || 1)
+              })
+              tableHeight = rowLength * attr.size.tableItemHeight + 2 * attr.size.tableTitleHeight
             } else {
-              tableHeight = (this.chart.data.tableRow.length + 2) * 36 - pageHeight
+              tableHeight = this.chart.data.tableRow.length * attr.size.tableItemHeight + 2 * attr.size.tableTitleHeight
             }
           } else {
             tableHeight = 0
           }
-          if (tableHeight > tableMaxHeight) {
+          const breakLine = attr.size.tableAutoBreakLine ? attr.size.tableAutoBreakLine : DEFAULT_SIZE.tableAutoBreakLine
+          if (breakLine) {
             this.height = tableMaxHeight + 'px'
           } else {
-            this.height = 'auto'
+            if (tableHeight > tableMaxHeight) {
+              this.height = tableMaxHeight + 'px'
+            } else {
+              this.height = 'auto'
+            }
           }
 
           if (this.enableScroll) {
@@ -329,6 +406,7 @@ export default {
           this.table_item_class.color = customAttr.color.tableFontColor
           this.table_item_class.background = hexColorToRGBA(customAttr.color.tableItemBgColor, customAttr.color.alpha)
           this.scrollBarColor = customAttr.color.tableScrollBarColor ? customAttr.color.tableScrollBarColor : DEFAULT_COLOR_CASE.tableScrollBarColor
+          this.cssStyleParams.borderColor = customAttr.color.tableBorderColor ? customAttr.color.tableBorderColor : DEFAULT_COLOR_CASE.tableBorderColor
         }
         if (customAttr.size) {
           this.table_header_class.fontSize = customAttr.size.tableTitleFontSize + 'px'
@@ -349,6 +427,17 @@ export default {
             this.indexLabel = ' '
           } else {
             this.indexLabel = customAttr.size.indexLabel
+          }
+
+          const autoBreakLine = customAttr.size.tableAutoBreakLine ? customAttr.size.tableAutoBreakLine : DEFAULT_SIZE.tableAutoBreakLine
+          if (autoBreakLine) {
+            this.cssStyleParams.overflow = 'hidden'
+            this.cssStyleParams.textOverflow = 'auto'
+            this.cssStyleParams.whiteSpace = 'normal'
+          } else {
+            this.cssStyleParams.overflow = 'hidden'
+            this.cssStyleParams.textOverflow = 'ellipsis'
+            this.cssStyleParams.whiteSpace = 'nowrap'
           }
         }
         this.table_item_class_stripe = JSON.parse(JSON.stringify(this.table_item_class))
@@ -502,8 +591,18 @@ export default {
         if (rowHeight < 36) {
           rowHeight = 36
         }
+
+        const attr = JSON.parse(this.chart.customAttr)
+        const breakLine = attr.size.tableAutoBreakLine ? attr.size.tableAutoBreakLine : DEFAULT_SIZE.tableAutoBreakLine
+
         this.scrollTimer = setInterval(() => {
-          const top = rowHeight * senior.scrollCfg.row
+          let top = 0
+          if (breakLine) {
+            top = senior.scrollCfg.step ? senior.scrollCfg.step : DEFAULT_SCROLL.step
+          } else {
+            top = rowHeight * senior.scrollCfg.row
+          }
+
           if (scrollContainer.clientHeight + scrollContainer.scrollTop < scrollContainer.scrollHeight) {
             this.scrollTop += top
           } else {
@@ -578,4 +677,32 @@ export default {
 .table-class{
   scrollbar-color: var(--scroll-bar-color) transparent;
 }
+
+.table-class {
+  ::v-deep .elx-table.border--full .elx-body--column,
+  ::v-deep .elx-table.border--full .elx-footer--column,
+  ::v-deep .elx-table.border--full .elx-header--column {
+    background-image: linear-gradient(var(--color, #e8eaec), var(--color, #e8eaec)), linear-gradient(var(--color, #e8eaec), var(--color, #e8eaec)) !important;
+  }
+  ::v-deep .elx-table--border-line {
+    border: 1px solid var(--color, #e8eaec) !important;
+  }
+  ::v-deep .elx-table .elx-table--header-wrapper .elx-table--header-border-line {
+    border-bottom: 1px solid var(--color, #e8eaec) !important;
+  }
+  ::v-deep .elx-table .elx-table--footer-wrapper {
+    border-top: 1px solid var(--color, #e8eaec) !important;
+  }
+  ::v-deep .elx-checkbox .elx-checkbox--label,
+  ::v-deep .elx-radio .elx-radio--label,
+  ::v-deep .elx-radio-button .elx-radio--label,
+  ::v-deep .elx-table .elx-body--column.col--ellipsis:not(.col--actived) > .elx-cell,
+  ::v-deep .elx-table .elx-footer--column.col--ellipsis:not(.col--actived) > .elx-cell,
+  ::v-deep .elx-table .elx-header--column.col--ellipsis:not(.col--actived) > .elx-cell{
+    overflow: var(--overflow, 'hidden');
+    text-overflow: var(--text-overflow, 'ellipsis');
+    white-space: var(--white-space, 'nowrap');
+  }
+}
+
 </style>

@@ -1,12 +1,12 @@
 package io.dataease.service.panel;
 
-import io.dataease.ext.ExtPanelTemplateMapper;
 import io.dataease.commons.constants.CommonConstants;
 import io.dataease.commons.utils.AuthUtils;
 import io.dataease.commons.utils.BeanUtils;
 import io.dataease.controller.request.panel.PanelTemplateRequest;
 import io.dataease.dto.panel.PanelTemplateDTO;
 import io.dataease.exception.DataEaseException;
+import io.dataease.ext.ExtPanelTemplateMapper;
 import io.dataease.i18n.Translator;
 import io.dataease.plugins.common.base.domain.PanelTemplate;
 import io.dataease.plugins.common.base.domain.PanelTemplateExample;

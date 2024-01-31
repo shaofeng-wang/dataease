@@ -807,6 +807,16 @@ public class RedshiftQueryProvider extends QueryProvider {
         return tmpSql;
     }
 
+    public String getTotalCount(boolean isTable, String sql, Datasource ds) {
+        if(isTable){
+            String schema = new Gson().fromJson(ds.getConfiguration(), JdbcConfiguration.class).getSchema();
+            String tableWithSchema = String.format(SqlServerSQLConstants.KEYWORD_TABLE, schema) + "." + String.format(SqlServerSQLConstants.KEYWORD_TABLE, sql);
+            return "SELECT COUNT(*) from " + String.format(ImpalaConstants.KEYWORD_TABLE, tableWithSchema);
+        }else {
+            return "SELECT COUNT(*) from ( " + sqlFix(sql) + " ) DE_COUNT_TEMP";
+        }
+    }
+
     @Override
     public String createRawQuerySQL(String table, List<DatasetTableField> fields, Datasource ds) {
         String[] array = fields.stream().map(f -> {
@@ -816,16 +826,16 @@ public class RedshiftQueryProvider extends QueryProvider {
         }).toArray(String[]::new);
         if (ds != null) {
             String schema = new Gson().fromJson(ds.getConfiguration(), JdbcConfiguration.class).getSchema();
-            String tableWithSchema = String.format(SqlServerSQLConstants.KEYWORD_TABLE, schema) + "." + String.format(SqlServerSQLConstants.KEYWORD_TABLE, table);
-            return MessageFormat.format("SELECT {0} FROM {1}  ", StringUtils.join(array, ","), tableWithSchema);
+            String tableWithSchema = String.format(RedshiftConstants.KEYWORD_TABLE, schema) + "." + String.format(RedshiftConstants.KEYWORD_TABLE, table);
+            return MessageFormat.format("SELECT {0} FROM {1}  LIMIT DE_PAGE_SIZE OFFSET DE_OFFSET ", StringUtils.join(array, ","), tableWithSchema);
         } else {
-            return MessageFormat.format("SELECT {0} FROM {1}  ", StringUtils.join(array, ","), table);
+            return MessageFormat.format("SELECT {0} FROM {1}  LIMIT DE_PAGE_SIZE OFFSET DE_OFFSET ", StringUtils.join(array, ","), table);
         }
     }
 
     @Override
     public String createRawQuerySQLAsTmp(String sql, List<DatasetTableField> fields) {
-        return createRawQuerySQL(" (" + sqlFix(sql) + ") AS tmp ", fields, null);
+        return createRawQuerySQL(" (" + sqlFix(sql) + ") AS DE_TEMP  ", fields, null);
     }
 
     @Override
@@ -1057,15 +1067,30 @@ public class RedshiftQueryProvider extends QueryProvider {
                 }
 
                 if (field.getDeType() == 1) {
+                    String format = transDateFormat(request.getDateStyle(), request.getDatePattern());
                     if (field.getDeExtractType() == 0 || field.getDeExtractType() == 5) {
-                        whereName = String.format(PgConstants.STR_TO_DATE, originName, StringUtils.isNotEmpty(field.getDateFormat()) ? field.getDateFormat() : PgConstants.DEFAULT_DATE_FORMAT);
+                        String timestamp = String.format(PgConstants.STR_TO_DATE, originName,  StringUtils.isNotEmpty(field.getDateFormat()) ? field.getDateFormat() : PgConstants.DEFAULT_DATE_FORMAT);
+                        if(request.getOperator().equals("between")){
+                            whereName = timestamp;
+                        }else {
+                            whereName = String.format(PgConstants.DATE_FORMAT, timestamp, format);
+                        }
                     }
                     if (field.getDeExtractType() == 2 || field.getDeExtractType() == 3 || field.getDeExtractType() == 4) {
                         String cast = String.format(PgConstants.CAST, originName, "bigint");
-                        whereName = String.format(PgConstants.FROM_UNIXTIME, cast);
+                        String timestamp = String.format(PgConstants.FROM_UNIXTIME, cast);
+                        if(request.getOperator().equals("between")){
+                            whereName = timestamp;
+                        }else {
+                            whereName = String.format(PgConstants.DATE_FORMAT, timestamp, format);
+                        }
                     }
                     if (field.getDeExtractType() == 1) {
-                        whereName = originName;
+                        if(request.getOperator().equals("between")){
+                            whereName = originName;
+                        }else {
+                            whereName = String.format(PgConstants.DATE_FORMAT, originName, format);
+                        }
                     }
                 } else if (field.getDeType() == 2 || field.getDeType() == 3) {
                     if (field.getDeExtractType() == 0 || field.getDeExtractType() == 5) {
@@ -1095,7 +1120,9 @@ public class RedshiftQueryProvider extends QueryProvider {
             if (StringUtils.containsIgnoreCase(request.getOperator(), "in")) {
                 whereValue = "('" + StringUtils.join(value, "','") + "')";
             } else if (StringUtils.containsIgnoreCase(request.getOperator(), "like")) {
-                whereValue = "'%" + value.get(0) + "%'";
+                String keyword = value.get(0).toUpperCase();
+                whereValue = "'%" + keyword + "%'";
+                whereName = "upper(" + whereName + ")";
             } else if (StringUtils.containsIgnoreCase(request.getOperator(), "between")) {
                 if (request.getDatasetTableField().getDeType() == 1) {
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");

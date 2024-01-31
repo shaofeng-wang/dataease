@@ -2,7 +2,6 @@ package io.dataease.controller.request.chart;
 
 import lombok.Data;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**

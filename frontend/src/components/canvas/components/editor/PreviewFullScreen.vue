@@ -17,7 +17,6 @@
 </template>
 
 <script>
-
 import Preview from './Preview'
 import bus from '@/utils/bus'
 import { mapState } from 'vuex'

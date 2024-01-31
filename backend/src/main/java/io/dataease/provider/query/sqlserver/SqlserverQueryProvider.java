@@ -1,7 +1,6 @@
 package io.dataease.provider.query.sqlserver;
 
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import io.dataease.plugins.common.base.domain.ChartViewWithBLOBs;
 import io.dataease.plugins.common.base.domain.DatasetTableField;
@@ -54,6 +53,7 @@ public class SqlserverQueryProvider extends QueryProvider {
             case "NCHAR":
             case "NTEXT":
             case "VARCHAR":
+            case "NVARCHAR":
             case "TEXT":
             case "TINYTEXT":
             case "MEDIUMTEXT":
@@ -898,11 +898,21 @@ public class SqlserverQueryProvider extends QueryProvider {
             } else if (StringUtils.equalsIgnoreCase(item.getTerm(), "not_empty")) {
                 whereValue = "''";
             } else if (StringUtils.containsIgnoreCase(item.getTerm(), "in") || StringUtils.containsIgnoreCase(item.getTerm(), "not in")) {
-                whereValue = "('" + String.join("','", value.split(",")) + "')";
+                if(field.getType().equalsIgnoreCase("NVARCHAR")){
+                    whereValue ="(" + Arrays.asList(value.split(",")).stream().map(str -> {
+                        return "N" + "'" + str + "'";
+                    }).collect(Collectors.joining(",")) + ")";
+                }else {
+                    whereValue = "('" + String.join("','", value.split(",")) + "')";
+                }
             } else if (StringUtils.containsIgnoreCase(item.getTerm(), "like")) {
                 whereValue = "'%" + value + "%'";
             } else {
-                whereValue = String.format(SqlServerSQLConstants.WHERE_VALUE_VALUE, value);
+                if(field.getType().equalsIgnoreCase("NVARCHAR")){
+                    whereValue = String.format(SqlServerSQLConstants.WHERE_VALUE_VALUE_CH, value);
+                }else {
+                    whereValue = String.format(SqlServerSQLConstants.WHERE_VALUE_VALUE, value);
+                }
             }
             SQLObj build = SQLObj.builder()
                     .whereField(whereName)
@@ -1025,11 +1035,21 @@ public class SqlserverQueryProvider extends QueryProvider {
                     } else if (StringUtils.equalsIgnoreCase(filterItemDTO.getTerm(), "not_empty")) {
                         whereValue = "''";
                     } else if (StringUtils.containsIgnoreCase(filterItemDTO.getTerm(), "in") || StringUtils.containsIgnoreCase(filterItemDTO.getTerm(), "not in")) {
-                        whereValue = "('" + String.join("','", value.split(",")) + "')";
+                        if(field.getType().equalsIgnoreCase("NVARCHAR")) {
+                            whereValue =  "(" + Arrays.asList(value.split(",")).stream().map(str -> {
+                                return "N" + "'" + str + "'";
+                            }).collect(Collectors.joining(",")) + ")";
+                        }else {
+                            whereValue = "('" + String.join("','", value.split(",")) + "')";
+                        }
                     } else if (StringUtils.containsIgnoreCase(filterItemDTO.getTerm(), "like")) {
                         whereValue = "'%" + value + "%'";
                     } else {
-                        whereValue = String.format(SqlServerSQLConstants.WHERE_VALUE_VALUE, value);
+                        if(field.getType().equalsIgnoreCase("NVARCHAR")){
+                            whereValue = String.format(SqlServerSQLConstants.WHERE_VALUE_VALUE_CH, value);
+                        }else {
+                            whereValue = String.format(SqlServerSQLConstants.WHERE_VALUE_VALUE, value);
+                        }
                     }
                     list.add(SQLObj.builder()
                             .whereField(whereName)
@@ -1081,14 +1101,27 @@ public class SqlserverQueryProvider extends QueryProvider {
 
                 if (field.getDeType() == 1) {
                     if (field.getDeExtractType() == 0 || field.getDeExtractType() == 5) {
-                        whereName = String.format(SqlServerSQLConstants.STRING_TO_DATE, originName, StringUtils.isNotEmpty(field.getDateFormat()) ? field.getDateFormat() : SqlServerSQLConstants.DEFAULT_DATE_FORMAT);
+                        if (!StringUtils.containsIgnoreCase(request.getOperator(), "between")) {
+                            whereName = transDateFormat(request.getDateStyle(), request.getDatePattern(), String.format(SqlServerSQLConstants.STRING_TO_DATE, originName, StringUtils.isNotEmpty(field.getDateFormat()) ? field.getDateFormat() : SqlServerSQLConstants.DEFAULT_DATE_FORMAT));
+                        }else {
+                            whereName = String.format(SqlServerSQLConstants.STRING_TO_DATE, originName, StringUtils.isNotEmpty(field.getDateFormat()) ? field.getDateFormat() : SqlServerSQLConstants.DEFAULT_DATE_FORMAT);
+                        }
                     }
                     if (field.getDeExtractType() == 2 || field.getDeExtractType() == 3 || field.getDeExtractType() == 4) {
-                        String cast = String.format(SqlServerSQLConstants.LONG_TO_DATE, originName + "/1000");
-                        whereName = String.format(SqlServerSQLConstants.FROM_UNIXTIME, cast);
+                        if (!StringUtils.containsIgnoreCase(request.getOperator(), "between")) {
+                            String cast = String.format(SqlServerSQLConstants.LONG_TO_DATE, originName + "/1000");
+                            whereName = transDateFormat(request.getDateStyle(), request.getDatePattern(), cast);
+                        }else {
+                            String cast = String.format(SqlServerSQLConstants.LONG_TO_DATE, originName + "/1000");
+                            whereName = String.format(SqlServerSQLConstants.FROM_UNIXTIME, cast);
+                        }
                     }
                     if (field.getDeExtractType() == 1) {
-                        whereName = originName;
+                        if (!StringUtils.containsIgnoreCase(request.getOperator(), "between")) {
+                            whereName = transDateFormat(request.getDateStyle(), request.getDatePattern(), originName);
+                        }else {
+                            whereName = originName;
+                        }
                     }
                 } else if (field.getDeType() == 2 || field.getDeType() == 3) {
                     if (field.getDeExtractType() == 0 || field.getDeExtractType() == 5) {
@@ -1107,7 +1140,7 @@ public class SqlserverQueryProvider extends QueryProvider {
             }
 
             String whereName = "";
-            if (request.getIsTree()) {
+            if (request.getIsTree() && whereNameList.size() > 1) {
                 whereName = "CONCAT(" + StringUtils.join(whereNameList, ",',',") + ")";
             } else {
                 whereName = whereNameList.get(0);
@@ -1116,12 +1149,20 @@ public class SqlserverQueryProvider extends QueryProvider {
             String whereValue = "";
 
             if (StringUtils.containsIgnoreCase(request.getOperator(), "in")) {
-                whereValue = "('" + StringUtils.join(value, "','") + "')";
+                if(request.getDatasetTableField().getType().equalsIgnoreCase("NVARCHAR")) {
+                    whereValue = "(" + value.stream().map(str -> {
+                        return "N" + "'" + str + "'";
+                    }).collect(Collectors.joining(",")) + ")";
+                }else {
+                    whereValue = "('" + StringUtils.join(value, "','") + "')";
+                }
             } else if (StringUtils.containsIgnoreCase(request.getOperator(), "like")) {
-                whereValue = "'%" + value.get(0) + "%'";
+                String keyword = value.get(0).toUpperCase();
+                whereValue = "'%" + keyword + "%'";
+                whereName = "upper(" + whereName + ")";
             } else if (StringUtils.containsIgnoreCase(request.getOperator(), "between")) {
                 if (request.getDatasetTableField().getDeType() == DeTypeConstants.DE_TIME) {
-                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                     String startTime = simpleDateFormat.format(new Date(Long.parseLong(value.get(0))));
                     String endTime = simpleDateFormat.format(new Date(Long.parseLong(value.get(1))));
                     whereValue = String.format(SqlServerSQLConstants.WHERE_BETWEEN, startTime, endTime);
@@ -1129,7 +1170,13 @@ public class SqlserverQueryProvider extends QueryProvider {
                     whereValue = String.format(SqlServerSQLConstants.WHERE_BETWEEN, value.get(0), value.get(1));
                 }
             } else {
-                whereValue = String.format(SqlServerSQLConstants.WHERE_VALUE_VALUE, value.get(0));
+
+                if(request.getDatasetTableField().getType().equalsIgnoreCase("NVARCHAR")){
+                    whereValue = String.format(SqlServerSQLConstants.WHERE_VALUE_VALUE_CH, value.get(0));
+                }else {
+                    whereValue = String.format(SqlServerSQLConstants.WHERE_VALUE_VALUE, value.get(0));
+                }
+
             }
             list.add(SQLObj.builder()
                     .whereField(whereName)
@@ -1286,11 +1333,21 @@ public class SqlserverQueryProvider extends QueryProvider {
                 } else if (StringUtils.equalsIgnoreCase(f.getTerm(), "not_empty")) {
                     whereValue = "''";
                 } else if (StringUtils.containsIgnoreCase(f.getTerm(), "in")) {
-                    whereValue = "('" + StringUtils.join(f.getValue(), "','") + "')";
+                    if(y.getType().equalsIgnoreCase("NVARCHAR")){
+                        whereValue = "(" +Arrays.asList(f.getValue().split(",")).stream().map(str -> {
+                            return "N" + "'" + str + "'";
+                        }).collect(Collectors.joining(",")) + ")";
+                    }else {
+                        whereValue = "('" + String.join("','", f.getValue().split(",")) + "')";
+                    }
                 } else if (StringUtils.containsIgnoreCase(f.getTerm(), "like")) {
                     whereValue = "'%" + f.getValue() + "%'";
                 } else {
-                    whereValue = String.format(SqlServerSQLConstants.WHERE_VALUE_VALUE, f.getValue());
+                    if(y.getType().equalsIgnoreCase("NVARCHAR")){
+                        whereValue = String.format(SqlServerSQLConstants.WHERE_VALUE_VALUE_CH, f.getValue());
+                    }else {
+                        whereValue = String.format(SqlServerSQLConstants.WHERE_VALUE_VALUE, f.getValue());
+                    }
                 }
                 list.add(SQLObj.builder()
                         .whereField(fieldAlias)
@@ -1338,7 +1395,6 @@ public class SqlserverQueryProvider extends QueryProvider {
     public List<Dateformat> dateformat() {
         return JSONArray.parseArray("[\n" +
                 "{\"dateformat\": \"102\", \"desc\": \"yyyy.mm.dd\"},\n" +
-                "{\"dateformat\": \"120\", \"desc\": \"yyyy-mm-dd\"},\n" +
                 "{\"dateformat\": \"111\", \"desc\": \"yyyy/mm/dd\"},\n" +
                 "{\"dateformat\": \"112\", \"desc\": \"yyyymmdd\"},\n" +
                 "{\"dateformat\": \"120\", \"desc\": \"yyyy-mm-dd hh:mi:ss\"}\n" +

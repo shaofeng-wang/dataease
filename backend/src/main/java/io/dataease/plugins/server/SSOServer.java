@@ -1,29 +1,12 @@
 package io.dataease.plugins.server;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
-
-import io.dataease.commons.constants.SysLogConstants;
-import io.dataease.commons.utils.DeLogUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
 import io.dataease.auth.entity.SysUserEntity;
 import io.dataease.auth.entity.TokenInfo;
 import io.dataease.auth.service.AuthUserService;
 import io.dataease.auth.util.JWTUtils;
+import io.dataease.commons.constants.SysLogConstants;
 import io.dataease.commons.exception.DEException;
-import io.dataease.commons.utils.CodingUtil;
+import io.dataease.commons.utils.DeLogUtils;
 import io.dataease.commons.utils.LogUtil;
 import io.dataease.commons.utils.ServletUtils;
 import io.dataease.plugins.config.SpringContextUtil;
@@ -32,7 +15,22 @@ import io.dataease.plugins.xpack.oidc.dto.SSOToken;
 import io.dataease.plugins.xpack.oidc.dto.SSOUserInfo;
 import io.dataease.plugins.xpack.oidc.service.OidcXpackService;
 import io.dataease.service.sys.SysUserService;
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
 import springfox.documentation.annotations.ApiIgnore;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @ApiIgnore
 @RequestMapping("/sso")

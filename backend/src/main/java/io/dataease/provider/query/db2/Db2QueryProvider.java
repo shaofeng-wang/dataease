@@ -808,6 +808,17 @@ public class Db2QueryProvider extends QueryProvider {
         return tmpSql;
     }
 
+
+    public String getTotalCount(boolean isTable, String sql, Datasource ds) {
+        if (isTable) {
+            String schema = new Gson().fromJson(ds.getConfiguration(), JdbcConfiguration.class).getSchema();
+            schema = String.format(Db2Constants.KEYWORD_TABLE, schema);
+            return "SELECT COUNT(*) from " + schema + "." + String.format(Db2Constants.KEYWORD_TABLE, sql);
+        } else {
+            return "SELECT COUNT(*) from ( " + sqlFix(sql) + " ) DE_COUNT_TEMP";
+        }
+    }
+
     @Override
     public String createRawQuerySQL(String table, List<DatasetTableField> fields, Datasource ds) {
         String[] array = fields.stream().map(f -> {
@@ -817,15 +828,15 @@ public class Db2QueryProvider extends QueryProvider {
         }).toArray(String[]::new);
         if (ds != null) {
             Db2Configuration db2Configuration = new Gson().fromJson(ds.getConfiguration(), Db2Configuration.class);
-            return MessageFormat.format("SELECT {0} FROM {1}", StringUtils.join(array, ","), db2Configuration.getSchema() + ".\"" + table + "\"");
+            return MessageFormat.format("SELECT {0} FROM {1}  LIMIT DE_OFFSET, DE_PAGE_SIZE ", StringUtils.join(array, ","), String.format(Db2Constants.KEYWORD_TABLE, db2Configuration.getSchema()) + "." + String.format(Db2Constants.KEYWORD_TABLE, table));
         } else {
-            return MessageFormat.format("SELECT {0} FROM {1}", StringUtils.join(array, ","), table);
+            return MessageFormat.format("SELECT {0} FROM {1}  LIMIT DE_OFFSET, DE_PAGE_SIZE ", StringUtils.join(array, ","), table);
         }
     }
 
     @Override
     public String createRawQuerySQLAsTmp(String sql, List<DatasetTableField> fields) {
-        return createRawQuerySQL(" (" + sqlFix(sql) + ") AS de_tmp ", fields, null);
+        return createRawQuerySQL(" (" + sqlFix(sql) + ") AS de_tmp  ", fields, null);
     }
 
     @Override
@@ -1104,25 +1115,39 @@ public class Db2QueryProvider extends QueryProvider {
                 }
 
                 if (field.getDeType() == DeTypeConstants.DE_TIME) {
+                    String format = transDateFormat(request.getDateStyle(), request.getDatePattern());
                     if (field.getDeExtractType() == DeTypeConstants.DE_STRING || field.getDeExtractType() == 5) {
                         if (StringUtils.isNotEmpty(field.getDateFormat())) {
                             originName = String.format(Db2Constants.TO_DATE, originName, field.getDateFormat());
                         } else {
                             originName = String.format(Db2Constants.STR_TO_DATE, originName);
                         }
-                        whereName = String.format(Db2Constants.DATE_FORMAT, originName, Db2Constants.DEFAULT_DATE_FORMAT);
+                        if(request.getOperator().equals("between")){
+                            whereName = originName;
+                        }else {
+                            whereName = String.format(Db2Constants.DATE_FORMAT, originName, format);
+                        }
                     }
                     if (field.getDeExtractType() == DeTypeConstants.DE_INT || field.getDeExtractType() == 3 || field.getDeExtractType() == 4) {
-                        String cast = String.format(Db2Constants.CAST, originName, Db2Constants.DEFAULT_INT_FORMAT);
-                        whereName = String.format(Db2Constants.FROM_UNIXTIME, cast, Db2Constants.DEFAULT_DATE_FORMAT);
+                        if(request.getOperator().equals("between")){
+                            String cast = String.format(Db2Constants.CAST, originName, Db2Constants.DEFAULT_INT_FORMAT);
+                            whereName = String.format(Db2Constants.FROM_UNIXTIME, cast, Db2Constants.DEFAULT_DATE_FORMAT);
+                        }else {
+                            String cast = String.format(Db2Constants.CAST, originName, Db2Constants.DEFAULT_INT_FORMAT);
+                            whereName = String.format(Db2Constants.FROM_UNIXTIME, cast, format);
+                        }
                     }
                     if (field.getDeExtractType() == DeTypeConstants.DE_TIME) {
-                        if (field.getType().equalsIgnoreCase("TIME")) {
-                            whereName = String.format(Db2Constants.FORMAT_TIME, originName, Db2Constants.DEFAULT_DATE_FORMAT);
-                        } else if (field.getType().equalsIgnoreCase("DATE")) {
-                            whereName = String.format(Db2Constants.FORMAT_DATE, originName, Db2Constants.DEFAULT_DATE_FORMAT);
-                        } else {
+                        if(request.getOperator().equals("between")){
                             whereName = originName;
+                        }else {
+                            if (field.getType().equalsIgnoreCase("TIME")) {
+                                whereName = String.format(Db2Constants.FORMAT_TIME, originName, format);
+                            } else if (field.getType().equalsIgnoreCase("DATE")) {
+                                whereName = String.format(Db2Constants.FORMAT_DATE, originName, format);
+                            } else {
+                                whereName = originName;
+                            }
                         }
                     }
                 } else if (field.getDeType() == 2 || field.getDeType() == 3) {
@@ -1157,7 +1182,9 @@ public class Db2QueryProvider extends QueryProvider {
                     whereValue = "('" + StringUtils.join(value, "','") + "')";
                 }
             } else if (StringUtils.containsIgnoreCase(request.getOperator(), "like")) {
-                whereValue = "'%" + value.get(0) + "%'";
+                String keyword = value.get(0).toUpperCase();
+                whereValue = "'%" + keyword + "%'";
+                whereName = "upper(" + whereName + ")";
             } else if (StringUtils.containsIgnoreCase(request.getOperator(), "between")) {
                 if (request.getDatasetTableField().getDeType() == DeTypeConstants.DE_TIME) {
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");

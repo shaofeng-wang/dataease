@@ -32,7 +32,7 @@
       v-if="chart.isPlugin"
       :ref="element.propValue.id"
       :component-name="chart.type + '-view'"
-      :obj="{chart, trackMenu, searchCount, terminalType: scaleCoefficientType}"
+      :obj="{active, chart, trackMenu, searchCount, terminalType: scaleCoefficientType}"
       :chart="chart"
       :track-menu="trackMenu"
       :search-count="searchCount"
@@ -66,6 +66,7 @@
       :terminal-type="scaleCoefficientType"
       :scale="scale"
       :theme-style="element.commonBackground"
+      :active="active"
       @onChartClick="chartClick"
       @onJumpClick="jumpClick"
     />
@@ -85,6 +86,7 @@
       :ref="element.propValue.id"
       class="chart-class"
       :chart="chart"
+      :terminal-type="scaleCoefficientType"
       :track-menu="trackMenu"
       :search-count="searchCount"
       @onChartClick="chartClick"
@@ -138,10 +140,33 @@
         v-if="chartDetailsVisible"
         style="position: absolute;right: 70px;top:15px"
       >
+        <!-- 
         <el-button
-          v-if="showChartInfoType==='enlarge' && showChartInfo && showChartInfo.type !== 'symbol-map'"
+          v-if="showChartInfoType==='enlarge' && hasDataPermission('export',panelInfo.privileges)&& showChartInfo && !equalsAny(showChartInfo.type, 'symbol-map', 'flow-map')"
           class="el-icon-picture-outline"
           size="mini"
+          :disabled="imageDownloading"
+          @click="exportViewImg"
+        >
+          {{ $t('chart.export_img') }}
+        </el-button> 
+        <el-button
+          v-if="showChartInfoType==='details' && hasDataPermission('export',panelInfo.privileges)"
+          size="mini"
+          :disabled="$store.getters.loadingMap[$store.getters.currentPath] || dialogLoading"
+          @click="exportExcel"
+        >
+          <svg-icon
+            icon-class="ds-excel"
+            class="ds-icon-excel"
+          />{{ $t('chart.export') }}Excel
+        </el-button>
+        -->
+        <el-button
+          v-if="showChartInfoType==='enlarge' && showChartInfo && !equalsAny(showChartInfo.type, 'symbol-map', 'flow-map')"
+          class="el-icon-picture-outline"
+          size="mini"
+          :disabled="imageDownloading"
           @click="exportViewImg"
         >
           {{ $t('chart.export_img') }}
@@ -149,6 +174,7 @@
         <el-button
           v-if="showChartInfoType==='details'"
           size="mini"
+          :disabled="$store.getters.loadingMap[$store.getters.currentPath] || dialogLoading"
           @click="exportExcel"
         >
           <svg-icon
@@ -214,6 +240,7 @@ import Vue from 'vue'
 import { formatterItem, valueFormatter } from '@/views/chart/chart/formatter'
 import UserViewDialog from '@/components/canvas/customComponent/UserViewDialog'
 import UserViewMobileDialog from '@/components/canvas/customComponent/UserViewMobileDialog'
+import { equalsAny } from '@/utils/StringUtils'
 
 export default {
   name: 'UserView',
@@ -304,6 +331,9 @@ export default {
   },
   data() {
     return {
+      dialogLoading: false,
+      imageDownloading: false,
+      innerRefreshTimer: null,
       mobileChartDetailsVisible: false,
       chartDetailsVisible: false,
       showChartInfo: {},
@@ -314,6 +344,7 @@ export default {
       curFields: [],
       isFirstLoad: true, // 是否是第一次加载
       refId: null,
+      getDataLoading: false,
       chart: BASE_CHART_STRING,
       requestStatus: 'success',
       message: null,
@@ -349,6 +380,10 @@ export default {
   },
 
   computed: {
+    // 首次加载且非编辑状态新复制的视图，使用外部filter
+    initLoad() {
+      return !(this.isEdit && this.currentCanvasNewId.includes(this.element.id)) && this.isFirstLoad
+    },
     scaleCoefficient() {
       if (this.terminal === 'pc' && !this.mobileLayoutStatus) {
         return 1.1
@@ -388,14 +423,14 @@ export default {
       return this.httpRequest.status && this.chart.type && this.chart.type === 'label'
     },
     loadingFlag() {
-      return (this.canvasStyleData.refreshViewLoading || this.searchCount === 0) && this.requestStatus === 'waiting'
+      return (this.canvasStyleData.refreshViewLoading || (!this.innerRefreshTimer && this.searchCount === 0)) && this.requestStatus === 'waiting'
     },
     panelInfo() {
       return this.$store.state.panel.panelInfo
     },
     filter() {
       const filter = {}
-      filter.filter = this.isFirstLoad ? this.filters : this.cfilters
+      filter.filter = this.initLoad ? this.filters : this.cfilters
       filter.linkageFilters = this.element.linkageFilters
       filter.outerParamsFilters = this.element.outerParamsFilters
       filter.drill = this.drillClickDimensionList
@@ -454,6 +489,7 @@ export default {
       return this.element.commonBackground && this.element.commonBackground.innerPadding || 0
     },
     ...mapState([
+      'currentCanvasNewId',
       'nowPanelTrackInfo',
       'nowPanelJumpInfo',
       'publicLinkStatus',
@@ -468,7 +504,9 @@ export default {
   watch: {
     'innerPadding': {
       handler: function(val1, val2) {
-        this.resizeChart()
+        if (val1 !== val2) {
+          this.resizeChart()
+        }
       },
       deep: true
     },
@@ -476,6 +514,7 @@ export default {
       handler: function(val1, val2) {
         if (isChange(val1, val2) && !this.isFirstLoad) {
           this.getData(this.element.propValue.viewId)
+          this.getDataLoading = true
         }
       },
       deep: true
@@ -514,7 +553,8 @@ export default {
     },
     // 监听外部计时器变化
     searchCount: function(val1) {
-      if (val1 > 0 && this.requestStatus !== 'waiting') {
+      // 内部计时器启动 忽略外部计时器
+      if (val1 > 0 && this.requestStatus !== 'waiting' && !this.innerRefreshTimer) {
         this.getData(this.element.propValue.viewId)
       }
     },
@@ -537,10 +577,12 @@ export default {
     }
   },
   mounted() {
+    bus.$on('tab-canvas-change', this.tabSwitch)
     this.bindPluginEvent()
   },
 
   beforeDestroy() {
+    this.innerRefreshTimer && clearInterval(this.innerRefreshTimer)
     bus.$off('plugin-chart-click', this.pluginChartClick)
     bus.$off('plugin-jump-click', this.pluginJumpClick)
     bus.$off('plugin-add-view-track-filter', this.pluginAddViewTrackFilter)
@@ -560,16 +602,42 @@ export default {
     }
   },
   methods: {
+    equalsAny,
+    tabSwitch(tabCanvasId) {
+      if (this.charViewS2ShowFlag && tabCanvasId === this.canvasId && this.$refs[this.element.propValue.id]) {
+        this.$refs[this.element.propValue.id].chartResize()
+      }
+    },
+    // 编辑状态下 不启动刷新
+    buildInnerRefreshTimer(refreshViewEnable = false, refreshUnit = 'minute', refreshTime = 5) {
+      if (this.editMode === 'preview' && !this.innerRefreshTimer && refreshViewEnable) {
+        this.innerRefreshTimer && clearInterval(this.innerRefreshTimer)
+        const timerRefreshTime = refreshUnit === 'second' ? refreshTime * 1000 : refreshTime * 60000
+        this.innerRefreshTimer = setInterval(() => {
+          this.clearViewLinkage()
+          this.getData(this.element.propValue.viewId)
+        }, timerRefreshTime)
+      }
+    },
+    clearViewLinkage() {
+      this.$store.commit('clearViewLinkage', this.element.propValue.viewId)
+    },
     responseResetButton() {
       if (!this.cfilters?.length) {
         this.getData(this.element.propValue.viewId, false)
       }
     },
     exportExcel() {
-      this.$refs['userViewDialog'].exportExcel()
+      this.dialogLoading = true
+      this.$refs['userViewDialog'].exportExcel(() => {
+        this.dialogLoading = false
+      })
     },
     exportViewImg() {
-      this.$refs['userViewDialog'].exportViewImg()
+      this.imageDownloading = true
+      this.$refs['userViewDialog'].exportViewImg(()=>{
+        this.imageDownloading = false
+      })
     },
     pluginEditHandler(e) {
       this.$emit('trigger-plugin-edit', { e, id: this.element.id })
@@ -664,7 +732,7 @@ export default {
     clearPanelLinkage(param) {
       if (param.viewId === 'all' || param.viewId === this.element.propValue.viewId) {
         try {
-          this.$refs[this.element.propValue.id].reDrawView()
+          this.$refs[this.element.propValue.id]?.reDrawView()
         } catch (e) {
           console.error('reDrawView-error：', this.element.propValue.id)
         }
@@ -703,6 +771,7 @@ export default {
     },
     getData(id, cache = true, dataBroadcast = false) {
       if (id) {
+        if (this.getDataLoading) return
         this.requestStatus = 'waiting'
         this.message = null
 
@@ -727,14 +796,21 @@ export default {
           const attrSize = JSON.parse(this.view.customAttr).size
           if (this.chart.type === 'table-info' && this.view.datasetMode === 0 && (!attrSize.tablePageMode || attrSize.tablePageMode === 'page')) {
             requestInfo.goPage = this.currentPage.page
-            requestInfo.pageSize = this.currentPage.pageSize
+            requestInfo.pageSize = this.currentPage.pageSize === parseInt(attrSize.tablePageSize) ? this.currentPage.pageSize : parseInt(attrSize.tablePageSize)
           }
+        }
+        if (this.isFirstLoad) {
+          this.element.filters = this.filters?.length ? JSON.parse(JSON.stringify(this.filters)) : []
         }
         method(id, this.panelInfo.id, requestInfo).then(response => {
           // 将视图传入echart组件
           if (response.success) {
             this.chart = response.data
             this.view = response.data
+            if (this.chart.type.includes('table')) {
+              this.$store.commit('setLastViewRequestInfo', { viewId: id, requestInfo: requestInfo })
+            }
+            this.buildInnerRefreshTimer(this.chart.refreshViewEnable, this.chart.refreshUnit, this.chart.refreshTime)
             this.$emit('fill-chart-2-parent', this.chart)
             this.getDataOnly(response.data, dataBroadcast)
             this.chart['position'] = this.inTab ? 'tab' : 'panel'
@@ -768,12 +844,14 @@ export default {
             this.requestStatus = 'success'
             this.httpRequest.status = true
           } else {
+            console.error('err2-' + JSON.stringify(response))
             this.requestStatus = 'error'
             this.message = response.message
           }
           this.isFirstLoad = false
           return true
         }).catch(err => {
+          console.error('err-' + err)
           this.requestStatus = 'error'
           if (err.message && err.message.indexOf('timeout') > -1) {
             this.message = this.$t('panel.timeout_refresh')
@@ -792,6 +870,8 @@ export default {
           }
           this.isFirstLoad = false
           return true
+        }).finally(() => {
+          this.getDataLoading = false
         })
       }
     },
@@ -854,10 +934,10 @@ export default {
           }
           if (formatterCfg) {
             const v = valueFormatter(value, formatterCfg)
-            rowData[key] = v.includes('NaN') ? value : v
+            rowData[key] = v && v.includes('NaN') ? value : v
           } else {
             const v = valueFormatter(value, formatterItem)
-            rowData[key] = v.includes('NaN') ? value : v
+            rowData[key] = v && v.includes('NaN') ? value : v
           }
         }
       }
@@ -874,6 +954,7 @@ export default {
       tableChart.customAttr.color.tableHeaderFontColor = '#7c7e81'
       tableChart.customAttr.color.tableFontColor = '#7c7e81'
       tableChart.customAttr.color.tableStripe = true
+      tableChart.customAttr.size.tablePageMode = 'pull'
       tableChart.customStyle.text.show = false
       tableChart.customAttr = JSON.stringify(tableChart.customAttr)
       tableChart.customStyle = JSON.stringify(tableChart.customStyle)
@@ -912,7 +993,7 @@ export default {
       // 如果有名称name 获取和name匹配的dimension 否则倒序取最后一个能匹配的
       if (param.name) {
         param.dimensionList.forEach(dimensionItem => {
-          if (dimensionItem.value === param.name) {
+          if (dimensionItem.id === param.name || dimensionItem.value === param.name) {
             dimension = dimensionItem
             sourceInfo = param.viewId + '#' + dimension.id
             jumpInfo = this.nowPanelJumpInfo[sourceInfo]
@@ -940,7 +1021,9 @@ export default {
               // 判断是否有公共链接ID
               if (jumpInfo.publicJumpId) {
                 const url = '/link/' + jumpInfo.publicJumpId
-                window.open(url, jumpInfo.jumpType)
+                const currentUrl = window.location.href
+                localStorage.setItem('beforeJumpUrl', currentUrl)
+                this.windowsJump(url, jumpInfo.jumpType)
               } else {
                 this.$message({
                   type: 'warn',
@@ -950,7 +1033,7 @@ export default {
               }
             } else {
               const url = '#/preview/' + jumpInfo.targetPanelId
-              window.open(url, jumpInfo.jumpType)
+              this.windowsJump(url, jumpInfo.jumpType)
             }
           } else {
             this.$message({
@@ -963,7 +1046,7 @@ export default {
           const colList = [...param.dimensionList, ...param.quotaList]
           let url = this.setIdValueTrans('id', 'value', jumpInfo.content, colList)
           url = checkAddHttp(url)
-          window.open(url, jumpInfo.jumpType)
+          this.windowsJump(url, jumpInfo.jumpType)
         }
       } else {
         if (this.chart.type.indexOf('table') === -1) {
@@ -992,6 +1075,17 @@ export default {
         })
       }
       return name2Id
+    },
+    windowsJump(url, jumpType) {
+      try {
+        window.open(url, jumpType)
+      } catch (e) {
+        this.$message({
+          message: this.$t('panel.url_check_error') + ':' + url,
+          type: 'error',
+          showClose: true
+        })
+      }
     },
 
     resetDrill() {
@@ -1225,6 +1319,7 @@ export default {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  position: relative;
 }
 
 .chart-class {
@@ -1261,5 +1356,13 @@ export default {
 .active ::v-deep .icon-fangda {
   z-index: 2;
   display: block !important;
+}
+
+.mobile-dialog-css ::v-deep .el-dialog__headerbtn {
+  top: 7px
+}
+
+.mobile-dialog-css ::v-deep .el-dialog__body {
+  padding: 0px;
 }
 </style>

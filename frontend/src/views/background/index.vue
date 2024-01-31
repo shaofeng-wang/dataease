@@ -50,6 +50,8 @@
           style="padding-top: 5px"
         >
           <el-color-picker
+            ref="colorPicker"
+            @change="colorChange"
             v-model="curComponent.commonBackground.color"
             :disabled="!curComponent.commonBackground.backgroundColorSelect"
             size="mini"
@@ -179,13 +181,13 @@
           :span="5"
           style="padding-left: 10px;padding-top: 8px"
         >
-          输入框样式(颜色):
+          {{ $t('panel.input_style') }}:
         </el-col>
         <el-col
           :span="2"
           style="padding-left: 10px;padding-top: 8px"
         >
-          边框
+          {{ $t('panel.board') }}
         </el-col>
         <el-col
           :span="3"
@@ -202,7 +204,7 @@
           :span="2"
           style="padding-left: 10px;padding-top: 8px"
         >
-          文字
+          {{ $t('panel.text') }}
         </el-col>
         <el-col
           :span="3"
@@ -219,7 +221,7 @@
           :span="2"
           style="padding-left: 10px;padding-top: 8px"
         >
-          背景
+          {{ $t('panel.background') }}
         </el-col>
         <el-col
           :span="3"
@@ -312,6 +314,12 @@ export default {
     this.init()
   },
   methods: {
+    colorChange(val) {
+      if (val === null) {
+        this.$refs.colorPicker.color.value = ''
+        this.curComponent.commonBackground.color = ''
+      }
+    },
     init() {
       if (this.curComponent && this.curComponent.commonBackground && this.curComponent.commonBackground.outerImage && typeof (this.curComponent.commonBackground.outerImage) === 'string') {
         this.fileList.push({ url: imgUrlTrans(this.curComponent.commonBackground.outerImage) })

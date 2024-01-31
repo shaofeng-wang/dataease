@@ -16,7 +16,6 @@ import io.dataease.plugins.xpack.auth.dto.request.DatasetRowPermissions;
 import io.dataease.plugins.xpack.auth.service.RowPermissionService;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;

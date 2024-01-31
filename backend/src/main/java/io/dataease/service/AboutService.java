@@ -3,14 +3,12 @@ package io.dataease.service;
 import io.dataease.commons.constants.AuthConstants;
 import io.dataease.commons.license.DefaultLicenseService;
 import io.dataease.commons.license.F2CLicenseResponse;
-import io.dataease.commons.utils.CommonBeanFactory;
 import io.dataease.commons.utils.DateUtils;
 import io.dataease.commons.utils.LogUtil;
 import io.dataease.listener.util.CacheUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

@@ -1,6 +1,5 @@
 package io.dataease.controller.panel.server;
 
-import io.dataease.plugins.common.base.domain.PanelShare;
 import io.dataease.controller.panel.api.ShareApi;
 import io.dataease.controller.request.panel.PanelShareFineDto;
 import io.dataease.controller.request.panel.PanelShareRemoveRequest;
@@ -9,6 +8,7 @@ import io.dataease.controller.sys.base.BaseGridRequest;
 import io.dataease.dto.panel.PanelShareDto;
 import io.dataease.dto.panel.PanelShareOutDTO;
 import io.dataease.dto.panel.PanelSharePo;
+import io.dataease.plugins.common.base.domain.PanelShare;
 import io.dataease.service.panel.ShareService;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;

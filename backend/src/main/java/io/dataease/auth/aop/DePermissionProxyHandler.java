@@ -1,11 +1,10 @@
 package io.dataease.auth.aop;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-
+import io.dataease.auth.annotation.DePermissionProxy;
+import io.dataease.commons.utils.AuthUtils;
+import io.dataease.commons.utils.LogUtil;
+import io.dataease.dto.PermissionProxy;
+import io.dataease.exception.DataEaseException;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -14,11 +13,11 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import io.dataease.auth.annotation.DePermissionProxy;
-import io.dataease.commons.utils.AuthUtils;
-import io.dataease.commons.utils.LogUtil;
-import io.dataease.dto.PermissionProxy;
-import io.dataease.exception.DataEaseException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
 
 @Aspect
 @Component

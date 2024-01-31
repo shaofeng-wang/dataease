@@ -4,9 +4,10 @@ import io.dataease.commons.utils.CronUtils;
 import io.dataease.job.sechedule.ScheduleManager;
 import io.dataease.plugins.common.entity.GlobalTaskEntity;
 import org.apache.commons.lang3.ObjectUtils;
-import org.quartz.*;
+import org.quartz.JobDataMap;
+import org.quartz.JobKey;
+import org.quartz.TriggerKey;
 import org.springframework.beans.factory.InitializingBean;
-
 
 import java.util.Date;
 
@@ -21,6 +22,7 @@ public abstract class TaskHandler implements InitializingBean {
         if (CronUtils.taskExpire(endTime)) { // 过期了就删除任务
             return;
         }
+        if (!taskEntity.getStatus()) return;
         JobKey jobKey = new JobKey(taskEntity.getTaskId().toString());
         TriggerKey triggerKey = new TriggerKey(taskEntity.getTaskId().toString());
         Date start = new Date(taskEntity.getStartTime());

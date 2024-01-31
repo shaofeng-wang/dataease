@@ -62,7 +62,7 @@ public class F2CDocFilter extends AccessControlFilter {
         return true;
     }
 
-    private Boolean validateLogin(HttpServletRequest request) throws Exception{
+    private Boolean validateLogin(HttpServletRequest request) throws Exception {
         String authorization = request.getHeader("Authorization");
         if (StringUtils.isBlank(authorization)) {
             Cookie[] cookies = request.getCookies();
@@ -76,6 +76,7 @@ public class F2CDocFilter extends AccessControlFilter {
         if (StringUtils.isBlank(authorization)) {
             return false;
         }
+
         TokenInfo tokenInfo = JWTUtils.tokenInfoByToken(authorization);
         AuthUserService authUserService = CommonBeanFactory.getBean(AuthUserService.class);
         SysUserEntity user = authUserService.getUserById(tokenInfo.getUserId());
@@ -93,6 +94,9 @@ public class F2CDocFilter extends AccessControlFilter {
         HttpServletRequest request = (HttpServletRequest) req;
         Object attribute = request.getAttribute(RESULT_URI_KEY);
         String path = ObjectUtils.isNotEmpty(attribute) ? attribute.toString() : DEFAULT_FAILED_PAGE;
+        path += ("?_t" + System.currentTimeMillis());
+        response.setHeader("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate");
+        response.setHeader("Expires", "0");
         request.getRequestDispatcher(path).forward(request, response);
         return false;
     }

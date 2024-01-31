@@ -34,7 +34,6 @@ import javax.annotation.Resource;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -820,6 +819,14 @@ public class CKQueryProvider extends QueryProvider {
         return tmpSql;
     }
 
+    public String getTotalCount(boolean isTable, String sql, Datasource ds) {
+        if(isTable){
+            return "SELECT COUNT(*) from " + String.format(CKConstants.KEYWORD_TABLE, sql);
+        }else {
+            return "SELECT COUNT(*) from ( " + sqlFix(sql) + " ) DE_COUNT_TEMP";
+        }
+    }
+
     @Override
     public String createRawQuerySQL(String table, List<DatasetTableField> fields, Datasource ds) {
         String[] array = fields.stream().map(f -> {
@@ -831,12 +838,12 @@ public class CKQueryProvider extends QueryProvider {
             }
             return stringBuilder.toString();
         }).toArray(String[]::new);
-        return MessageFormat.format("SELECT {0} FROM {1}", StringUtils.join(array, ","), table);
+        return MessageFormat.format("SELECT {0} FROM {1} LIMIT DE_OFFSET, DE_PAGE_SIZE ", StringUtils.join(array, ","), table);
     }
 
     @Override
     public String createRawQuerySQLAsTmp(String sql, List<DatasetTableField> fields) {
-        return createRawQuerySQL(" (" + sqlFix(sql) + ") AS tmp ", fields, null);
+        return createRawQuerySQL(" (" + sqlFix(sql) + ") AS DE_TEMP ", fields, null);
     }
 
     @Override
@@ -1082,7 +1089,7 @@ public class CKQueryProvider extends QueryProvider {
             return null;
         }
 
-        AtomicReference<ChartExtFilterRequest> atomicReference = new AtomicReference<>();
+        List<ChartExtFilterRequest> chartExtFilterRequests = new ArrayList<>();
         requestList.forEach(request -> {
             DatasetTableField datasetTableField = request.getDatasetTableField();
             List<String> requestValue = request.getValue();
@@ -1097,12 +1104,12 @@ public class CKQueryProvider extends QueryProvider {
                 requestCopy.setValue(new ArrayList<String>() {{
                     add(String.format(toDateTime64, "'" + simpleDateFormat.format(new Date(Long.parseLong(requestValue.get(1)))) + "'"));
                 }});
-                atomicReference.set(requestCopy);
+                chartExtFilterRequests.add(requestCopy);
             }
         });
 
-        if (ObjectUtils.isNotEmpty(atomicReference.get())) {
-            requestList.add(atomicReference.get());
+        if (CollectionUtils.isNotEmpty(chartExtFilterRequests)) {
+            requestList.addAll(chartExtFilterRequests);
         }
         List<SQLObj> list = new ArrayList<>();
         for (ChartExtFilterRequest request : requestList) {
@@ -1133,12 +1140,13 @@ public class CKQueryProvider extends QueryProvider {
                 }
 
                 if (field.getDeType() == DeTypeConstants.DE_TIME) {
+                    String format = transDateFormat(request.getDateStyle(), request.getDatePattern());
                     if (field.getDeExtractType() == DeTypeConstants.DE_STRING || field.getDeExtractType() == 5) {
-                        whereName = String.format(CKConstants.toDateTime, originName);
+                        whereName = String.format(CKConstants.formatDateTime, String.format(CKConstants.toDateTime, originName), format);
                     }
                     if (field.getDeExtractType() == DeTypeConstants.DE_FLOAT || field.getDeExtractType() == DeTypeConstants.DE_FLOAT || field.getDeExtractType() == 4) {
                         String cast = String.format(CKConstants.toFloat64, originName);
-                        whereName = String.format(CKConstants.toDateTime, cast);
+                        whereName = String.format(CKConstants.formatDateTime, String.format(CKConstants.toDateTime, cast), format);
                     }
                     if (field.getDeExtractType() == 1) {
                         whereName = originName;
@@ -1160,7 +1168,7 @@ public class CKQueryProvider extends QueryProvider {
             }
 
             String whereName = "";
-            if (request.getIsTree()) {
+            if (request.getIsTree() && whereNameList.size() > 1) {
                 whereName = "CONCAT(" + StringUtils.join(whereNameList, ",',',") + ")";
             } else {
                 whereName = whereNameList.get(0);
@@ -1171,7 +1179,9 @@ public class CKQueryProvider extends QueryProvider {
             if (StringUtils.containsIgnoreCase(request.getOperator(), "in")) {
                 whereValue = "('" + StringUtils.join(value, "','") + "')";
             } else if (StringUtils.containsIgnoreCase(request.getOperator(), "like")) {
-                whereValue = "'%" + value.get(0) + "%'";
+                String keyword = value.get(0).toUpperCase();
+                whereValue = "'%" + keyword + "%'";
+                whereName = "upper(" + whereName + ")";
             } else if (StringUtils.containsIgnoreCase(request.getOperator(), "between")) {
                 if (request.getDatasetTableField().getDeType() == DeTypeConstants.DE_TIME) {
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");

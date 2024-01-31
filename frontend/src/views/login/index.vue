@@ -31,6 +31,11 @@
             >
 
               <div class="login-logo">
+                <img
+                  v-if="loginLogoUrl && axiosFinished"
+                  :src="loginLogoUrl"
+                  alt=""
+                >
                 <svg-icon
                   v-if="!loginLogoUrl && axiosFinished"
                   icon-class="DataEase"
@@ -52,7 +57,7 @@
                 v-else
                 class="login-welcome"
               >
-                {{ $t('login.welcome') + (uiInfo && uiInfo['ui.title'] && uiInfo['ui.title'].paramValue || ' DataEase') }}
+                {{ $t('login.welcome') + (uiInfo && uiInfo['ui.title'] && uiInfo['ui.title'].paramValue || ' 数据平台') }}
               </div>
               <div class="login-form">
                 <el-form-item v-if="radioTypes.length > 1">
@@ -212,7 +217,7 @@
 import { encrypt } from '@/utils/rsaEncrypt'
 import { ldapStatus, oidcStatus, getPublicKey, pluginLoaded, defaultLoginType, wecomStatus, dingtalkStatus, larkStatus, larksuiteStatus, casStatus, casLoginPage } from '@/api/user'
 import { getSysUI } from '@/utils/auth'
-import { changeFavicon } from '@/utils/index'
+import { changeFavicon, showMultiLoginMsg } from '@/utils/index'
 import { initTheme } from '@/utils/ThemeUtil'
 import PluginCom from '@/views/system/plugin/PluginCom'
 import Cookies from 'js-cookie'
@@ -395,6 +400,7 @@ export default {
       this.$error(Cookies.get('LarksuiteError'))
     }
     this.clearLarksuiteMsg()
+    showMultiLoginMsg()
   },
 
   methods: {
@@ -476,13 +482,17 @@ export default {
           this.$store.dispatch('user/login', user).then(() => {
             this.$router.push({ path: this.redirect || '/' })
             this.loading = false
-          }).catch(() => {
+          }).catch((e) => {
             this.loading = false
+            e?.response?.data?.message?.startsWith('MultiLoginError') && this.showMessage()
           })
         } else {
           return false
         }
       })
+    },
+    showMessage() {
+      showMultiLoginMsg()
     },
     changeLoginType(val) {
       if (val !== 2 && val !== 7) return

@@ -1,6 +1,6 @@
 {
   "name": "dataease",
-  "version": "1.17.0",
+  "version": "1.18.7",
   "description": "dataease front",
   "private": true,
   "scripts": {
@@ -26,15 +26,15 @@
   },
   "dependencies": {
     "@antv/g2plot": "^2.4.9",
-    "@antv/l7": "2.8.31",
-    "@antv/l7-component": "2.8.31",
-    "@antv/l7-core": "2.8.31",
-    "@antv/l7-layers": "2.8.31",
-    "@antv/l7-maps": "2.8.31",
-    "@antv/l7-renderer": "2.8.31",
-    "@antv/l7-scene": "2.8.31",
-    "@antv/l7-source": "2.8.31",
-    "@antv/l7-utils": "2.8.31",
+    "@antv/l7": "2.15.0",
+    "@antv/l7-component": "2.15.0",
+    "@antv/l7-core": "2.15.0",
+    "@antv/l7-layers": "2.15.0",
+    "@antv/l7-maps": "2.15.0",
+    "@antv/l7-renderer": "2.15.0",
+    "@antv/l7-scene": "2.15.0",
+    "@antv/l7-source": "2.15.0",
+    "@antv/l7-utils": "2.15.0",
     "@antv/s2": "1.35.0",
     "@antv/util": "^2.0.17",
     "@riophae/vue-treeselect": "0.4.0",
@@ -51,6 +51,7 @@
     "jquery": "^3.1.1",
     "js-base64": "^3.7.2",
     "js-cookie": "2.2.0",
+    "js-pinyin": "^0.1.9",
     "jsencrypt": "^3.0.0-rc.1",
     "jspdf": "^2.3.1",
     "jszip": "^3.10.1",
@@ -87,7 +88,8 @@
     "vuedraggable": "^2.24.3",
     "vuex": "3.1.0",
     "webpack": "^4.46.0",
-    "xlsx": "^0.17.0"
+    "xlsx": "^0.17.0",
+    "xss": "^1.0.14"
   },
   "devDependencies": {
     "@babel/core": "^7.4.0-0",

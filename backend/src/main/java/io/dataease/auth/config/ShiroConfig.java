@@ -1,6 +1,7 @@
 package io.dataease.auth.config;
 
 
+import io.dataease.auth.filter.*;
 import io.dataease.auth.service.ShiroService;
 import org.apache.shiro.mgt.DefaultSessionStorageEvaluator;
 import org.apache.shiro.mgt.DefaultSubjectDAO;
@@ -11,11 +12,11 @@ import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+
 import javax.servlet.Filter;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import io.dataease.auth.filter.*;
-import org.springframework.context.annotation.DependsOn;
 
 @Configuration
 public class ShiroConfig {

@@ -1,6 +1,7 @@
-import { sin, cos } from '@/components/canvas/utils/translate'
+import { cos, sin } from '@/components/canvas/utils/translate'
 import store from '@/store'
 import Vue from 'vue'
+import { DEFAULT_COLOR_CASE, DEFAULT_COLOR_CASE_DARK } from '@/views/chart/chart/chart'
 
 export const LIGHT_THEME_COLOR_MAIN = '#000000'
 export const LIGHT_THEME_COLOR_SLAVE1 = '#CCCCCC'
@@ -277,8 +278,8 @@ export const THEME_ATTR_TRANS_SLAVE1_BACKGROUND = {
 
 // 移动端特殊属性
 export const mobileSpecialProps = {
-  'lineWidth': 3, // 线宽固定值
-  'lineSymbolSize': 5// 折点固定值
+  'lineWidth': 2, // 线宽固定值
+  'lineSymbolSize': 8// 折点固定值
 }
 
 export function getScaleValue(propValue, scale) {
@@ -346,36 +347,48 @@ export function adaptCurTheme(customStyle, customAttr, chartType) {
     recursionThemTransObj(THEME_ATTR_TRANS_SLAVE1_BACKGROUND, customAttr, LIGHT_THEME_COMPONENT_BACKGROUND)
     if (chartType === 'symbol-map') {
       // 符号地图特殊处理
-      Vue.set(customStyle['baseMapStyle'], 'baseMapTheme', 'light')
+      Vue.set(customStyle, 'baseMapStyle', { baseMapTheme: 'light' })
     }
+    customAttr['color'] = { ...DEFAULT_COLOR_CASE, ...canvasStyle.chartInfo.chartColor }
   } else {
     recursionThemTransObj(THEME_STYLE_TRANS_MAIN, customStyle, DARK_THEME_COLOR_MAIN)
     recursionThemTransObj(THEME_STYLE_TRANS_SLAVE1, customStyle, DARK_THEME_COLOR_SLAVE1)
     if (chartType === 'symbol-map') {
       // 符号地图特殊处理
-      Vue.set(customStyle['baseMapStyle'], 'baseMapTheme', 'dark')
+      Vue.set(customStyle, 'baseMapStyle', { baseMapTheme: 'dark' })
       recursionThemTransObj(THEME_ATTR_TRANS_MAIN_SYMBOL, customAttr, '#000000')
     } else {
       recursionThemTransObj(THEME_ATTR_TRANS_MAIN, customAttr, DARK_THEME_COLOR_MAIN)
       recursionThemTransObj(THEME_ATTR_TRANS_SLAVE1_BACKGROUND, customAttr, DARK_THEME_COMPONENT_BACKGROUND_BACK)
     }
+    customAttr['color'] = { ...DEFAULT_COLOR_CASE_DARK, ...canvasStyle.chartInfo.chartColor }
   }
-  customAttr['color'] = { ...canvasStyle.chartInfo.chartColor }
-  customStyle['text'] = { ...canvasStyle.chartInfo.chartTitle, title: customStyle['text']['title'], show: customStyle['text']['show'], remarkShow: customStyle['text']['remarkShow'], remark: customStyle['text']['remark'] }
+  customStyle['text'] = {
+    ...canvasStyle.chartInfo.chartTitle,
+    title: customStyle['text']['title'],
+    show: customStyle['text']['show'],
+    remarkShow: customStyle['text']['remarkShow'],
+    remark: customStyle['text']['remark']
+  }
   if (customStyle.background) {
     delete customStyle.background
   }
 }
 
-export function adaptCurThemeCommonStyle(component) {
+export function adaptCurThemeCommonStyle(component,adaptFrom = 'them') {
   const commonStyle = store.state.canvasStyleData.chartInfo.chartCommonStyle
   for (const key in commonStyle) {
-    component.commonBackground[key] = commonStyle[key]
+    Vue.set(component.commonBackground, key, commonStyle[key])
   }
   if (isFilterComponent(component.component)) {
     const filterStyle = store.state.canvasStyleData.chartInfo.filterStyle
     for (const styleKey in filterStyle) {
-      Vue.set(component.style, styleKey, filterStyle[styleKey])
+      if(adaptFrom === 'copy'){
+        Vue.set(component.style, styleKey, filterStyle[styleKey])
+      }else if (adaptFrom === 'them' && styleKey !== 'horizontal' && styleKey !== 'vertical') {
+        // 主题变化位置属性不修改
+        Vue.set(component.style, styleKey, filterStyle[styleKey])
+      }
     }
   } else if (isTabComponent(component.component)) {
     const tabStyle = store.state.canvasStyleData.chartInfo.tabStyle

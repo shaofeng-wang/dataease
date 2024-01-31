@@ -3,7 +3,6 @@ package io.dataease.controller.staticResource;
 import io.dataease.controller.request.resource.StaticResourceRequest;
 import io.dataease.service.staticResource.StaticResourceService;
 import io.swagger.annotations.ApiOperation;
-import org.pentaho.ui.xul.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,7 +15,7 @@ import java.util.Map;
  * Description:
  */
 @RestController
-@RequestMapping("/static/resource")
+@RequestMapping("/staticResource")
 public class StaticResourceController {
 
     @Resource

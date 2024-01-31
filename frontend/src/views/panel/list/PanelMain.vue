@@ -8,7 +8,7 @@
         @tab-click="handleClick"
       >
         <el-tab-pane name="PanelList">
-          <span slot="label"><i class="el-icon-document tablepanel-i" />{{ $t('panel.panel_list') }}</span>
+          <span slot="label"><i class="el-icon-document tablepanel-i"/>{{ $t('panel.panel_list') }}</span>
           <panel-list
             v-show="activeName==='PanelList'"
             ref="panelList"
@@ -18,14 +18,14 @@
           name="panels_star"
           :lazy="true"
         >
-          <span slot="label"><i class="el-icon-star-off tablepanel-i" />{{ $t('panel.store') }}</span>
-          <enshrine v-if="activeName==='panels_star'" />
+          <span slot="label"><i class="el-icon-star-off tablepanel-i"/>{{ $t('panel.store') }}</span>
+          <enshrine v-if="activeName==='panels_star'"/>
         </el-tab-pane>
         <el-tab-pane
           name="panels_share"
           :lazy="true"
         >
-          <span slot="label"><i class="el-icon-share tablepanel-i" />{{ $t('panel.share') }}</span>
+          <span slot="label"><i class="el-icon-share tablepanel-i"/>{{ $t('panel.share') }}</span>
           <share-tree
             v-if="showShare"
             ref="share_tree"
@@ -79,10 +79,13 @@ export default {
       }
     },
     activeName: function(newVal, oldVal) {
-      this.clear()
+      if (newVal !== 'PanelList') {
+        this.clear()
+      }
     }
   },
   mounted() {
+    this.$store.commit('setMobileLayoutStatus', false)
     // init all views (include plugins) base info
     localStorage.removeItem('plugin-views')
     pluginTypes().then(res => {
@@ -96,6 +99,15 @@ export default {
     // this.clear()
   },
   methods: {
+    clear() {
+      // 清空
+      this.$store.dispatch('panel/setPanelInfo', {
+        id: null,
+        name: '',
+        preStyle: null
+      })
+      this.$store.dispatch('panel/setMainActiveName', 'PanelMain')
+    },
     handleClick(tab, event) {
       // 点击分析面板需要刷新分享内容
       if (tab.name === 'panels_share') {
@@ -103,6 +115,9 @@ export default {
       }
       if (tab.name === 'panels_star') {
         this.refreshEnshrine()
+      }
+      if (tab.name === 'PanelList') {
+        this.$refs.panelList.activeLastNode()
       }
     },
     refreshShare() {
@@ -112,15 +127,6 @@ export default {
     refreshEnshrine() {
       this.showEnshrine = false
       this.$nextTick(() => (this.showEnshrine = true))
-    },
-    clear() {
-      // 清空
-      this.$store.dispatch('panel/setPanelInfo', {
-        id: null,
-        name: '',
-        preStyle: null
-      })
-      this.$store.dispatch('panel/setMainActiveName', 'PanelMain')
     },
     msg2Current(panelIds) {
       this.refreshShare()
@@ -148,28 +154,33 @@ export default {
 </script>
 
 <style scoped>
-  .ms-aside-container {
-    height: calc(100vh - 56px);
-    padding: 0px;
-    min-width: 260px;
-    max-width: 460px;
-  }
-  .ms-main-container {
-    height: calc(100vh - 56px);
-    padding: 0px;
-  }
-  .tab-panel{
-    height: 100%;
-    overflow-y: auto;
-  }
-  .tab-panel ::v-deep .el-tabs__nav-wrap{
-    padding: 0 10px;
-  }
-  .tab-panel ::v-deep .el-tabs__nav-wrap::after {
-    height: 1px;
-  }
-  .tab-panel ::v-deep .el-tabs__item{
-    /* width: 10px; */
-    padding: 0 10px;
-  }
+.ms-aside-container {
+  height: calc(100vh - 56px);
+  padding: 0px;
+  min-width: 260px;
+  max-width: 460px;
+}
+
+.ms-main-container {
+  height: calc(100vh - 56px);
+  padding: 0px;
+}
+
+.tab-panel {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.tab-panel ::v-deep .el-tabs__nav-wrap {
+  padding: 0 10px;
+}
+
+.tab-panel ::v-deep .el-tabs__nav-wrap::after {
+  height: 1px;
+}
+
+.tab-panel ::v-deep .el-tabs__item {
+  /* width: 10px; */
+  padding: 0 10px;
+}
 </style>

@@ -1,19 +1,17 @@
 package io.dataease.controller.panel;
 
 import com.github.xiaoymin.knife4j.annotations.ApiSupport;
-
 import io.dataease.auth.annotation.DePermissionProxy;
-import io.dataease.plugins.common.base.domain.DatasetTableField;
 import io.dataease.dto.PermissionProxy;
 import io.dataease.dto.panel.linkJump.PanelLinkJumpBaseRequest;
 import io.dataease.dto.panel.linkJump.PanelLinkJumpBaseResponse;
 import io.dataease.dto.panel.linkJump.PanelLinkJumpDTO;
+import io.dataease.plugins.common.base.domain.DatasetTableField;
 import io.dataease.service.panel.PanelLinkJumpService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import springfox.documentation.annotations.ApiIgnore;
-
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.annotation.Resource;
 import java.util.List;

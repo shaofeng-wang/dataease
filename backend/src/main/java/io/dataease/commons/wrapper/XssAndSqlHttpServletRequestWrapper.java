@@ -1,18 +1,6 @@
 package io.dataease.commons.wrapper;
 
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.servlet.ReadListener;
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-
 import com.google.gson.Gson;
 import io.dataease.commons.holder.ThreadLocalContextHolder;
 import io.dataease.commons.utils.CommonBeanFactory;
@@ -20,6 +8,18 @@ import io.dataease.commons.utils.ServletUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StreamUtils;
+
+import javax.servlet.ReadListener;
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class XssAndSqlHttpServletRequestWrapper extends HttpServletRequestWrapper {
@@ -225,7 +225,7 @@ public class XssAndSqlHttpServletRequestWrapper extends HttpServletRequestWrappe
             if (Arrays.stream(whiteLists.split(",")).anyMatch(item -> url.indexOf(item) != -1)) return false;
         }
         Pattern pattern= Pattern.compile("(.*\\=.*\\-\\-.*)|(.*(\\+).*)|(.*\\w+(%|\\$|#|&)\\w+.*)|(.*\\|\\|.*)|(.*\\s+(and|or)\\s+.*)" +
-                "|(.*\\b(select|update|union|and|or|delete|insert|trancate|char|into|substr|ascii|declare|exec|count|master|into|drop|execute|sleep|extractvalue|updatexml|substring|database|concat|rand)\\b.*)");
+                "|(.*\\b(select|update|union|and|or|delete|insert|trancate|char|into|substr|ascii|declare|exec|count|master|into|drop|execute|sleep|extractvalue|updatexml|substring|database|concat|rand|gtid_subset)\\b.*)");
         Matcher matcher=pattern.matcher(orders.toLowerCase());
         return matcher.find();
     }

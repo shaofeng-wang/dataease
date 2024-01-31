@@ -2,7 +2,7 @@ import { TableSheet, S2Event, PivotSheet, DataCell, EXTRA_FIELD, TOTAL_VALUE } f
 import { getCustomTheme, getSize } from '@/views/chart/chart/common/common_table'
 import { DEFAULT_COLOR_CASE, DEFAULT_TOTAL } from '@/views/chart/chart/chart'
 import { formatterItem, valueFormatter } from '@/views/chart/chart/formatter'
-import { hexColorToRGBA } from '@/views/chart/chart/util'
+import { handleTableEmptyStrategy, hexColorToRGBA } from '@/views/chart/chart/util'
 export function baseTableInfo(s2, container, chart, action, tableData, pageInfo) {
   const containerDom = document.getElementById(container)
 
@@ -31,6 +31,21 @@ export function baseTableInfo(s2, container, chart, action, tableData, pageInfo)
 
     const drillFilters = JSON.parse(JSON.stringify(chart.drillFilters))
     const drillExp = drillFilters[drillFilters.length - 1].datasetTableField
+
+    // 记录下钻起始字段的index
+    let xAxis = []
+    try {
+      xAxis = JSON.parse(chart.xaxis)
+    } catch (err) {
+      xAxis = JSON.parse(JSON.stringify(chart.xaxis))
+    }
+    let index = 0
+    for (let i = 0; i < xAxis.length; i++) {
+      if (xAxis[i].id === drillFilters[0].fieldId) {
+        index = i
+        break
+      }
+    }
 
     // 移除所有下钻字段
     const removeField = []
@@ -78,6 +93,11 @@ export function baseTableInfo(s2, container, chart, action, tableData, pageInfo)
         }
       }
     })
+
+    // 修正下钻字段的index，获取下钻位置元素添加到index位置，并删除
+    const ele = columns[columns.length - 1]
+    columns.splice(index, 0, ele)
+    columns.splice(columns.length - 1, 1)
   } else {
     fields.forEach(ele => {
       const f = getCurrentField(chart.xaxis, ele)
@@ -107,14 +127,15 @@ export function baseTableInfo(s2, container, chart, action, tableData, pageInfo)
       })
     })
   }
-
+  // 空值处理
+  const newData = handleTableEmptyStrategy(tableData, chart)
   // data config
   const s2DataConfig = {
     fields: {
       columns: columns
     },
     meta: meta,
-    data: tableData
+    data: newData
   }
 
   const customAttr = JSON.parse(chart.customAttr)
@@ -190,6 +211,21 @@ export function baseTableNormal(s2, container, chart, action, tableData) {
     const drillFilters = JSON.parse(JSON.stringify(chart.drillFilters))
     const drillExp = drillFilters[drillFilters.length - 1].datasetTableField
 
+    // 记录下钻起始字段的index
+    let xAxis
+    try {
+      xAxis = JSON.parse(chart.xaxis)
+    } catch (err) {
+      xAxis = JSON.parse(JSON.stringify(chart.xaxis))
+    }
+    let index = 0
+    for (let i = 0; i < xAxis.length; i++) {
+      if (xAxis[i].id === drillFilters[0].fieldId) {
+        index = i
+        break
+      }
+    }
+
     // 移除所有下钻字段
     const removeField = []
     for (let i = 0; i < chart.drillFilters.length; i++) {
@@ -230,6 +266,17 @@ export function baseTableNormal(s2, container, chart, action, tableData) {
         }
       }
     })
+
+    // 修正下钻字段的index，获取下钻位置元素添加到index位置，并删除
+    let yAxis
+    try {
+      yAxis = JSON.parse(chart.yaxis)
+    } catch (err) {
+      yAxis = JSON.parse(JSON.stringify(chart.yaxis))
+    }
+    const ele = columns[columns.length - 1 - yAxis.length]
+    columns.splice(index, 0, ele)
+    columns.splice(columns.length - 1 - yAxis.length, 1)
   } else {
     fields.forEach(ele => {
       const f = getCurrentField(chart.yaxis, ele)
@@ -254,13 +301,15 @@ export function baseTableNormal(s2, container, chart, action, tableData) {
     })
   }
 
+  // 空值处理
+  const newData = handleTableEmptyStrategy(tableData, chart)
   // data config
   const s2DataConfig = {
     fields: {
       columns: columns
     },
     meta: meta,
-    data: tableData
+    data: newData
   }
 
   const customAttr = JSON.parse(chart.customAttr)
@@ -301,7 +350,7 @@ export function baseTableNormal(s2, container, chart, action, tableData) {
   return s2
 }
 
-export function baseTablePivot(s2, container, chart, action, tableData) {
+export function baseTablePivot(s2, container, chart, action, headerAction, tableData) {
   const containerDom = document.getElementById(container)
 
   // row and column
@@ -435,7 +484,6 @@ export function baseTablePivot(s2, container, chart, action, tableData) {
     }
     sortParams.push(sort)
   }
-  totalCfg.col.totalSort = false
   if (totalCfg.col.totalSort && totalCfg.col.totalSort !== 'none' && r.length > 0 && totalCfg.col.showGrandTotals && v.indexOf(totalCfg.col.totalSortField) > -1) {
     const sort = {
       sortFieldId: r[0],
@@ -447,7 +495,8 @@ export function baseTablePivot(s2, container, chart, action, tableData) {
     }
     sortParams.push(sort)
   }
-
+  // 空值处理
+  const newData = handleTableEmptyStrategy(tableData, chart)
   // data config
   const s2DataConfig = {
     fields: {
@@ -456,7 +505,7 @@ export function baseTablePivot(s2, container, chart, action, tableData) {
       values: v
     },
     meta: meta,
-    data: tableData,
+    data: newData,
     sortParams: sortParams
   }
 
@@ -477,6 +526,8 @@ export function baseTablePivot(s2, container, chart, action, tableData) {
 
   // click
   s2.on(S2Event.DATA_CELL_CLICK, action)
+  s2.on(S2Event.ROW_CELL_CLICK, headerAction)
+  s2.on(S2Event.COL_CELL_CLICK, headerAction)
 
   // theme
   const customTheme = getCustomTheme(chart)

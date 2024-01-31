@@ -3,10 +3,8 @@ package io.dataease.controller.sys;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.xiaoymin.knife4j.annotations.ApiSupport;
+import io.dataease.auth.annotation.SqlInjectValidator;
 import io.dataease.auth.service.AuthUserService;
-import io.dataease.plugins.common.base.domain.SysMsgChannel;
-import io.dataease.plugins.common.base.domain.SysMsgSetting;
-import io.dataease.plugins.common.base.domain.SysMsgType;
 import io.dataease.commons.utils.AuthUtils;
 import io.dataease.commons.utils.PageUtils;
 import io.dataease.commons.utils.Pager;
@@ -15,8 +13,13 @@ import io.dataease.controller.sys.request.MsgRequest;
 import io.dataease.controller.sys.request.MsgSettingRequest;
 import io.dataease.controller.sys.response.MsgGridDto;
 import io.dataease.controller.sys.response.SettingTreeNode;
+import io.dataease.plugins.common.base.domain.SysMsgChannel;
+import io.dataease.plugins.common.base.domain.SysMsgSetting;
+import io.dataease.plugins.common.base.domain.SysMsgType;
 import io.dataease.service.message.SysMsgService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -24,9 +27,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 
 @Api(tags = "系统：消息管理")
 @ApiSupport(order = 230)
@@ -47,6 +47,7 @@ public class MsgController {
             @ApiImplicitParam(paramType = "path", name = "pageSize", value = "页容量", required = true, dataType = "Integer"),
             @ApiImplicitParam(name = "msgRequest", value = "查询条件", required = true)
     })
+    @SqlInjectValidator(value = {"create_time", "type_id"})
     public Pager<List<MsgGridDto>> messages(@PathVariable int goPage, @PathVariable int pageSize, @RequestBody MsgRequest msgRequest) {
         Long userId = AuthUtils.getUser().getUserId();
         List<Long> typeIds = null;
@@ -128,6 +129,9 @@ public class MsgController {
             }
             if (msgChannelId == 5L) {
                 return authUserService.supportLark();
+            }
+            if (msgChannelId == 6L) {
+                return authUserService.supportLarksuite();
             }
             return true;
         }).collect(Collectors.toList());

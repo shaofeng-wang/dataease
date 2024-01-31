@@ -1,6 +1,7 @@
 <template>
   <div>
-    <el-dropdown trigger="click">
+    <el-dropdown
+      trigger="click">
       <input
         id="input"
         ref="trackButton"
@@ -62,6 +63,14 @@ export default {
 
   ::v-deep ul {
     width: 80px;
+  }
+
+  ::v-deep.el-popper[x-placement^=bottom] .popper__arrow {
+    display: none;
+  }
+
+  ::v-deep.el-popper[x-placement^=bottom] {
+    margin-top: -80px !important;
   }
 
   .track-menu {

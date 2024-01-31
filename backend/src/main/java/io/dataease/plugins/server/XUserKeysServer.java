@@ -4,7 +4,10 @@ import io.dataease.commons.utils.AuthUtils;
 import io.dataease.plugins.config.SpringContextUtil;
 import io.dataease.plugins.xpack.ukey.dto.request.XpackUkeyDto;
 import io.dataease.plugins.xpack.ukey.service.UkeyXpackService;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.ServletRequest;

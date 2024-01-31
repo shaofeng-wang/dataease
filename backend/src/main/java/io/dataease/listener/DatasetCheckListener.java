@@ -1,9 +1,9 @@
 package io.dataease.listener;
 
+import io.dataease.listener.util.CacheUtils;
 import io.dataease.plugins.common.base.domain.DatasetTable;
 import io.dataease.plugins.common.base.domain.DatasetTableExample;
 import io.dataease.plugins.common.base.mapper.DatasetTableMapper;
-import io.dataease.listener.util.CacheUtils;
 import io.dataease.plugins.loader.ClassloaderResponsity;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;

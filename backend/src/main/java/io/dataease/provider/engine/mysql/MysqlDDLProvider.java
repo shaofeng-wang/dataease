@@ -1,12 +1,15 @@
 package io.dataease.provider.engine.mysql;
 
+import io.dataease.commons.utils.TableUtils;
 import io.dataease.plugins.common.base.domain.DatasetTableField;
 import io.dataease.plugins.common.base.domain.Datasource;
-import io.dataease.commons.utils.TableUtils;
 import io.dataease.provider.DDLProviderImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @Author gin
@@ -17,13 +20,37 @@ public class MysqlDDLProvider extends DDLProviderImpl {
 
     private static final String creatTableSql =
             "CREATE TABLE IF NOT EXISTS `TABLE_NAME`" +
-            "Column_Fields;" ;
+            "Column_Fields" + " ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;" ;
 
 
     @Override
     public String createView(String name, String viewSQL) {
         return "CREATE or replace view " + name + " AS (" + viewSQL + ")";
     }
+
+    @Override
+    public String insertSql(String name, List<String[]> dataList, int page, int pageNumber) {
+        String insertSql = "INSERT INTO TABLE_NAME VALUES ".replace("TABLE_NAME", name);
+        StringBuffer values = new StringBuffer();
+
+        Integer realSize = page * pageNumber < dataList.size() ? page * pageNumber : dataList.size();
+        for (String[] strings : dataList.subList((page - 1) * pageNumber, realSize)) {
+            String[] strings1 = new String[strings.length];
+            for (int i = 0; i < strings.length; i++) {
+                if (StringUtils.isEmpty(strings[i])) {
+                    strings1[i] = null;
+                    continue;
+                }
+                strings1[i] = strings[i].replace("\\", "\\\\").replace("'", "\\'");
+            }
+            values.append("('").append(UUID.randomUUID())
+                    .append("','").append(String.join("','", Arrays.asList(strings1)))
+                    .append("'),");
+        }
+        return (insertSql + values.substring(0, values.length() - 1)).replaceAll(",'null'",  ",null");
+    }
+
+
 
     @Override
     public String dropTable(String name) {
@@ -56,35 +83,23 @@ public class MysqlDDLProvider extends DDLProviderImpl {
             Integer size = datasetTableField.getSize() * 4;
             switch (datasetTableField.getDeExtractType()) {
                 case 0:
-                    if (size < 65533) {
-                        Column_Fields.append("varchar(length)".replace("length", String.valueOf(datasetTableField.getSize()))).append(",`");
-                    }else {
-                        Column_Fields.append("longtext").append(",`");
-                    }
+                    Column_Fields.append("longtext").append(",`");
                     break;
                 case 1:
                     size  = size < 50? 50 : size;
-                    if (size < 65533) {
-                        Column_Fields.append("varchar(length)".replace("length", String.valueOf(datasetTableField.getSize()))).append(",`");
-                    }else {
-                        Column_Fields.append("longtext").append(",`");
-                    }
+                    Column_Fields.append("longtext").append(",`");
                     break;
                 case 2:
-                    Column_Fields.append("varchar(100)").append(",`");
+                    Column_Fields.append("bigint(20)").append(",`");
                     break;
                 case 3:
-                    Column_Fields.append("varchar(100)").append(",`");
+                    Column_Fields.append("longtext").append(",`");
                     break;
                 case 4:
                     Column_Fields.append("TINYINT(length)".replace("length", String.valueOf(datasetTableField.getSize()))).append(",`");
                     break;
                 default:
-                    if (size < 65533) {
-                        Column_Fields.append("varchar(length)".replace("length", String.valueOf(datasetTableField.getSize()))).append(",`");
-                    }else {
-                        Column_Fields.append("longtext").append(",`");
-                    }
+                    Column_Fields.append("longtext").append(",`");
                     break;
             }
         }

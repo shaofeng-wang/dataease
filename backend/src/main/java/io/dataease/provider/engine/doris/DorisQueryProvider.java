@@ -155,7 +155,10 @@ public class DorisQueryProvider extends QueryProvider {
         STGroup stg = new STGroupFile(SQLConstants.SQL_TEMPLATE);
         ST st_sql = stg.getInstanceOf("previewSql");
         st_sql.add("isGroup", isGroup);
-        if (CollectionUtils.isNotEmpty(xFields)) st_sql.add("groups", xFields);
+        if (CollectionUtils.isNotEmpty(xFields)) {
+            st_sql.add("useAliasForGroup", true);
+            st_sql.add("groups", xFields);
+        }
         if (ObjectUtils.isNotEmpty(tableObj)) st_sql.add("table", tableObj);
         String customWheres = transCustomFilterList(tableObj, fieldCustomFilter);
         // row permissions tree
@@ -345,7 +348,10 @@ public class DorisQueryProvider extends QueryProvider {
 
         STGroup stg = new STGroupFile(SQLConstants.SQL_TEMPLATE);
         ST st_sql = stg.getInstanceOf("querySql");
-        if (CollectionUtils.isNotEmpty(xFields)) st_sql.add("groups", xFields);
+        if (CollectionUtils.isNotEmpty(xFields)) {
+            st_sql.add("useAliasForGroup", true);
+            st_sql.add("groups", xFields);
+        }
         if (CollectionUtils.isNotEmpty(yFields)) st_sql.add("aggregators", yFields);
         if (CollectionUtils.isNotEmpty(wheres)) st_sql.add("filters", wheres);
         if (ObjectUtils.isNotEmpty(tableObj)) st_sql.add("table", tableObj);
@@ -435,7 +441,10 @@ public class DorisQueryProvider extends QueryProvider {
         STGroup stg = new STGroupFile(SQLConstants.SQL_TEMPLATE);
         ST st_sql = stg.getInstanceOf("previewSql");
         st_sql.add("isGroup", false);
-        if (CollectionUtils.isNotEmpty(xFields)) st_sql.add("groups", xFields);
+        if (CollectionUtils.isNotEmpty(xFields)) {
+            st_sql.add("useAliasForGroup", true);
+            st_sql.add("groups", xFields);
+        }
         if (CollectionUtils.isNotEmpty(wheres)) st_sql.add("filters", wheres);
         if (ObjectUtils.isNotEmpty(tableObj)) st_sql.add("table", tableObj);
         String sql = st_sql.render();
@@ -558,7 +567,10 @@ public class DorisQueryProvider extends QueryProvider {
 
         STGroup stg = new STGroupFile(SQLConstants.SQL_TEMPLATE);
         ST st_sql = stg.getInstanceOf("querySql");
-        if (CollectionUtils.isNotEmpty(xFields)) st_sql.add("groups", xFields);
+        if (CollectionUtils.isNotEmpty(xFields)) {
+            st_sql.add("useAliasForGroup", true);
+            st_sql.add("groups", xFields);
+        }
         if (CollectionUtils.isNotEmpty(yFields)) st_sql.add("aggregators", yFields);
         if (CollectionUtils.isNotEmpty(wheres)) st_sql.add("filters", wheres);
         if (ObjectUtils.isNotEmpty(tableObj)) st_sql.add("table", tableObj);
@@ -672,7 +684,10 @@ public class DorisQueryProvider extends QueryProvider {
 
         STGroup stg = new STGroupFile(SQLConstants.SQL_TEMPLATE);
         ST st_sql = stg.getInstanceOf("querySql");
-        if (CollectionUtils.isNotEmpty(xFields)) st_sql.add("groups", xFields);
+        if (CollectionUtils.isNotEmpty(xFields)) {
+            st_sql.add("useAliasForGroup", true);
+            st_sql.add("groups", xFields);
+        }
         if (CollectionUtils.isNotEmpty(yFields)) st_sql.add("aggregators", yFields);
         if (CollectionUtils.isNotEmpty(wheres)) st_sql.add("filters", wheres);
         if (ObjectUtils.isNotEmpty(tableObj)) st_sql.add("table", tableObj);
@@ -1057,12 +1072,13 @@ public class DorisQueryProvider extends QueryProvider {
                 }
 
                 if (field.getDeType() == 1) {
+                    String format = transDateFormat(request.getDateStyle(), request.getDatePattern());
                     if (field.getDeExtractType() == 0 || field.getDeExtractType() == 5 || field.getDeExtractType() == 1) {
-                        whereName = String.format(DorisConstants.STR_TO_DATE, originName, StringUtils.isNotEmpty(field.getDateFormat()) ? field.getDateFormat() : DorisConstants.DEFAULT_DATE_FORMAT);
+                        whereName = String.format(DorisConstants.STR_TO_DATE, originName, format);
                     }
                     if (field.getDeExtractType() == 2 || field.getDeExtractType() == 3 || field.getDeExtractType() == 4) {
                         String cast = String.format(DorisConstants.CAST, originName, DorisConstants.DEFAULT_INT_FORMAT) + "/1000";
-                        whereName = String.format(DorisConstants.FROM_UNIXTIME, cast, DorisConstants.DEFAULT_DATE_FORMAT);
+                        whereName = String.format(DorisConstants.FROM_UNIXTIME, cast, format);
                     }
                 } else if (field.getDeType() == 0) {
                     whereName = String.format(DorisConstants.CAST, originName, DorisConstants.VARCHAR);
@@ -1094,7 +1110,9 @@ public class DorisQueryProvider extends QueryProvider {
             if (StringUtils.containsIgnoreCase(request.getOperator(), "in")) {
                 whereValue = "('" + StringUtils.join(value, "','") + "')";
             } else if (StringUtils.containsIgnoreCase(request.getOperator(), "like")) {
-                whereValue = "'%" + value.get(0) + "%'";
+                String keyword = value.get(0).toUpperCase();
+                whereValue = "'%" + keyword + "%'";
+                whereName = "upper(" + whereName + ")";
             } else if (StringUtils.containsIgnoreCase(request.getOperator(), "between")) {
                 if (request.getDatasetTableField().getDeType() == 1) {
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -1140,8 +1158,12 @@ public class DorisQueryProvider extends QueryProvider {
         switch (dateStyle) {
             case "y":
                 return "%Y";
+            case "y_Q":
+                return "CONCAT(%s,'" + split + "','Q',%s)";
             case "y_M":
                 return "%Y" + split + "%m";
+            case "y_W":
+                return "%Y" + split + "W%u";
             case "y_M_d":
                 return "%Y" + split + "%m" + split + "%d";
             case "H_m_s":
@@ -1162,7 +1184,13 @@ public class DorisQueryProvider extends QueryProvider {
                 fieldName = String.format(DorisConstants.UNIX_TIMESTAMP, originField) + "*1000";
             } else if (x.getDeType() == 1) {
                 String format = transDateFormat(x.getDateStyle(), x.getDatePattern());
-                fieldName = String.format(DorisConstants.DATE_FORMAT, originField, format);
+                if (StringUtils.equalsIgnoreCase(x.getDateStyle(), "y_Q")) {
+                    fieldName = String.format(format,
+                            String.format(DorisConstants.DATE_FORMAT, originField, "%Y"),
+                            String.format(DorisConstants.QUARTER, originField));
+                } else {
+                    fieldName = String.format(DorisConstants.DATE_FORMAT, originField, format);
+                }
             } else {
                 fieldName = originField;
             }
@@ -1170,11 +1198,24 @@ public class DorisQueryProvider extends QueryProvider {
             if (x.getDeType() == 1) {
                 String format = transDateFormat(x.getDateStyle(), x.getDatePattern());
                 if (x.getDeExtractType() == 0) {
-                    fieldName = String.format(DorisConstants.DATE_FORMAT, String.format(DorisConstants.STR_TO_DATE, originField, StringUtils.isNotEmpty(x.getDateFormat()) ? x.getDateFormat() : DorisConstants.DEFAULT_DATE_FORMAT), format);
+                    if (StringUtils.equalsIgnoreCase(x.getDateStyle(), "y_Q")) {
+                        fieldName = String.format(format,
+                                String.format(DorisConstants.DATE_FORMAT, String.format(DorisConstants.STR_TO_DATE, originField, DorisConstants.DEFAULT_DATE_FORMAT), "%Y"),
+                                String.format(DorisConstants.QUARTER, String.format(DorisConstants.STR_TO_DATE, originField, DorisConstants.DEFAULT_DATE_FORMAT)));
+                    } else {
+                        fieldName = String.format(DorisConstants.DATE_FORMAT, String.format(DorisConstants.STR_TO_DATE, originField, StringUtils.isNotEmpty(x.getDateFormat()) ? x.getDateFormat() : DorisConstants.DEFAULT_DATE_FORMAT), format);
+                    }
                 } else {
                     String cast = String.format(DorisConstants.CAST, originField, DorisConstants.DEFAULT_INT_FORMAT) + "/1000";
                     String from_unixtime = String.format(DorisConstants.FROM_UNIXTIME, cast, DorisConstants.DEFAULT_DATE_FORMAT);
-                    fieldName = String.format(DorisConstants.DATE_FORMAT, from_unixtime, format);
+                    if (StringUtils.equalsIgnoreCase(x.getDateStyle(), "y_Q")) {
+                        fieldName = String.format(format,
+                                String.format(DorisConstants.DATE_FORMAT, from_unixtime, "%Y"),
+                                String.format(DorisConstants.QUARTER, from_unixtime));
+                    } else {
+                        fieldName = String.format(DorisConstants.DATE_FORMAT, from_unixtime, format);
+                    }
+
                 }
             } else if (x.getDeType() == 0) {
                 fieldName = String.format(DorisConstants.CAST, originField, DorisConstants.VARCHAR);

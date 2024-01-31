@@ -2,7 +2,6 @@ package io.dataease.websocket.util;
 
 import io.dataease.auth.api.dto.CurrentUserDto;
 import io.dataease.commons.utils.AuthUtils;
-
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.concurrent.CopyOnWriteArraySet;

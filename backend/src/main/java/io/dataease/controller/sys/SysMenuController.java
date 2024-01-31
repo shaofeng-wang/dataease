@@ -1,15 +1,14 @@
 package io.dataease.controller.sys;
 
 
-import io.dataease.plugins.common.base.domain.SysMenu;
 import io.dataease.commons.utils.BeanUtils;
-
 import io.dataease.controller.handler.annotation.I18n;
 import io.dataease.controller.sys.base.BaseGridRequest;
 import io.dataease.controller.sys.request.MenuCreateRequest;
 import io.dataease.controller.sys.request.MenuDeleteRequest;
 import io.dataease.controller.sys.response.MenuNodeResponse;
 import io.dataease.controller.sys.response.MenuTreeNode;
+import io.dataease.plugins.common.base.domain.SysMenu;
 import io.dataease.service.sys.MenuService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

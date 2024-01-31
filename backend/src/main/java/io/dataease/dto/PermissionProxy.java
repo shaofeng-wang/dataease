@@ -1,8 +1,8 @@
 package io.dataease.dto;
 
-import java.io.Serializable;
-
 import lombok.Data;
+
+import java.io.Serializable;
 
 @Data
 public class PermissionProxy implements Serializable {

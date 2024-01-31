@@ -1,5 +1,5 @@
 {
-    "app.name": "Hello uni-app",
+    "app.name": "DataEase",
 
     "navigate.menuHome": "首页",
     "navigate.menuDir": "目录",
@@ -31,7 +31,8 @@
         "loginbtn": "登录",
         "pwdFmtError": "密码最短为1个字符",
 		"accFmtError": "账号最短为1个字符",
-        "uOrpwdError": "无效账号或密码"
+        "uOrpwdError": "无效账号或密码",
+        "multiLogin": "当前账号已在线，禁止多端登录"
     },
     "home": {
         "tab1": "我的收藏",

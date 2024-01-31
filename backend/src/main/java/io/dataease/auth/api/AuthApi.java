@@ -3,17 +3,17 @@ package io.dataease.auth.api;
 import com.github.xiaoymin.knife4j.annotations.ApiSupport;
 import io.dataease.auth.api.dto.CurrentUserDto;
 import io.dataease.auth.api.dto.LoginDto;
+import io.dataease.auth.api.dto.SeizeLoginDto;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
-import springfox.documentation.annotations.ApiIgnore;
-
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.Map;
 
-@Api(tags = "权限：权限管理")
+@Api(tags = "登录：登录管理")
 @ApiSupport(order = 10)
 @RequestMapping("/api/auth")
 public interface AuthApi {
@@ -21,6 +21,13 @@ public interface AuthApi {
     @ApiOperation("登录")
     @PostMapping("/login")
     Object login(LoginDto loginDto) throws Exception;
+
+    @ApiOperation("移动端登录")
+    @PostMapping("/mobileLogin")
+    Object mobileLogin(LoginDto loginDto) throws Exception;
+
+    @PostMapping("/seizeLogin")
+    Object seizeLogin(SeizeLoginDto loginDto) throws Exception;
 
     @ApiOperation("获取用户信息")
     @PostMapping("/userInfo")

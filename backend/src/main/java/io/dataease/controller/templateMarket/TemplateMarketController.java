@@ -3,11 +3,9 @@ package io.dataease.controller.templateMarket;
 import com.github.xiaoymin.knife4j.annotations.ApiSupport;
 import io.dataease.controller.request.templateMarket.TemplateMarketSearchRequest;
 import io.dataease.dto.templateMarket.MarketBaseResponse;
-import io.dataease.dto.templateMarket.TemplateMarketDTO;
 import io.dataease.service.templateMarket.TemplateMarketService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;

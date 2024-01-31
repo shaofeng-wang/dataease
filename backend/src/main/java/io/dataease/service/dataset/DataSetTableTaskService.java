@@ -1,7 +1,5 @@
 package io.dataease.service.dataset;
 
-import io.dataease.ext.ExtDataSetTaskMapper;
-import io.dataease.ext.query.GridExample;
 import io.dataease.commons.constants.JobStatus;
 import io.dataease.commons.constants.ScheduleType;
 import io.dataease.commons.constants.TaskStatus;
@@ -12,6 +10,8 @@ import io.dataease.controller.sys.base.BaseGridRequest;
 import io.dataease.controller.sys.base.ConditionEntity;
 import io.dataease.dto.dataset.DataSetTaskDTO;
 import io.dataease.exception.DataEaseException;
+import io.dataease.ext.ExtDataSetTaskMapper;
+import io.dataease.ext.query.GridExample;
 import io.dataease.i18n.Translator;
 import io.dataease.plugins.common.base.domain.*;
 import io.dataease.plugins.common.base.mapper.DatasetTableMapper;
@@ -24,10 +24,12 @@ import org.quartz.CronExpression;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * @Author gin

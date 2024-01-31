@@ -43,7 +43,7 @@ import { baseLiquid } from '@/views/chart/chart/liquid/liquid'
 import { uuid } from 'vue-uuid'
 import ViewTrackBar from '@/components/canvas/components/editor/ViewTrackBar'
 import { getRemark, hexColorToRGBA } from '@/views/chart/chart/util'
-import { baseBarOptionAntV, hBaseBarOptionAntV } from '@/views/chart/chart/bar/bar_antv'
+import { baseBarOptionAntV, hBaseBarOptionAntV, baseBidirectionalBarOptionAntV } from '@/views/chart/chart/bar/bar_antv'
 import { baseAreaOptionAntV, baseLineOptionAntV } from '@/views/chart/chart/line/line_antv'
 import { basePieOptionAntV, basePieRoseOptionAntV } from '@/views/chart/chart/pie/pie_antv'
 import { baseScatterOptionAntV } from '@/views/chart/chart/scatter/scatter_antv'
@@ -58,6 +58,8 @@ import { DEFAULT_TITLE_STYLE } from '@/views/chart/chart/chart'
 import { baseMixOptionAntV } from '@/views/chart/chart/mix/mix_antv'
 import ChartTitleUpdate from './ChartTitleUpdate.vue'
 import { equalsAny } from '@/utils/StringUtils'
+import { mapState } from 'vuex'
+import { baseFlowMapOption } from '@/views/chart/chart/map/map_antv'
 
 export default {
   name: 'ChartComponentG2',
@@ -140,7 +142,10 @@ export default {
     chartInfo() {
       const { id, title } = this.chart
       return { id, title }
-    }
+    },
+    ...mapState([
+      'canvasStyleData'
+    ])
   },
   watch: {
     chart: {
@@ -270,6 +275,10 @@ export default {
         this.myChart = baseWordCloudOptionAntV(this.myChart, this.chartId, chart, this.antVAction)
       } else if (chart.type === 'chart-mix') {
         this.myChart = baseMixOptionAntV(this.myChart, this.chartId, chart, this.antVAction)
+      } else if (chart.type === 'flow-map') {
+        this.myChart = baseFlowMapOption(this.myChart, this.chartId, chart, this.antVAction)
+      } else if (chart.type === 'bidirectional-bar') {
+        this.myChart = baseBidirectionalBarOptionAntV(this.myChart, this.chartId, chart, this.antVAction)
       } else {
         if (this.myChart) {
           this.antVRenderStatus = false
@@ -277,8 +286,26 @@ export default {
         }
       }
 
-      if (this.myChart && chart.type !== 'liquid' && this.searchCount > 0) {
+      if (this.myChart && !equalsAny(chart.type ,'liquid','flow-map') && this.searchCount > 0) {
         this.myChart.options.animation = false
+      }
+      if (this.myChart?.options?.legend) {
+        let pageNavigatorInactiveFill, pageNavigatorFill
+        if (this.canvasStyleData.panel.themeColor === 'dark') {
+          pageNavigatorFill = '#ffffff'
+          pageNavigatorInactiveFill = '#8c8c8c'
+        } else {
+          pageNavigatorFill = '#000000'
+          pageNavigatorInactiveFill = '#8c8c8c'
+        }
+        this.myChart.options.legend['pageNavigator'] = {
+          marker: {
+            style: {
+              inactiveFill: pageNavigatorInactiveFill, // 不能点击的颜色
+              fill: pageNavigatorFill // 正常的颜色
+            }
+          }
+        }
       }
 
       if (this.antVRenderStatus) {
@@ -379,6 +406,10 @@ export default {
         if (customStyle.background) {
           this.title_class.background = hexColorToRGBA(customStyle.background.color, customStyle.background.alpha)
           this.borderRadius = (customStyle.background.borderRadius || 0) + 'px'
+        }
+        if (this.chart.type === 'flow-map') {
+          this.title_class.zIndex = 4
+          this.title_class.position = 'absolute'
         }
       }
       this.initRemark()

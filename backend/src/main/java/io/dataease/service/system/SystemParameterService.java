@@ -7,6 +7,7 @@ import io.dataease.commons.utils.EncryptUtils;
 import io.dataease.controller.sys.response.BasicInfo;
 import io.dataease.dto.SystemParameterDTO;
 import io.dataease.exception.DataEaseException;
+import io.dataease.ext.ExtSystemParameterMapper;
 import io.dataease.plugins.common.base.domain.FileMetadata;
 import io.dataease.plugins.common.base.domain.SystemParameter;
 import io.dataease.plugins.common.base.domain.SystemParameterExample;
@@ -21,10 +22,12 @@ import io.dataease.service.datasource.DatasourceService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import springfox.documentation.annotations.Cacheable;
 
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
@@ -32,8 +35,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-
-import io.dataease.ext.*;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -125,6 +126,13 @@ public class SystemParameterService {
                         boolean open = StringUtils.equals("true", param.getParamValue());
                         result.setScanCreateUser(open ? "true" : "false");
                     }
+                    if (StringUtils.equals(param.getParamKey(), ParamConstants.BASIC.MULTI_LOGIN.getValue())) {
+                        String paramValue = param.getParamValue();
+                        result.setMultiLogin("0");
+                        if (StringUtils.isNotBlank(paramValue)) {
+                            result.setMultiLogin(paramValue);
+                        }
+                    }
                 }
 
             }
@@ -150,6 +158,7 @@ public class SystemParameterService {
     public CasSaveResult editBasic(List<SystemParameter> parameters) {
         CasSaveResult casSaveResult = afterSwitchDefaultLogin(parameters);
         BasicInfo basicInfo = basicInfo();
+        String oldMultiLogin = this.getValue("loginlimit.multiLogin");
         for (int i = 0; i < parameters.size(); i++) {
             SystemParameter parameter = parameters.get(i);
             SystemParameterExample example = new SystemParameterExample();
@@ -163,6 +172,10 @@ public class SystemParameterService {
             example.clear();
         }
         datasourceService.updateDatasourceStatusJob(basicInfo, parameters);
+        String newMultiLogin = this.getValue("loginlimit.multiLogin");
+        if (!StringUtils.equals(oldMultiLogin, newMultiLogin)) {
+            clearMultiLoginCache();
+        }
         return casSaveResult;
     }
 
@@ -362,6 +375,19 @@ public class SystemParameterService {
             DataEaseException.throwException("Please check market setting info");
         }
         return basicInfo;
+    }
+
+    @Cacheable(value = "multiLogin")
+    public String multiLoginType() {
+        String value = getValue("loginlimit.multiLogin");
+        if (StringUtils.isBlank(value)) {
+            value = "0";
+        }
+        return value;
+    }
+
+    @CacheEvict("multiLogin")
+    public void clearMultiLoginCache() {
     }
 
 }

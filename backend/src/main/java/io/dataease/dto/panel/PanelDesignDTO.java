@@ -1,7 +1,7 @@
 package io.dataease.dto.panel;
 
-import io.dataease.plugins.common.base.domain.PanelDesign;
 import io.dataease.dto.chart.ChartViewDTO;
+import io.dataease.plugins.common.base.domain.PanelDesign;
 import lombok.Data;
 
 /**

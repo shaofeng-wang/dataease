@@ -1,6 +1,6 @@
 package io.dataease.service.chart;
 
-import io.dataease.ext.*;
+import io.dataease.ext.ExtChartViewMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

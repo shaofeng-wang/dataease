@@ -4,13 +4,17 @@ import io.dataease.auth.config.RsaProperties;
 import io.dataease.auth.util.JWTUtils;
 import io.dataease.auth.util.RsaUtil;
 import io.dataease.commons.constants.SysLogConstants;
-import io.dataease.commons.utils.*;
+import io.dataease.commons.utils.AuthUtils;
+import io.dataease.commons.utils.CodingUtil;
+import io.dataease.commons.utils.DeLogUtils;
+import io.dataease.commons.utils.ServletUtils;
 import io.dataease.controller.request.panel.link.EnablePwdRequest;
 import io.dataease.controller.request.panel.link.LinkRequest;
 import io.dataease.controller.request.panel.link.OverTimeRequest;
 import io.dataease.controller.request.panel.link.PasswordRequest;
 import io.dataease.dto.panel.PanelGroupDTO;
 import io.dataease.dto.panel.link.GenerateDto;
+import io.dataease.ext.ExtPanelGroupMapper;
 import io.dataease.ext.ExtPanelLinkMapper;
 import io.dataease.plugins.common.base.domain.*;
 import io.dataease.plugins.common.base.mapper.PanelGroupMapper;
@@ -49,6 +53,8 @@ public class PanelLinkService {
     private PanelLinkMappingMapper panelLinkMappingMapper;
     @Resource
     private PanelWatermarkMapper panelWatermarkMapper;
+    @Resource
+    private ExtPanelGroupMapper extPanelGroupMapper;
 
     @Transactional
     public void changeValid(LinkRequest request) {
@@ -234,12 +240,10 @@ public class PanelLinkService {
         return pass;
     }
 
-    public PanelGroupDTO resourceInfo(String resourceId) {
-        PanelGroupWithBLOBs result = panelGroupMapper.selectByPrimaryKey(resourceId);
-        PanelGroupDTO panelGroupDTO = new PanelGroupDTO();
-        BeanUtils.copyBean(panelGroupDTO, result);
-        panelGroupDTO.setWatermarkInfo(panelWatermarkMapper.selectByPrimaryKey("system_default"));
-        return panelGroupDTO;
+    public PanelGroupDTO resourceInfo(String resourceId,String userId) {
+        PanelGroupDTO result = extPanelGroupMapper.findOneWithPrivileges(resourceId,userId);
+        result.setWatermarkInfo(panelWatermarkMapper.selectByPrimaryKey("system_default"));
+        return result;
     }
 
     public String getShortUrl(String resourceId) {

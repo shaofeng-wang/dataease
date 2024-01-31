@@ -1,16 +1,15 @@
 package io.dataease.auth.service;
 
-import java.util.List;
-
-import org.apache.shiro.authc.AuthenticationException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import groovy.lang.Lazy;
 import io.dataease.auth.api.dto.CurrentRoleDto;
 import io.dataease.auth.api.dto.CurrentUserDto;
 import io.dataease.auth.entity.SysUserEntity;
 import io.dataease.commons.utils.BeanUtils;
+import org.apache.shiro.authc.AuthenticationException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ProxyAuthService {

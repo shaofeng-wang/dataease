@@ -77,6 +77,8 @@ export default {
   },
   data() {
     return {
+      drawLeft: 'none',
+      drawRight: 'auto',
       initReady: false,
       editReady: false,
       editShow: true,
@@ -139,16 +141,30 @@ export default {
       }
     },
     myValue(newValue) {
+      if (this.canEdit) {
+        const ed = tinymce.editors[this.tinymceId]
+        this.element.propValue.textValue = ed.getContent()
+      }
       this.initReady && this.$store.commit('canvasChange')
     }
   },
   mounted() {
     this.viewInit()
+    bus.$on('change_panel_right_draw', this.changeRightDrawOpen)
   },
   beforeDestroy() {
     bus.$off('fieldSelect-' + this.element.propValue.viewId)
   },
   methods: {
+    changeRightDrawOpen(param){
+      if(param){
+        this.drawLeft = 'auto!important'
+        this.drawRight = '380px'
+      }else{
+        this.drawLeft = 'none'
+        this.drawRight = 'auto'
+      }
+    },
     viewInit() {
       bus.$on('fieldSelect-' + this.element.propValue.viewId, this.fieldSelect)
       tinymce.init({})
@@ -278,4 +294,12 @@ export default {
   padding: 0px;
 }
 </style>
+
+<style lang="scss">
+.tox-tinymce-inline{
+  left: var(--drawLeft);
+  right: var(--drawRight);
+}
+</style>
+
 

@@ -1,18 +1,17 @@
 package io.dataease.plugins.server.view;
 
+import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.view.entity.PluginViewType;
+import io.dataease.plugins.view.service.ViewPluginService;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import io.dataease.plugins.config.SpringContextUtil;
-import io.dataease.plugins.view.entity.PluginViewType;
-import io.dataease.plugins.view.service.ViewPluginService;
-import springfox.documentation.annotations.ApiIgnore;
 
 @ApiIgnore
 @RequestMapping("/plugin/view")

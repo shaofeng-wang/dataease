@@ -152,11 +152,17 @@ export default {
     },
     resetDefaultValue(id) {
       if (this.inDraw && this.manualModify && this.element.id === id) {
-        const values = this.element.options.value
-        this.form.min = values[0]
-        if (values.length > 1) {
-          this.form.max = values[1]
+        if (!this.element.options.value) {
+          this.form.min = null
+          this.form.max = null
+        } else {
+          const values = this.element.options.value
+          this.form.min = values[0]
+          if (values.length > 1) {
+            this.form.max = values[1]
+          }
         }
+
         this.search()
       }
     },
@@ -192,7 +198,7 @@ export default {
     validateCom(rule, value, callback) {
       if (!value) return callback()
       const one = Number(value)
-      if (Number.isInteger(one)) {
+      if (!Number.isNaN(one)) {
         if (one < MIN_NUMBER) {
           return callback(new Error(this.$t('denumberrange.out_of_min')))
         } else if (one > MAX_NUMBER) {

@@ -61,7 +61,6 @@
                   <span
                     slot-scope="{ node, data }"
                     style="display: flex;flex: 1;width: 0%;"
-                    class="custom-tree-node"
                   >
                     <span>
                       <svg-icon
@@ -274,6 +273,8 @@
           :widget="widget"
           :control-attrs="myAttrs"
           :child-views="childViews"
+          :dataset-params="datasetParams"
+          :active-name="activeName"
         />
 
         <filter-foot :element="currentElement" />
@@ -296,10 +297,7 @@ import { queryAuthModel } from '@/api/authModel/authModel'
 import {
   mapState
 } from 'vuex'
-import {
-  groupTree,
-  fieldListWithPermission
-} from '@/api/dataset/dataset'
+import { groupTree, fieldListWithPermission, datasetParams } from '@/api/dataset/dataset'
 import {
   paramsWithIds,
   viewsWithIds
@@ -386,6 +384,7 @@ export default {
         viewInfos: [],
         datasetParams: []
       },
+      datasetParams: [],
       currentElement: null,
       tempTreeData: null,
       showTips: false
@@ -448,12 +447,13 @@ export default {
     this.currentElement = JSON.parse(JSON.stringify(this.element))
     this.myAttrs = this.currentElement.options.attrs
     this.treeNode(this.groupForm)
-
+    this.loadViews()
     if (this.myAttrs && this.myAttrs.dragItems) {
       this.enableSureButton()
     }
+
     this.initWithField()
-    this.loadViews()
+
     this.ProhibitMultiple()
   },
   mounted() {
@@ -463,6 +463,40 @@ export default {
     bus.$off('valid-values-change', this.validateFilterValue)
   },
   methods: {
+    async checkSuperior(list, anotherTableIds) {
+      let fieldValid = false
+      const fieldId = this.myAttrs?.fieldId
+      if (fieldId && list?.length) {
+        const stack = [...list]
+        while (stack.length) {
+          const item = stack.pop()
+          if (fieldId.includes(item.id)) {
+            fieldValid = true
+            break
+          }
+          if (item.children?.length) {
+            item.children.forEach(kid => stack.push(kid))
+          }
+        }
+      }
+      if (!fieldValid && anotherTableIds?.length) {
+        const ps = await Promise.all(anotherTableIds.map(id => fieldListWithPermission(id)))
+        let anotherList = []
+        ps.forEach(p => {
+          anotherList = [...anotherList, ...p.data]
+        })
+
+        if (anotherList?.length && this.checkSuperior(anotherList, null)) {
+          fieldValid = true
+        }
+      }
+      if (!fieldValid) {
+        this.myAttrs.fieldId = null
+        this.myAttrs.dragItems = []
+        this.myAttrs.fieldsParent = null
+      }
+      return fieldValid
+    },
 
     treeNode(cache) {
       const modelInfo = localStorage.getItem('dataset-tree')
@@ -472,6 +506,7 @@ export default {
         const results = this.buildTree(this.tData)
         this.defaultData = JSON.parse(JSON.stringify(results))
         this.treeData = JSON.parse(JSON.stringify(results))
+        return
       }
       queryAuthModel({ modelType: 'dataset' }, !userCache).then(res => {
         localStorage.setItem('dataset-tree', JSON.stringify(res.data))
@@ -489,8 +524,8 @@ export default {
         if (this.myAttrs.fieldsParent) {
           this.fieldsParent = this.myAttrs.fieldsParent
           this.$nextTick(() => {
-            this.activeName === 'dataset' && this.showFieldData(this.fieldsParent)
-            this.activeName !== 'dataset' && this.comShowFieldData(this.fieldsParent)
+            this.activeName === 'dataset' && this.showFieldData(this.fieldsParent, true)
+            this.activeName !== 'dataset' && this.comShowFieldData(this.fieldsParent, true)
           })
         }
       }
@@ -568,6 +603,7 @@ export default {
         const data = res.data
 
         this.viewInfos = data
+        this.updateParentName()
         this.childViews.viewInfos = data
       })
       var type = 'TEXT'
@@ -582,6 +618,17 @@ export default {
 
         this.childViews.datasetParams = data
       })
+    },
+    updateParentName() {
+      if (this.fieldsParent && this.viewInfos?.length && this.activeName !== 'dataset') {
+        this.viewInfos.forEach(info => {
+          if (info.id === this.fieldsParent.id && info.name !== this.fieldsParent.name) {
+            this.fieldsParent.name = info.name
+            this.comBackLink(this.fieldsParent)
+            this.comShowFieldData(this.fieldsParent)
+          }
+        })
+      }
     },
     handleNodeClick(data) {
       if (data.modelInnerType !== 'group') {
@@ -681,7 +728,7 @@ export default {
     },
 
     removeTail(bread) {
-      if (!bread.id) {
+      if (!bread?.id) {
         this.dataSetBreads = this.dataSetBreads.slice(0, 1)
         this.dataSetBreads[this.dataSetBreads.length - 1]['link'] = false
         return
@@ -707,7 +754,7 @@ export default {
         this.expandedArray = []
         this.keyWord = ''
         this.isTreeSearch = false
-        if (bread.id) {
+        if (bread?.id) {
           const node = this.getNode(bread.id, this.treeData)
           if (node) {
             this.tempTreeData = node.children
@@ -724,33 +771,55 @@ export default {
       this.viewKeyWord = ''
       this.comRemoveTail()
     },
-
-    loadField(tableId) {
-      fieldListWithPermission(tableId).then(res => {
-        let data = res.data
-        if (this.widget && this.widget.filterFieldMethod) {
-          data = this.widget.filterFieldMethod(data)
-        }
-        this.originFieldData = data
-        this.fieldData = JSON.parse(JSON.stringify(data))
+    anotherTableInfo(tableId) {
+      if (this.myAttrs?.dragItems?.length) {
+        return this.myAttrs.dragItems.filter(item => item.tableId !== tableId).map(item => item.tableId)
+      }
+      return null
+    },
+    async loadField(tableId, init) {
+      const res = await fieldListWithPermission(tableId)
+      let data = res.data || []
+      if (init && !this.checkSuperior(data, this.anotherTableInfo(tableId))) {
+        this.backToLink()
+      }
+      if (this.widget && this.widget.filterFieldMethod) {
+        data = this.widget.filterFieldMethod(data)
+      }
+      this.originFieldData = data
+      this.fieldData = JSON.parse(JSON.stringify(data))
+    },
+    loadDatasetParams(tableId) {
+      var type = 'TEXT'
+      if (this.widgetInfo.name.indexOf('time') !== -1) {
+        type = 'DATE'
+      }
+      if (this.widgetInfo.name === 'numberSelectWidget') {
+        type = 'NUM'
+      }
+      datasetParams(tableId, type).then(res => {
+        this.datasetParams = res.data || []
       })
     },
-    comLoadField(tableId) {
-      fieldListWithPermission(tableId).then(res => {
-        let data = res.data
-        if (this.widget && this.widget.filterFieldMethod) {
-          data = this.widget.filterFieldMethod(data)
-        }
-        this.originComFieldData = data
-        this.comFieldData = JSON.parse(JSON.stringify(data))
-      })
+    async comLoadField(tableId, init) {
+      const res = await fieldListWithPermission(tableId)
+      let data = res.data || []
+      if (init && !this.checkSuperior(data, this.anotherTableInfo(tableId))) {
+        this.comBackLink()
+      }
+      if (this.widget && this.widget.filterFieldMethod) {
+        data = this.widget.filterFieldMethod(data)
+      }
+      this.originComFieldData = data
+      this.comFieldData = JSON.parse(JSON.stringify(data))
     },
-    showFieldData(row) {
+    showFieldData(row, init) {
       this.keyWord = ''
       this.showDomType = 'field'
       this.addQueue(row)
       this.fieldsParent = row
-      this.loadField(row.id)
+      this.loadField(row.id, init)
+      this.loadDatasetParams(row.id)
     },
     showNextGroup(row) {
       this.tempTreeData = JSON.parse(JSON.stringify(row.children))
@@ -758,13 +827,13 @@ export default {
       this.showDomType = 'tree'
       this.addQueue(row)
     },
-    comShowFieldData(row) {
+    comShowFieldData(row, init) {
       this.viewKeyWord = ''
       this.comShowDomType = 'field'
       this.comSetTailLink(row)
       this.comAddTail(row)
       this.fieldsParent = row
-      this.comLoadField(row.tableId)
+      this.comLoadField(row.tableId, init)
     },
     onMove(e, originalEvent) {
       this.showTips = false

@@ -1,22 +1,18 @@
 package io.dataease.plugins.server;
 
-import java.util.List;
-
-import io.dataease.plugins.xpack.theme.dto.*;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import io.dataease.commons.exception.DEException;
 import io.dataease.commons.utils.LogUtil;
 import io.dataease.i18n.Translator;
 import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.xpack.theme.dto.*;
 import io.dataease.plugins.xpack.theme.service.ThemeXpackService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Api(tags = "xpack：系统主题")
 @RequestMapping("/plugin/theme")

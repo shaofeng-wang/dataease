@@ -1,10 +1,10 @@
 package io.dataease.ext;
 
 
-
 import io.dataease.auth.api.dto.CurrentRoleDto;
 import io.dataease.auth.entity.SysUserEntity;
 import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 
 public interface AuthMapper {

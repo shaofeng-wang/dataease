@@ -47,7 +47,7 @@
             :content="$t('system_parameter_setting.front_time_out')"
             placement="top"
           >
-            <i class="el-icon-warning-outline tips" />
+            <svg-icon class="tips" icon-class="icon_info_outlined" />
           </el-tooltip>
         </template>
         <el-input
@@ -157,6 +157,13 @@
         ref="LoginLimitSetting"
         :form="formInline"
         component-name="LoginLimitSetting"
+      />
+
+      <plugin-com
+        v-if="isPluginLoaded"
+        ref="MultiLoginLimit"
+        :form="formInline"
+        component-name="MultiLoginLimit"
       />
 
       <plugin-com
@@ -427,6 +434,12 @@ export default {
         {
           paramKey: 'loginlimit.scanCreateUser',
           paramValue: this.formInline.scanCreateUser,
+          type: 'text',
+          sort: 3
+        },
+        {
+          paramKey: 'loginlimit.multiLogin',
+          paramValue: this.formInline.multiLogin,
           type: 'text',
           sort: 3
         }

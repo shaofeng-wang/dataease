@@ -1,9 +1,10 @@
 package io.dataease.config;
 
-import static io.dataease.commons.constants.StaticResourceConstants.*;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import static io.dataease.commons.constants.StaticResourceConstants.*;
 import static io.dataease.commons.utils.StaticResourceUtils.ensureBoth;
 import static io.dataease.commons.utils.StaticResourceUtils.ensureSuffix;
 

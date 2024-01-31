@@ -1,10 +1,11 @@
 package io.dataease.service.panel;
 
 import io.dataease.commons.utils.AuthUtils;
-import io.dataease.plugins.common.base.domain.*;
+import io.dataease.plugins.common.base.domain.PanelAppTemplateLog;
 import io.dataease.plugins.common.base.mapper.PanelAppTemplateLogMapper;
 import org.pentaho.di.core.util.UUIDUtil;
 import org.springframework.stereotype.Service;
+
 import javax.annotation.Resource;
 
 /**

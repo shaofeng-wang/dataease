@@ -30,12 +30,12 @@
           />
         </el-row>
         <el-row class="top_banner_card">
-          <wizard-card :details="cardList[0]" />
+          <wizard-card :details="cardList[0]"/>
           <wizard-card
             :details="cardList[1]"
             style="margin:0 24px 0 24px"
           />
-          <wizard-card-enterprise :details="cardList[2]" />
+          <wizard-card-enterprise :details="cardList[2]"/>
         </el-row>
         <el-row class="content_middle">
           <div class="content_middle_left">
@@ -44,15 +44,15 @@
               <div class="content_middle_more"><a
                 target="_blank"
                 href="https://space.bilibili.com/510493147/channel/collectiondetail?sid=262774"
-              >{{ $t('wizard.more') }}<i class="el-icon-arrow-right" /></a></div>
+              >{{ $t('wizard.more') }}<i class="el-icon-arrow-right"/></a></div>
             </el-row>
             <el-row style="margin-top: 12px">
-              <video-card :details="videoList[0]" />
+              <video-card :details="videoList[0]"/>
               <video-card
                 style="margin:0 12px 0 12px"
                 :details="videoList[1]"
               />
-              <video-card :details="videoList[2]" />
+              <video-card :details="videoList[2]"/>
             </el-row>
           </div>
           <div class="content_middle_right">
@@ -60,8 +60,8 @@
               <span class="content_middle_title">{{ $t('wizard.latest_developments') }}</span>
               <div class="content_middle_more"><a
                 target="_blank"
-                href="https://blog.fit2cloud.com/?cat=321"
-              >{{ $t('wizard.more') }}<i class="el-icon-arrow-right" /></a></div>
+                href="https://blog.fit2cloud.com/categories/dataease"
+              >{{ $t('wizard.more') }}<i class="el-icon-arrow-right"/></a></div>
             </el-row>
             <el-row>
               <ul class="ul-custom">
@@ -93,10 +93,17 @@
             </el-row>
             <el-row class="contact_content">
               {{ $t('wizard.web') }}<a
-                style="text-decoration:underline;"
-                target="_blank"
-                href="https://www.dataease.io"
-              >www.dataease.io</a>
+              style="text-decoration:underline;"
+              target="_blank"
+              href="https://www.dataease.io"
+            >www.dataease.io</a>
+            </el-row>
+            <el-row class="contact_content">
+              {{ $t('wizard.bbs') }}<a
+              style="text-decoration:underline;"
+              target="_blank"
+              href="https://bbs.fit2cloud.com/c/de"
+            >https://bbs.fit2cloud.com/c/de</a>
             </el-row>
           </div>
 
@@ -119,7 +126,7 @@
               <div class="contact_title_qr">{{ $t('wizard.technical_group') }}</div>
               <img
                 class="contact_wechat_group_img"
-                src="@/assets/wizard_wechat-group.png"
+                src="../../assets/wizard_wechat-group.png"
               >
             </div>
           </div>
@@ -154,7 +161,7 @@ export default {
           content: this.$t('wizard.demo_video_hint'),
           img: 'wizard_quick_start',
           bgColor: '#E7F2FF',
-          href: 'https://www.bilibili.com/video/BV1i34y1v7hq/'
+          href: 'https://www.bilibili.com/video/BV1qG4y1F7uc/'
         },
         {
           head: this.$t('wizard.online_document'),
@@ -175,17 +182,17 @@ export default {
         {
           content: '1.1 连接数据库并添加数据集',
           img: 'wizard_video1.png',
-          href: 'https://www.bilibili.com/video/BV1F34y1n7J7?spm_id_from=333.999.0.0'
+          href: 'https://www.bilibili.com/video/BV13V4y1P7FB/?spm_id_from=333.999.0.0'
         },
         {
           content: '1.2 Excel 数据集和 API 数据集',
           img: 'wizard_video2.png',
-          href: 'https://www.bilibili.com/video/BV1Fa411D7Di?spm_id_from=333.999.0.0'
+          href: 'https://www.bilibili.com/video/BV16P4y1Q7zT/?spm_id_from=333.999.0.0'
         },
         {
           content: '1.3 数据集整合',
           img: 'wizard_video3.png',
-          href: 'https://www.bilibili.com/video/BV1EB4y187AL?spm_id_from=333.999.0.0'
+          href: 'https://www.bilibili.com/video/BV1fR4y1k7Dt/?spm_id_from=333.999.0.0'
         }
       ],
       loading: true
@@ -395,7 +402,7 @@ export default {
 .content_bottom_contact {
   float: left;
   margin-left: 278px;
-  width: 300px;
+  width: 200px;
   margin-top: 40px;
 }
 
@@ -403,7 +410,7 @@ export default {
   font-style: normal;
   font-weight: 500;
   font-size: 14px;
-  line-height: 22px;
+  line-height: 20px;
   color: var(--TextPrimary, #1F2329);
   margin-bottom: 16px;
 }
@@ -411,8 +418,8 @@ export default {
 .contact_content {
   font-style: normal;
   font-weight: 400;
-  font-size: 14px;
-  line-height: 22px;
+  font-size: 12px;
+  line-height: 16px;
   color: #646A73;
   margin-top: 8px;
 }
@@ -422,11 +429,12 @@ export default {
 }
 
 .content_bottom_qr_code {
-  width: 400px;
+  width: 500px;
   float: right;
   text-align: right;
   margin-right: 180px;
   margin-top: 40px;
+  padding-right: 100px;
 }
 
 .contact_title_qr {

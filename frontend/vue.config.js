@@ -2,6 +2,8 @@
 const path = require('path')
 const defaultSettings = require('./src/settings.js')
 
+const pkg = require('./package.json')
+
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 // const CompressionPlugin = require('compression-webpack-plugin')
 const webpack = require('webpack')
@@ -22,6 +24,7 @@ module.exports = {
     port: port,
     proxy: {
       '^(?!/login)': {
+        // target: 'http://47.110.124.78:8081/',
         target: 'http://localhost:8081/',
         ws: true
       }
@@ -30,8 +33,7 @@ module.exports = {
     overlay: {
       warnings: false,
       errors: true
-    },
-    before: require('./mock/mock-server.js')
+    }
   },
 
   pages: {
@@ -48,6 +50,11 @@ module.exports = {
       alias: {
         '@': resolve('src')
       }
+    },
+    output: process.env.NODE_ENV === 'development' ? {} : {
+      filename: `js/[name].[contenthash:8].${pkg.version}.js`,
+      publicPath: '/',
+      chunkFilename: `js/[name].[contenthash:8].${pkg.version}.js`
     },
     plugins: [
       new CopyWebpackPlugin([
@@ -94,6 +101,17 @@ module.exports = {
         deleteOriginalAssets: true // 删除源文件
       })) */
     }
+
+    config.module
+      .rule('icons')
+      .test(/\.svg$/)
+      .include.add(resolve('src/deicons'))
+      .end()
+      .use('svg-sprite-loader')
+      .loader('svg-sprite-loader')
+      .options({
+        symbolId: '[name]'
+      })
   },
   css: {
     loaderOptions: {
@@ -102,7 +120,7 @@ module.exports = {
       }
     },
     extract: {
-      ignoreOrder: true,
+      ignoreOrder: true
     }
   }
 

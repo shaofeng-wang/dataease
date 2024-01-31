@@ -28,8 +28,14 @@
               size="mini"
               @change="changeXAxisStyle('position')"
             >
-              <el-radio-button label="top">{{ $t('chart.text_pos_top') }}</el-radio-button>
-              <el-radio-button label="bottom">{{ $t('chart.text_pos_bottom') }}</el-radio-button>
+              <div v-if="chart.type !== 'bidirectional-bar'">
+                <el-radio-button label="top">{{ $t('chart.text_pos_top') }}</el-radio-button>
+                <el-radio-button label="bottom">{{ $t('chart.text_pos_bottom') }}</el-radio-button>
+              </div>
+              <div v-else-if="chart.type === 'bidirectional-bar'">
+                <el-radio-button label="top">{{ $t('chart.text_pos_left') }}</el-radio-button>
+                <el-radio-button label="bottom">{{ $t('chart.text_pos_center') }}</el-radio-button>
+              </div>
             </el-radio-group>
           </el-form-item>
           <el-form-item
@@ -84,11 +90,10 @@
                     effect="dark"
                     placement="bottom"
                   >
-                    <div slot="content">
-                      最小值、最大值、间隔均为数值类型；若不填，则该项视为自动。
-                      <br>
-                      请确保填写数值能正确计算，否则将无法正常显示轴值。
-                    </div>
+                    <div
+                      slot="content"
+                      v-html="$t('chart.axis_tip')"
+                    />
                     <i
                       class="el-icon-info"
                       style="cursor: pointer;"

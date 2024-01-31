@@ -1,6 +1,5 @@
 package io.dataease.job.sechedule.strategy.impl;
 
-import com.google.gson.Gson;
 import io.dataease.commons.utils.CommonBeanFactory;
 import io.dataease.commons.utils.LogUtil;
 import io.dataease.dto.TaskInstance;
@@ -8,10 +7,8 @@ import io.dataease.ext.ExtTaskInstanceMapper;
 import io.dataease.job.sechedule.ScheduleManager;
 import io.dataease.job.sechedule.strategy.TaskHandler;
 import io.dataease.plugins.common.entity.GlobalTaskEntity;
-
 import io.dataease.service.datasource.DatasourceService;
 import org.quartz.*;
-
 import org.springframework.stereotype.Service;
 
 import java.util.Date;

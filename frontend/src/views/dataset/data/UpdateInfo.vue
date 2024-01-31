@@ -574,7 +574,7 @@ export default {
         startTime: '',
         rate: 'SIMPLE',
         cron: '',
-        endTime: '',
+        endTime: 0,
         end: '0',
         extraData: {
           simple_cron_type: 'hour',
@@ -779,6 +779,7 @@ export default {
         this.taskForm.name =
           this.table.name + ' ' + this.$t('dataset.task_update')
         this.taskForm.startTime = new Date()
+        this.taskForm.endTime = new Date()
         this.update_task_dialog_title = this.$t('dataset.task_add_title')
       } else {
         // update
@@ -940,7 +941,7 @@ export default {
           this.sql = ''
           return
         }
-        if (this.incrementalConfig.incrementalAdd.length > 0) {
+        if (this.incrementalConfig?.incrementalAdd?.length > 0) {
           this.incrementalUpdateType = 'incrementalAdd'
           this.sql = this.incrementalConfig.incrementalAdd
         } else {
@@ -1030,7 +1031,7 @@ export default {
     onRateChange() {
       if (this.taskForm.rate === 'SIMPLE') {
         this.taskForm.end = '0'
-        this.taskForm.endTime = ''
+        this.taskForm.endTime = 0
         this.taskForm.cron = ''
         this.showCron = false
       }

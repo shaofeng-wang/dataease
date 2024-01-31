@@ -6,13 +6,10 @@ import io.dataease.auth.entity.TokenInfo;
 import io.dataease.auth.service.AuthUserService;
 import io.dataease.auth.service.impl.AuthUserServiceImpl;
 import io.dataease.auth.util.JWTUtils;
+import io.dataease.commons.utils.*;
 import io.dataease.dto.PermissionProxy;
 import io.dataease.dto.chart.ViewOption;
 import io.dataease.ext.ExtTaskMapper;
-import io.dataease.commons.utils.CommonBeanFactory;
-import io.dataease.commons.utils.CronUtils;
-import io.dataease.commons.utils.LogUtil;
-import io.dataease.commons.utils.ServletUtils;
 import io.dataease.job.sechedule.ScheduleManager;
 import io.dataease.job.sechedule.strategy.TaskHandler;
 import io.dataease.plugins.common.base.domain.SysUserAssist;
@@ -38,7 +35,10 @@ import io.dataease.service.system.EmailService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.quartz.*;
+import org.quartz.Job;
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.HtmlUtils;
@@ -94,7 +94,7 @@ public class EmailTaskHandler extends TaskHandler implements Job {
         Boolean isTempTask = (Boolean) jobDataMap.getOrDefault(IS_TEMP_TASK, false);
         GlobalTaskEntity taskEntity = (GlobalTaskEntity) jobDataMap.get("taskEntity");
         ScheduleManager scheduleManager = SpringContextUtil.getBean(ScheduleManager.class);
-        if (!isTempTask && CronUtils.taskExpire(taskEntity.getEndTime())) {
+        if (!isTempTask && (CronUtils.taskExpire(taskEntity.getEndTime()) || !taskEntity.getStatus())) {
             removeTask(scheduleManager, taskEntity);
             return;
         }
@@ -164,16 +164,17 @@ public class EmailTaskHandler extends TaskHandler implements Job {
         AuthUserServiceImpl userService = SpringContextUtil.getBean(AuthUserServiceImpl.class);
         SysUserService sysUserService = SpringContextUtil.getBean(SysUserService.class);
         List<File> files = null;
+        String token = null;
         try {
             XpackEmailTemplateDTO emailTemplateDTO = emailXpackService.emailTemplate(taskInstance.getTaskId());
             XpackEmailTaskRequest taskForm = emailXpackService.taskForm(taskInstance.getTaskId());
-            if (ObjectUtils.isEmpty(taskForm) || (!isTempTask && CronUtils.taskExpire(taskForm.getEndTime()))) {
+            if (ObjectUtils.isEmpty(taskForm) || (!isTempTask && (CronUtils.taskExpire(taskForm.getEndTime()) || !emailXpackService.status(taskInstance.getTaskId())))) {
                 removeInstance(taskInstance);
                 return;
             }
             String panelId = emailTemplateDTO.getPanelId();
             String url = panelUrl(panelId);
-            String token = tokenByUser(user);
+            token = tokenByUser(user);
             XpackPixelEntity xpackPixelEntity = buildPixel(emailTemplateDTO);
             LogUtil.info("url is " + url);
             LogUtil.info("token is " + token);
@@ -349,6 +350,9 @@ public class EmailTaskHandler extends TaskHandler implements Job {
             error(taskInstance, e);
             LogUtil.error(e.getMessage(), e);
         } finally {
+            if (StringUtils.isNotBlank(token)) {
+                TokenCacheUtils.add(token, user.getUserId());
+            }
             if (CollectionUtils.isNotEmpty(files)) {
                 files.forEach(file -> {
                     if (file.exists()) {
@@ -381,7 +385,7 @@ public class EmailTaskHandler extends TaskHandler implements Job {
 
     private String tokenByUser(SysUserEntity user) {
         TokenInfo tokenInfo = TokenInfo.builder().userId(user.getUserId()).username(user.getUsername()).build();
-        String token = JWTUtils.sign(tokenInfo, user.getPassword());
+        String token = JWTUtils.sign(tokenInfo, user.getPassword(), false);
 
         return token;
     }

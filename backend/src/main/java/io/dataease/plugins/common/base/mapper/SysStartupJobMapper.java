@@ -2,8 +2,9 @@ package io.dataease.plugins.common.base.mapper;
 
 import io.dataease.plugins.common.base.domain.SysStartupJob;
 import io.dataease.plugins.common.base.domain.SysStartupJobExample;
-import java.util.List;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 public interface SysStartupJobMapper {
     long countByExample(SysStartupJobExample example);

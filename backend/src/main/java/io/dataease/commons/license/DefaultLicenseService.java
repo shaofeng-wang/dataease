@@ -1,9 +1,9 @@
 package io.dataease.commons.license;
 
 import com.google.gson.Gson;
-import io.dataease.plugins.common.base.domain.License;
 import io.dataease.commons.exception.DEException;
 import io.dataease.commons.utils.LogUtil;
+import io.dataease.plugins.common.base.domain.License;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 

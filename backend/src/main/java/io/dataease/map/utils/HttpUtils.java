@@ -6,7 +6,6 @@ import cn.hutool.json.JSONUtil;
 import io.dataease.map.dto.request.MapRequest;
 import io.dataease.map.dto.response.MapResponse;
 
-
 import java.util.Map;
 
 public class HttpUtils {

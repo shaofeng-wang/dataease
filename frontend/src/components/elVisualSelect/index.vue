@@ -6,6 +6,7 @@
     :class="classId"
     popper-class="VisualSelects coustom-de-select"
     no-match-text=" "
+    reserve-keyword
     clearable
     v-bind="$attrs"
     v-on="$listeners"
@@ -93,7 +94,7 @@ export default {
   },
   computed: {
     isIndeterminate() {
-      return Array.isArray(this.selectValue) && this.selectValue.length > 0 && this.selectValue.length !== this.list.length
+      return Array.isArray(this.selectValue) && this.selectValue.length > 0 && this.isAllSelect() > 0 && this.selectValue.length !== this.halfSelect()
     }
   },
   watch: {
@@ -145,7 +146,10 @@ export default {
       return this.selectValue === id && 'selected'
     },
     selectAllChange(val) {
-      const vals = val ? [...this.list.map(ele => ele.id)] : []
+      let vals = val ? [...this.list.map(ele => ele.id)] : []
+      if (this.keyWord.trim() && val) {
+        vals = this.list.filter(item => item.text.includes(this.keyWord.trim())).map(ele => ele.id)
+      }
       this.visualChange(vals)
       this.selectValue = vals
       this.$emit('change', vals)
@@ -157,7 +161,8 @@ export default {
       selectDom.insertBefore(this.maxHeightDom, this.domList)
     },
     reCacularHeight() {
-      this.maxHeightDom.style.height = this.newList.length * this.itemHeight + 'px'
+      const h = this.$attrs.multiple ? 16 : 0
+      this.maxHeightDom.style.height = this.newList.length * this.itemHeight + h + 'px'
     },
     resetList(arrays) {
       if (Array.isArray(arrays)) {
@@ -214,14 +219,34 @@ export default {
       this.domList.style.paddingTop = scrollTop - (scrollTop % this.itemHeight) + 'px'
     },
     popChange() {
+      this.$emit('resetKeyWords', '')
       this.domList.style.paddingTop = 0 + 'px'
-
+      this.startIndex = 0
+      this.$nextTick(() => {
+        if (this.$attrs.multiple) {
+          this.selectAll = this.selectValue.length === this.list.length
+        }
+      })
       this.resetList()
       this.reCacularHeight()
     },
+    isAllSelect() {
+      let vals = this.list.length
+      if (this.keyWord.trim()) {
+        vals = this.list.filter(item => item.text.includes(this.keyWord.trim())).map(ele => ele.id).filter(ele => this.selectValue.includes(ele)).length
+      }
+      return vals
+    },
+    halfSelect() {
+      let vals = this.list.length
+      if (this.keyWord.trim()) {
+        vals = this.list.filter(item => item.text.includes(this.keyWord.trim())).map(ele => ele.id).length
+      }
+      return vals
+    },
     visualChange(val) {
       if (this.$attrs.multiple) {
-        this.selectAll = val.length === this.list.length
+        this.selectAll = val.length === this.halfSelect()
       }
       this.$emit('visual-change', val)
     }
@@ -234,7 +259,7 @@ export default {
 .VisualSelects {
   .el-scrollbar {
     position: relative;
-    height: 251px;
+    height: 245px;
     overflow: inherit;
     overflow-x: hidden;
     content-visibility: auto;
@@ -266,4 +291,5 @@ export default {
 .select-all {
   padding: 10px 20px 0 20px;
 }
+
 </style>

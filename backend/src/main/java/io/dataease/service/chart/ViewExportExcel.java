@@ -1,13 +1,8 @@
 package io.dataease.service.chart;
 
-import com.google.gson.internal.LinkedTreeMap;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
-
 import com.google.gson.Gson;
-
+import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.reflect.TypeToken;
 import io.dataease.auth.annotation.DePermissionProxy;
 import io.dataease.commons.exception.DEException;
 import io.dataease.commons.model.excel.ExcelSheetModel;
@@ -21,13 +16,15 @@ import io.dataease.plugins.common.dto.chart.ChartViewFieldDTO;
 import io.dataease.plugins.common.request.chart.ChartExtFilterRequest;
 import io.dataease.plugins.config.SpringContextUtil;
 import io.dataease.service.panel.PanelGroupService;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import com.google.gson.reflect.TypeToken;
 
 @Service
 public class ViewExportExcel {
@@ -63,7 +60,7 @@ public class ViewExportExcel {
         String panelStyle = panelDto.getPanelStyle();
         Map map = gson.fromJson(panelStyle, Map.class);
         Map panelMap = (LinkedTreeMap) map.get("panel");
-        double resultCount = Double.parseDouble(panelMap.get("resultCount").toString());
+        double resultCount = ObjectUtils.isEmpty(panelMap.get("resultCount")) ? 1000 : Double.parseDouble(panelMap.get("resultCount").toString());
         String resultMode = null;
         if (ObjectUtils.isNotEmpty(panelMap.get("resultMode"))) {
             resultMode = panelMap.get("resultMode").toString();

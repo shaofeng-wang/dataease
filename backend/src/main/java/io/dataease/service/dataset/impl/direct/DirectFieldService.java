@@ -1,17 +1,19 @@
 package io.dataease.service.dataset.impl.direct;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.google.gson.Gson;
 import io.dataease.commons.exception.DEException;
 import io.dataease.commons.model.BaseTreeNode;
 import io.dataease.commons.utils.BeanUtils;
 import io.dataease.commons.utils.LogUtil;
 import io.dataease.commons.utils.TreeUtils;
+import io.dataease.dto.dataset.DataSetTableUnionDTO;
+import io.dataease.dto.dataset.DataTableInfoDTO;
 import io.dataease.dto.dataset.DeSortDTO;
+import io.dataease.i18n.Translator;
 import io.dataease.plugins.common.base.domain.DatasetTable;
 import io.dataease.plugins.common.base.domain.DatasetTableField;
 import io.dataease.plugins.common.base.domain.Datasource;
-import io.dataease.commons.constants.ColumnPermissionConstants;
-import io.dataease.i18n.Translator;
 import io.dataease.plugins.common.constants.DatasetType;
 import io.dataease.plugins.common.dto.chart.ChartFieldCustomFilterDTO;
 import io.dataease.plugins.common.dto.datasource.DeSortField;
@@ -23,8 +25,6 @@ import io.dataease.plugins.xpack.auth.dto.request.ColumnPermissionItem;
 import io.dataease.provider.ProviderFactory;
 import io.dataease.service.dataset.*;
 import io.dataease.service.datasource.DatasourceService;
-import io.dataease.dto.dataset.DataSetTableUnionDTO;
-import io.dataease.dto.dataset.DataTableInfoDTO;
 import io.dataease.service.engine.EngineService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.text.Collator;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -75,6 +76,26 @@ public class DirectFieldService implements DataSetFieldService {
             deSortField.setOrderDirection(sortDTO.getSort());
             return deSortField;
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Object> chineseSort(List<Object> list, DeSortDTO sortDTO) throws Exception {
+        if (ObjectUtils.isEmpty(sortDTO) || CollectionUtil.isEmpty(list)) return list;
+        String sort = sortDTO.getSort();
+        if (!StringUtils.equals(sort, "chinese")) {
+            return list;
+        }
+        String id = sortDTO.getId();
+        String sortStr = StringUtils.equalsIgnoreCase("chineseDesc", id) ? "desc" : "asc";
+        List<Object> result = CollectionUtil.sort(list, (v1, v2) -> {
+            Collator instance = Collator.getInstance(Locale.CHINESE);
+            if (StringUtils.equals("desc", sortStr)) {
+                return instance.compare(v2, v1);
+            }
+            return instance.compare(v1, v2);
+        });
+
+        return result;
     }
 
     @Override
@@ -146,10 +167,10 @@ public class DirectFieldService implements DataSetFieldService {
                 datasourceRequest.setQuery(qp.createQuerySQL(dataTableInfoDTO.getTable(), permissionFields, !needSort, ds, customFilter, rowPermissionsTree, deSortFields));
             } else if (StringUtils.equalsIgnoreCase(datasetTable.getType(), DatasetType.SQL.toString())) {
                 String sql = dataTableInfoDTO.getSql();
-                if(dataTableInfoDTO.isBase64Encryption()){
+                if (dataTableInfoDTO.isBase64Encryption()) {
                     sql = new String(java.util.Base64.getDecoder().decode(sql));
                 }
-                sql = dataSetTableService.removeVariables(sql, ds.getType());
+                sql = dataSetTableService.handleVariableDefaultValue(sql, null, ds.getType(), false);
                 datasourceRequest.setQuery(qp.createQuerySQLAsTmp(sql, permissionFields, !needSort, customFilter, rowPermissionsTree, deSortFields));
             } else if (StringUtils.equalsIgnoreCase(datasetTable.getType(), DatasetType.CUSTOM.toString())) {
                 DataTableInfoDTO dt = new Gson().fromJson(datasetTable.getInfo(), DataTableInfoDTO.class);
@@ -173,6 +194,7 @@ public class DirectFieldService implements DataSetFieldService {
             datasourceRequest.setQuery(qp.createQuerySQL(tableName, permissionFields, !needSort, null, customFilter, rowPermissionsTree, deSortFields));
         }
         LogUtil.info(datasourceRequest.getQuery());
+        datasourceRequest.setPermissionFields(permissionFields);
         List<String[]> rows = datasourceProvider.getData(datasourceRequest);
         if (!needMapping) {
             List<Object> results = rows.stream().map(row -> row[0]).distinct().collect(Collectors.toList());

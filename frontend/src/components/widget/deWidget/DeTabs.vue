@@ -17,7 +17,7 @@
       :active-color="activeColor"
       :border-color="borderColor"
       :border-active-color="borderActiveColor"
-      :addable="isEdit"
+      :addable="isEdit && !mobileLayoutStatus"
       @tab-add="addTab"
       @tab-click="handleClick"
     >
@@ -25,7 +25,7 @@
       <el-tab-pane
         v-for="(item, index) in element.options.tabList"
         :key="item.name+index"
-        :lazy="false"
+        :lazy="true"
         :name="item.name"
       >
         <span slot="label">
@@ -76,10 +76,11 @@
         >
           <Preview
             :component-data="tabCanvasComponentData(item.name)"
+            :ref="'canvasTabRef-'+item.name"
             :canvas-style-data="canvasStyleData"
             :canvas-id="element.id+'-'+item.name"
             :panel-info="panelInfo"
-            :in-screen="true"
+            :in-screen="inScreen"
             :show-position="showPosition"
           />
         </div>
@@ -232,6 +233,11 @@ export default {
   name: 'DeTabs',
   components: { TextAttr, Preview, DeCanvasTab, TabUseList, ViewSelect, DataeaseTabs },
   props: {
+    inScreen: {
+      type: Boolean,
+      required: false,
+      default: true
+    },
     canvasId: {
       type: String,
       default: 'canvas-main'
@@ -272,6 +278,7 @@ export default {
   },
   data() {
     return {
+      tabsAreaScroll: false,
       timer: null,
       scrollLeft: 50,
       scrollTop: 10,
@@ -306,7 +313,11 @@ export default {
       return Boolean(this.$store.state.dragComponentInfo)
     },
     headClass() {
-      return 'tab-head-' + this.element.style.headPosition
+      if(this.tabsAreaScroll){
+        return 'tab-head-left'
+      }else{
+        return 'tab-head-' + this.element.style.headPosition
+      }
     },
     curCanvasScaleSelf() {
       return this.curCanvasScaleMap[this.canvasId]
@@ -399,17 +410,27 @@ export default {
         this.initCarousel()
       }
     },
+    'element': {
+      handler(newVal, oldVla) {
+        this.calcTabLength()
+      }
+    },
     activeTabName: {
       handler(newVal, oldVla) {
         this.$store.commit('setTabActiveTabNameMap', { tabId: this.element.id, activeTabName: this.activeTabName })
         const _this = this
         _this.$nextTick(() => {
           try {
+            const targetRef = _this.$refs['canvasTabRef-' + _this.activeTabName]
+            if (targetRef) {
+              targetRef[0]?.restore()
+            }
             _this.$refs[this.activeTabName][0].resizeChart()
           } catch (e) {
             // ignore
           }
         })
+        bus.$emit('tab-canvas-change', this.activeCanvasId)
       }
     },
     active: {
@@ -441,17 +462,47 @@ export default {
   },
   created() {
     bus.$on('add-new-tab', this.addNewTab)
-    this.activeTabName = this.element.options.tabList[0].name
+    this.$nextTick(() => {
+      this.activeTabName = this.element.options.tabList[0].name
+    });
     this.$store.commit('setTabActiveTabNameMap', { tabId: this.element.id, activeTabName: this.activeTabName })
     this.setContentThemeStyle()
   },
   mounted() {
     this.initCarousel()
+    this.calcTabLength()
   },
   beforeDestroy() {
     bus.$off('add-new-tab', this.addNewTab)
   },
   methods: {
+    calcTabLength(){
+      this.$nextTick(()=>{
+        if(this.element.options.tabList.length>1){
+          const containerDom = document.getElementById("tab-"+this.element.options.tabList[this.element.options.tabList.length -1].name)
+          this.tabsAreaScroll = containerDom.parentNode.scrollWidth > containerDom.parentNode.parentNode.scrollWidth
+        }else{
+          this.tabsAreaScroll = false
+        }
+      })
+    },
+    getType() {
+      return this.element.type
+    },
+    getWrapperChildRefs() {
+      let refsSubAll = []
+      const _this = this
+      this.element.options.tabList.forEach(tabItem => {
+        const refsSub = _this.$refs['canvasTabRef-' + tabItem.name]
+        if (refsSub && refsSub.length) {
+          const refsSubArray = refsSub[0].getWrapperChildRefs()
+          if (refsSubArray && refsSubArray.length > 0) {
+            refsSubAll.push.apply(refsSubAll, refsSubArray)
+          }
+        }
+      })
+      return refsSubAll
+    },
     titleStyle(itemName) {
       if (this.activeTabName === itemName) {
         return {
@@ -473,11 +524,13 @@ export default {
         _this.timer = setInterval(() => {
           const nowIndex = switchCount % _this.element.options.tabList.length
           switchCount++
-          _this.activeTabName = _this.element.options.tabList[nowIndex].name
-          const targetRef = _this.$refs['canvasTabRef-' + _this.activeTabName]
-          if (targetRef) {
-            targetRef[0].restore()
-          }
+          _this.$nextTick(() => {
+            _this.activeTabName = _this.element.options.tabList[nowIndex].name
+            const targetRef = _this.$refs['canvasTabRef-' + _this.activeTabName]
+            if (targetRef) {
+              targetRef[0]?.restore()
+            }
+          });
         }, switchTime)
       }
     },
@@ -635,7 +688,7 @@ export default {
       while (len--) {
         if (this.element.options.tabList[len].name === param.name) {
           this.element.options.tabList.splice(len, 1)
-
+          this.$store.commit('deleteComponentsWithCanvasId', this.element.id + '-' + param.name)
           const activeIndex = (len - 1 + this.element.options.tabList.length) % this.element.options.tabList.length
           this.activeTabName = this.element.options.tabList[activeIndex].name
         }
@@ -710,18 +763,19 @@ export default {
 ::v-deep .el-tabs__nav-prev {
   line-height: 25px;
 }
+
 ::v-deep .el-tabs__nav-next {
   line-height: 25px;
 }
 
 .tab-head-left ::v-deep .el-tabs__nav-scroll {
   display: flex;
-  justify-content: start;
+  justify-content: flex-start;
 }
 
 .tab-head-right ::v-deep .el-tabs__nav-scroll {
   display: flex;
-  justify-content: end;
+  justify-content: flex-end;
 }
 
 .tab-head-center ::v-deep .el-tabs__nav-scroll {

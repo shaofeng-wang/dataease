@@ -70,7 +70,10 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -96,6 +99,7 @@ public class ExtractDataService {
     @Resource
     private KettleService kettleService;
 
+
     private static final String lastUpdateTime = "${__last_update_time__}";
     private static final String currentUpdateTime = "${__current_update_time__}";
     private static final String separator = "|DE|";
@@ -104,6 +108,9 @@ public class ExtractDataService {
 
     @Value("${kettle.files.keep:false}")
     private boolean kettleFilesKeep;
+    @Value("${extract.page.size:50000}")
+    private Long extractPageSize;
+
 
     private static final String shellScript = "result=`curl --location-trusted -u %s:%s -H \"label:%s\" -H \"column_separator:%s\" -H \"columns:%s\" -H \"merge_type: %s\" -T %s -XPUT http://%s:%s/api/%s/%s/_stream_load`\n" +
             "if [ $? -eq 0 ] ; then\n" +
@@ -192,7 +199,7 @@ public class ExtractDataService {
                         generateJobFile("all_scope", datasetTable, datasetTableFields.stream().map(DatasetTableField::getDataeaseName).collect(Collectors.joining(",")));
                         extractData(datasetTable, "all_scope");
                     } else {
-                        extractExcelDataForSimpleMode(datasetTable, "all_scope");
+                        extractExcelDataForSimpleMode(datasetTable, "all_scope", datasetTableFields);
                     }
                     replaceTable(TableUtils.tableName(datasetTableId));
                     saveSuccessLog(datasetTableTaskLog, false);
@@ -204,7 +211,7 @@ public class ExtractDataService {
                         for (DatasetTableField oldField : oldFields) {
                             boolean delete = true;
                             for (DatasetTableField datasetTableField : datasetTableFields) {
-                                if (oldField.getDataeaseName().equalsIgnoreCase(datasetTableField.getDataeaseName()) && oldField.getDeExtractType().equals(datasetTableField.getDeExtractType())) {
+                                if (oldField.getDataeaseName().equalsIgnoreCase(datasetTableField.getDataeaseName())) {
                                     delete = false;
                                 }
                             }
@@ -216,7 +223,7 @@ public class ExtractDataService {
                         for (DatasetTableField datasetTableField : datasetTableFields) {
                             boolean add = true;
                             for (DatasetTableField oldField : oldFields) {
-                                if (oldField.getDataeaseName().equalsIgnoreCase(datasetTableField.getDataeaseName()) && oldField.getDeExtractType().equals(datasetTableField.getDeExtractType())) {
+                                if (oldField.getDataeaseName().equalsIgnoreCase(datasetTableField.getDataeaseName())) {
                                     add = false;
                                 }
                             }
@@ -245,7 +252,7 @@ public class ExtractDataService {
                         generateJobFile("incremental_add", datasetTable, datasetTableFields.stream().map(DatasetTableField::getDataeaseName).collect(Collectors.joining(",")));
                         extractData(datasetTable, "incremental_add");
                     } else {
-                        extractExcelDataForSimpleMode(datasetTable, "incremental_add");
+                        extractExcelDataForSimpleMode(datasetTable, "incremental_add", datasetTableFields);
                     }
                     saveSuccessLog(datasetTableTaskLog, false);
                     updateTableStatus(datasetTableId, JobStatus.Completed, execTime);
@@ -433,7 +440,23 @@ public class ExtractDataService {
             extractApiData(datasetTable, datasource, datasetTableFields, extractType);
             return;
         }
-        extractDataByKettle(datasetTable, datasource, datasetTableFields, extractType, selectSQL);
+        Map<String, String> sql = getSelectSQL(extractType, datasetTable, datasource, datasetTableFields, selectSQL);
+        if (StringUtils.isNotEmpty(sql.get("totalSql"))) {
+            DatasourceRequest datasourceRequest = new DatasourceRequest();
+            datasourceRequest.setDatasource(datasource);
+            Provider datasourceProvider = ProviderFactory.getProvider(datasource.getType());
+            datasourceRequest.setQuery(sql.get("totalSql"));
+            List<String[]> tmpData = datasourceProvider.getData(datasourceRequest);
+            Long totalItems = CollectionUtils.isEmpty(tmpData) ? 0 : Long.valueOf(tmpData.get(0)[0]);
+            Long totalPage = (totalItems / extractPageSize) + (totalItems % extractPageSize > 0 ? 1 : 0);
+            for (Long i = 0L; i < totalPage; i++) {
+                Long offset = i * extractPageSize;
+                Long all = offset + extractPageSize;
+                extractDataByKettle(datasetTable, datasource, datasetTableFields, extractType, sql.get("selectSQL").replace("DE_OFFSET", offset.toString()).replace("DE_PAGE_SIZE", extractPageSize.toString()).replace("DE_ALL", all.toString()));
+            }
+        } else {
+            extractDataByKettle(datasetTable, datasource, datasetTableFields, extractType, sql.get("selectSQL"));
+        }
     }
 
     private void extractApiData(DatasetTable datasetTable, Datasource datasource, List<DatasetTableField> datasetTableFields, String extractType) throws Exception {
@@ -703,7 +726,7 @@ public class ExtractDataService {
         return datasetTableTaskLog;
     }
 
-    private void extractExcelDataForSimpleMode(DatasetTable datasetTable, String extractType) throws Exception {
+    private void extractExcelDataForSimpleMode(DatasetTable datasetTable, String extractType, List<DatasetTableField> datasetTableFields) throws Exception {
         List<String[]> data = new ArrayList<>();
         DataTableInfoDTO dataTableInfoDTO = new Gson().fromJson(datasetTable.getInfo(), DataTableInfoDTO.class);
         List<ExcelSheetData> excelSheetDataList = dataTableInfoDTO.getExcelSheetDataList();
@@ -717,9 +740,50 @@ public class ExtractDataService {
             }
             if (StringUtils.equalsIgnoreCase(suffix, "xlsx")) {
                 ExcelXlsxReader excelXlsxReader = new ExcelXlsxReader();
+                excelXlsxReader.setDatasetTableFields(datasetTableFields);
                 excelXlsxReader.process(new FileInputStream(excelSheetData.getPath()));
                 totalSheets = excelXlsxReader.totalSheets;
             }
+
+            if (StringUtils.equalsIgnoreCase(suffix, "csv")) {
+                List<TableField> fields = new ArrayList<>();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(excelSheetData.getPath()), StandardCharsets.UTF_8));
+                String s = reader.readLine();// first line
+                String[] split = s.split(",");
+                for (String s1 : split) {
+                    TableField tableFiled = new TableField();
+                    tableFiled.setFieldName(s1);
+                    tableFiled.setRemarks(s1);
+                    tableFiled.setFieldType("TEXT");
+                    fields.add(tableFiled);
+                }
+                List<List<String>> csvData = new ArrayList<>();
+                String line;
+                while ((line = reader.readLine()) != null) {
+
+                    String str;
+                    line += ",";
+                    Pattern pCells = Pattern.compile("(\"[^\"]*(\"{2})*[^\"]*\")*[^,]*,");
+                    Matcher mCells = pCells.matcher(line);
+                    List<String> cells = new ArrayList();//每行记录一个list
+                    //读取每个单元格
+                    while (mCells.find()) {
+                        str = mCells.group();
+                        str = str.replaceAll("(?sm)\"?([^\"]*(\"{2})*[^\"]*)\"?.*,", "$1");
+                        str = str.replaceAll("(?sm)(\"(\"))", "$2");
+                        cells.add(str);
+                    }
+                    csvData.add(cells);
+                }
+                ExcelSheetData csvSheetData = new ExcelSheetData();
+                String[] fieldArray = fields.stream().map(TableField::getFieldName).toArray(String[]::new);
+                csvSheetData.setFields(fields);
+                csvSheetData.setData(csvData);
+                csvSheetData.setExcelLabel(excelSheetData.getExcelLabel());
+                csvSheetData.setFieldsMd5(Md5Utils.md5(StringUtils.join(fieldArray, ",")));
+                totalSheets = Arrays.asList(csvSheetData);
+            }
+
 
             for (ExcelSheetData sheet : totalSheets) {
                 if (sheet.getExcelLabel().equalsIgnoreCase(excelSheetData.getExcelLabel())) {
@@ -923,7 +987,6 @@ public class ExtractDataService {
                     }
                 }
                 transMeta.addDatabase(dataMeta);
-                selectSQL = getSelectSQL(extractType, datasetTable, datasource, datasetTableFields, selectSQL);
                 inputSteps = inputStep(transMeta, selectSQL, mysqlConfiguration);
                 udjcStep = udjc(datasetTableFields, DatasourceTypes.mysql, mysqlConfiguration);
                 break;
@@ -931,7 +994,6 @@ public class ExtractDataService {
                 SqlServerConfiguration sqlServerConfiguration = new Gson().fromJson(datasource.getConfiguration(), SqlServerConfiguration.class);
                 dataMeta = new DatabaseMeta("db", "MSSQLNATIVE", "Native", sqlServerConfiguration.getHost().trim(), sqlServerConfiguration.getDataBase(), sqlServerConfiguration.getPort().toString(), sqlServerConfiguration.getUsername(), sqlServerConfiguration.getPassword());
                 transMeta.addDatabase(dataMeta);
-                selectSQL = getSelectSQL(extractType, datasetTable, datasource, datasetTableFields, selectSQL);
                 inputSteps = inputStep(transMeta, selectSQL, sqlServerConfiguration);
                 udjcStep = udjc(datasetTableFields, DatasourceTypes.sqlServer, sqlServerConfiguration);
                 break;
@@ -939,7 +1001,6 @@ public class ExtractDataService {
                 PgConfiguration pgConfiguration = new Gson().fromJson(datasource.getConfiguration(), PgConfiguration.class);
                 dataMeta = new DatabaseMeta("db", "POSTGRESQL", "Native", pgConfiguration.getHost().trim(), pgConfiguration.getDataBase(), pgConfiguration.getPort().toString(), pgConfiguration.getUsername(), pgConfiguration.getPassword());
                 transMeta.addDatabase(dataMeta);
-                selectSQL = getSelectSQL(extractType, datasetTable, datasource, datasetTableFields, selectSQL);
                 inputSteps = inputStep(transMeta, selectSQL, pgConfiguration);
                 udjcStep = udjc(datasetTableFields, DatasourceTypes.pg, pgConfiguration);
                 break;
@@ -952,7 +1013,6 @@ public class ExtractDataService {
                     dataMeta = new DatabaseMeta("db", "ORACLE", "Native", oracleConfiguration.getHost().trim(), oracleConfiguration.getDataBase(), oracleConfiguration.getPort().toString(), oracleConfiguration.getUsername(), oracleConfiguration.getPassword());
                 }
                 transMeta.addDatabase(dataMeta);
-                selectSQL = getSelectSQL(extractType, datasetTable, datasource, datasetTableFields, selectSQL);
                 inputSteps = inputStep(transMeta, selectSQL, oracleConfiguration);
                 udjcStep = udjc(datasetTableFields, DatasourceTypes.oracle, oracleConfiguration);
                 break;
@@ -961,7 +1021,6 @@ public class ExtractDataService {
                 dataMeta = new DatabaseMeta("db", "ORACLE", "Native", chConfiguration.getHost().trim(), chConfiguration.getDataBase().trim(), chConfiguration.getPort().toString(), chConfiguration.getUsername(), chConfiguration.getPassword());
                 dataMeta.setDatabaseType("Clickhouse");
                 transMeta.addDatabase(dataMeta);
-                selectSQL = getSelectSQL(extractType, datasetTable, datasource, datasetTableFields, selectSQL);
                 inputSteps = inputStep(transMeta, selectSQL, chConfiguration);
                 udjcStep = udjc(datasetTableFields, DatasourceTypes.ck, chConfiguration);
                 break;
@@ -970,7 +1029,6 @@ public class ExtractDataService {
                 dataMeta = new DatabaseMeta("db", "DB2", "Native", db2Configuration.getHost().trim(), db2Configuration.getDataBase().trim(), db2Configuration.getPort().toString(), db2Configuration.getUsername(), db2Configuration.getPassword());
                 dataMeta.setDatabaseType("DB2");
                 transMeta.addDatabase(dataMeta);
-                selectSQL = getSelectSQL(extractType, datasetTable, datasource, datasetTableFields, selectSQL);
                 inputSteps = inputStep(transMeta, selectSQL, db2Configuration);
                 udjcStep = udjc(datasetTableFields, DatasourceTypes.db2, db2Configuration);
                 break;
@@ -1019,11 +1077,13 @@ public class ExtractDataService {
         FileUtils.writeStringToFile(file, transXml, "UTF-8");
     }
 
-    private String getSelectSQL(String extractType, DatasetTable datasetTable, Datasource datasource, List<DatasetTableField> datasetTableFields, String selectSQL) {
+    private Map<String, String> getSelectSQL(String extractType, DatasetTable datasetTable, Datasource datasource, List<DatasetTableField> datasetTableFields, String selectSQL) {
+        Map<String, String> sql = new HashMap<>();
         if (extractType.equalsIgnoreCase("all_scope") && datasetTable.getType().equalsIgnoreCase(DatasetType.DB.name())) {
             String tableName = new Gson().fromJson(datasetTable.getInfo(), DataTableInfoDTO.class).getTable();
             QueryProvider qp = ProviderFactory.getQueryProvider(datasource.getType());
-            selectSQL = qp.createRawQuerySQL(tableName, datasetTableFields, datasource);
+            sql.put("selectSQL", qp.createRawQuerySQL(tableName, datasetTableFields, datasource));
+            sql.put("totalSql", qp.getTotalCount(true, tableName, datasource));
         }
 
         if (extractType.equalsIgnoreCase("all_scope") && datasetTable.getType().equalsIgnoreCase(DatasetType.SQL.name())) {
@@ -1033,13 +1093,17 @@ public class ExtractDataService {
                 selectSQL = new String(java.util.Base64.getDecoder().decode(selectSQL));
             }
             QueryProvider qp = ProviderFactory.getQueryProvider(datasource.getType());
-            selectSQL = qp.createRawQuerySQLAsTmp(selectSQL, datasetTableFields);
+            sql.put("totalSql", qp.getTotalCount(false, selectSQL, datasource));
+            sql.put("selectSQL", qp.createRawQuerySQLAsTmp(selectSQL, datasetTableFields));
         }
+
         if (!extractType.equalsIgnoreCase("all_scope")) {
             QueryProvider qp = ProviderFactory.getQueryProvider(datasource.getType());
-            selectSQL = qp.createRawQuerySQLAsTmp(selectSQL, datasetTableFields);
+            sql.put("totalSql", qp.getTotalCount(false, selectSQL, datasource));
+            sql.put("selectSQL", qp.createRawQuerySQLAsTmp(selectSQL, datasetTableFields));
         }
-        return selectSQL;
+
+        return sql;
     }
 
     private List<StepMeta> inputStep(TransMeta transMeta, String selectSQL, JdbcConfiguration jdbcConfiguration) {
@@ -1256,6 +1320,17 @@ public class ExtractDataService {
                     .replace("ExcelCompletion", "");
         }
 
+        String handleMysqlBIGINTUNSIGNEDStr = "";
+        if (datasourceType.equals(DatasourceTypes.mysql)) {
+            for (DatasetTableField datasetTableField : datasetTableFields) {
+                if(datasetTableField.getType().equalsIgnoreCase("BIGINT UNSIGNED")){
+                    handleMysqlBIGINTUNSIGNEDStr = handleMysqlBIGINTUNSIGNEDStr + handleMysqlBIGINTUNSIGNED.replace("BIGINTUNSIGNEDFIELD", datasetTableField.getDataeaseName()) + "; \n";
+                }
+            }
+        }
+        tmp_code = tmp_code.replace("handleMysqlBIGINTUNSIGNED", handleMysqlBIGINTUNSIGNEDStr);
+
+
         UserDefinedJavaClassDef userDefinedJavaClassDef = new UserDefinedJavaClassDef(UserDefinedJavaClassDef.ClassType.TRANSFORM_CLASS, "Processor", tmp_code);
 
         userDefinedJavaClassDef.setActive(true);
@@ -1349,6 +1424,16 @@ public class ExtractDataService {
             "            }catch (Exception e){}\n" +
             "        }";
 
+    private final static String handleMysqlBIGINTUNSIGNED = "if(filed.equalsIgnoreCase(\"BIGINTUNSIGNEDFIELD\")){\n" +
+            "\t\t\tif(tmp != null && tmp.endsWith(\".0\")){\n" +
+            "            \ttry {\n" +
+            "                Long.valueOf(tmp.substring(0, tmp.length()-2));\n" +
+            "                get(Fields.Out, filed).setValue(r, tmp.substring(0, tmp.length()-2));\n" +
+            "                get(Fields.Out, filed).getValueMeta().setType(2);\n" +
+            "            }catch (Exception e){}\n" +
+            "       \t\t}\n" +
+            "\t\t}";
+
     private final static String handleWraps = "        if(tmp != null && ( tmp.contains(\"\\r\") || tmp.contains(\"\\n\"))){\n" +
             "\t\t\ttmp = tmp.trim();\n" +
             "            tmp = tmp.replaceAll(\"\\r\",\" \");\n" +
@@ -1391,6 +1476,7 @@ public class ExtractDataService {
             "    List<String> fields = Arrays.asList(\"Column_Fields\".split(\",\"));\n" +
             "    for (String filed : fields) {\n" +
             "        String tmp = get(Fields.In, filed).getString(r);\n" +
+            "handleMysqlBIGINTUNSIGNED \n" +
             "handleCharset \n" +
             "handleWraps \n" +
             "ExcelCompletion \n" +

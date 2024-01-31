@@ -1,10 +1,10 @@
 package io.dataease.controller.sys.response;
 
-import java.io.Serializable;
-
 import io.dataease.plugins.xpack.loginlimit.dto.response.LoginLimitInfo;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import java.io.Serializable;
 
 @Data
 public class BasicInfo extends LoginLimitInfo implements Serializable {

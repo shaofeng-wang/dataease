@@ -2,7 +2,6 @@ package io.dataease.service.sys.log;
 
 
 import cn.hutool.core.date.DateUtil;
-
 import com.google.gson.Gson;
 import io.dataease.auth.api.dto.CurrentUserDto;
 import io.dataease.commons.constants.ParamConstants;
@@ -27,8 +26,8 @@ import io.dataease.service.system.SystemParameterService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.hssf.usermodel.*;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.xssf.usermodel.*;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +35,10 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service

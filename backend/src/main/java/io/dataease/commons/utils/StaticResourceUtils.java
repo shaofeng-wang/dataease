@@ -1,7 +1,5 @@
 package io.dataease.commons.utils;
 
-import static io.dataease.commons.constants.StaticResourceConstants.*;
-
 import cn.hutool.core.codec.Base64Encoder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
@@ -10,6 +8,8 @@ import org.springframework.util.Assert;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import static io.dataease.commons.constants.StaticResourceConstants.*;
 
 /**
  * Author: wangjiahao
