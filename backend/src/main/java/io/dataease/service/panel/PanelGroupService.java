@@ -890,32 +890,31 @@ public class PanelGroupService {
 
     private void findExcelData(PanelViewDetailsRequest request, long goPage, long pageSize) {
         ChartViewWithBLOBs viewInfo = chartViewService.get(request.getViewId());
-        if ("table-info".equals(viewInfo.getType())) {
-            try {
-                List<String> excelHeaderKeys = request.getExcelHeaderKeys();
-                ChartExtRequest componentFilterInfo = request.getComponentFilterInfo();
-                componentFilterInfo.setGoPage(goPage);
-                componentFilterInfo.setPageSize(pageSize);
-                componentFilterInfo.setExcelExportFlag(true);
-                componentFilterInfo.setProxy(request.getProxy());
-                componentFilterInfo.setUser(request.getUserId());
-                ChartViewDTO chartViewInfo = chartViewService.getData(request.getViewId(), componentFilterInfo);
-                if (Objects.isNull(request.getTotalItems())) {
-                    request.setTotalItems(chartViewInfo.getTotalItems());
-                }
-                List<Map> tableRow = (List) chartViewInfo.getData().get("tableRow");
-                List<Object[]> result = request.getDetails();
-                // 添加数据
-                for (Map detailMap : tableRow) {
-                    List<Object> detailObj = new ArrayList<>();
-                    for (String key : excelHeaderKeys) {
-                        detailObj.add(detailMap.get(key));
-                    }
-                    result.add(detailObj.toArray());
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+        LogUtil.info("export excel data transform {}", viewInfo.getType());
+        try {
+            List<String> excelHeaderKeys = request.getExcelHeaderKeys();
+            ChartExtRequest componentFilterInfo = request.getComponentFilterInfo();
+            componentFilterInfo.setGoPage(goPage);
+            componentFilterInfo.setPageSize(pageSize);
+            componentFilterInfo.setExcelExportFlag(true);
+            componentFilterInfo.setProxy(request.getProxy());
+            componentFilterInfo.setUser(request.getUserId());
+            ChartViewDTO chartViewInfo = chartViewService.getData(request.getViewId(), componentFilterInfo);
+            if (Objects.isNull(request.getTotalItems())) {
+                request.setTotalItems(chartViewInfo.getTotalItems());
             }
+            List<Map> tableRow = (List) chartViewInfo.getData().get("tableRow");
+            List<Object[]> result = request.getDetails();
+            // 添加数据
+            for (Map detailMap : tableRow) {
+                List<Object> detailObj = new ArrayList<>();
+                for (String key : excelHeaderKeys) {
+                    detailObj.add(detailMap.get(key));
+                }
+                result.add(detailObj.toArray());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
