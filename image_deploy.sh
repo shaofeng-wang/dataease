@@ -7,4 +7,4 @@ docker images | grep '/dataease/dataease-server' | awk '{print $3}' | xargs dock
 
 docker pull $IMAGE_REPO/dataease/dataease-server:$IMAGE_TAG
 
-docker run -p 8081:8081 -v $(pwd)/conf:/opt/dataease/conf -dit --name dataease_server $IMAGE_REPO/dataease/dataease-server:$IMAGE_TAG
+docker run -p 8081:8081 -v `pwd`/conf:/opt/dataease/conf -v `pwd`/data:/opt/dataease/data -dit --name dataease_server $IMAGE_REPO/dataease/dataease-server:$IMAGE_TAG
