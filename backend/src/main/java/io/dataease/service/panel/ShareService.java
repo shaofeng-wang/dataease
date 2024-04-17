@@ -1,5 +1,8 @@
 package io.dataease.service.panel;
 
+import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.util.StrUtil;
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import io.dataease.auth.api.dto.CurrentRoleDto;
 import io.dataease.auth.api.dto.CurrentUserDto;
@@ -15,9 +18,11 @@ import io.dataease.controller.request.panel.PanelShareRemoveRequest;
 import io.dataease.controller.request.panel.PanelShareRequest;
 import io.dataease.controller.request.panel.PanelShareSearchRequest;
 import io.dataease.controller.sys.base.BaseGridRequest;
+import io.dataease.dto.dataset.DatasetShareFineDto;
 import io.dataease.dto.panel.PanelShareDto;
 import io.dataease.dto.panel.PanelShareOutDTO;
 import io.dataease.dto.panel.PanelSharePo;
+import io.dataease.ext.ExtAuthMapper;
 import io.dataease.ext.ExtPanelShareMapper;
 import io.dataease.plugins.common.base.domain.*;
 import io.dataease.plugins.common.base.mapper.PanelGroupMapper;
@@ -27,6 +32,7 @@ import io.dataease.plugins.common.base.mapper.SysAuthMapper;
 import io.dataease.service.message.DeMsgutil;
 import lombok.Data;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +43,8 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.dataease.commons.constants.PrivilegeExtendExtend.EXTEND_USE;
+import static io.dataease.commons.constants.ResourceAuthLevel.DATASET_LEVEL_USE;
 import static io.dataease.commons.constants.ResourceAuthLevel.PANEL_LEVEL_VIEW;
 import static io.dataease.commons.constants.SysAuthConstants.*;
 
@@ -57,6 +65,9 @@ public class ShareService {
 
     @Resource
     private SysAuthDetailMapper sysAuthDetailMapper;
+
+    @Resource
+    private ExtAuthMapper extAuthMapper;
 
     /**
      * 1.查询当前节点已经分享给了哪些目标
@@ -238,8 +249,12 @@ public class ShareService {
                       .andAuthTargetEqualTo(authTarget)
                       .andAuthTargetTypeEqualTo(authTargetType);
         List<SysAuth> sysAuths = sysAuthMapper.selectByExample(sysAuthExample);
+        List<String> authIds = sysAuths.stream().map(a -> a.getId()).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(authIds)) {
+            return;
+        }
         SysAuthDetailExample sysAuthDetailExample = new SysAuthDetailExample();
-        sysAuthDetailExample.createCriteria().andAuthIdIn(sysAuths.stream().map(a -> a.getId()).collect(Collectors.toList()));
+        sysAuthDetailExample.createCriteria().andAuthIdIn(authIds);
         sysAuthDetailMapper.deleteByExample(sysAuthDetailExample);
         sysAuthMapper.deleteByExample(sysAuthExample);
     }
@@ -247,40 +262,84 @@ public class ShareService {
     private void addShareSysAuths(String authSource, AuthURD addAuthURD) {
         if (CollectionUtils.isNotEmpty(addAuthURD.getUserIds())) {
             for (Long userId : addAuthURD.getUserIds()) {
-                addSysAuth(authSource, Long.toString(userId), AUTH_TARGET_USER);
+                addSysAuthPanel(authSource, Long.toString(userId), AUTH_TARGET_USER);
             }
         }
         if (CollectionUtils.isNotEmpty(addAuthURD.getDeptIds())) {
             for (Long deptId : addAuthURD.getDeptIds()) {
-                addSysAuth(authSource, Long.toString(deptId), AUTH_TARGET_DEPT);
+                addSysAuthPanel(authSource, Long.toString(deptId), AUTH_TARGET_DEPT);
             }
         }
         if (CollectionUtils.isNotEmpty(addAuthURD.getRoleIds())) {
             for (Long roleId : addAuthURD.getRoleIds()) {
-                addSysAuth(authSource, Long.toString(roleId), AUTH_TARGET_ROLE);
+                addSysAuthPanel(authSource, Long.toString(roleId), AUTH_TARGET_ROLE);
             }
         }
     }
 
-    private void addSysAuth(String authSource, String authTarget, String authTargetType) {
+    private void addShareDatasetSysAuths(String authSource, AuthURD addAuthURD) {
+        if (CollectionUtils.isNotEmpty(addAuthURD.getUserIds())) {
+            for (Long userId : addAuthURD.getUserIds()) {
+                addSysAuthDataset(authSource, Long.toString(userId), AUTH_TARGET_USER);
+            }
+        }
+        if (CollectionUtils.isNotEmpty(addAuthURD.getDeptIds())) {
+            for (Long deptId : addAuthURD.getDeptIds()) {
+                addSysAuthDataset(authSource, Long.toString(deptId), AUTH_TARGET_DEPT);
+            }
+        }
+        if (CollectionUtils.isNotEmpty(addAuthURD.getRoleIds())) {
+            for (Long roleId : addAuthURD.getRoleIds()) {
+                addSysAuthDataset(authSource, Long.toString(roleId), AUTH_TARGET_ROLE);
+            }
+        }
+    }
+
+    private void addSysAuthDataset(String authSource, String authTarget, String authTargetType) {
+        addSysAuth(authSource,
+                   authTarget,
+                   AUTH_SOURCE_TYPE_DATASET,
+                   authTargetType,
+                   EXTEND_USE.getExtend(),
+                   ListUtil.of(DATASET_LEVEL_USE.getLevel()));
+    }
+
+    private void addSysAuthPanel(String authSource, String authTarget, String authTargetType) {
+        addSysAuth(authSource,
+                   authTarget,
+                   AUTH_SOURCE_TYPE_PANEL,
+                   authTargetType,
+                   null,
+                   ListUtil.of(PANEL_LEVEL_VIEW.getLevel()));
+    }
+
+    private void addSysAuth(String authSource,
+                            String authTarget,
+                            String authSourceType,
+                            String authTargetType,
+                            String privilegeExtend,
+                            List<Integer> privileges) {
         SysAuth sysAuth = new SysAuth();
         sysAuth.setId(UUID.randomUUID().toString());
         sysAuth.setAuthSource(authSource);
-        sysAuth.setAuthSourceType(AUTH_SOURCE_TYPE_PANEL);
+        sysAuth.setAuthSourceType(authSourceType);
         sysAuth.setAuthTarget(authTarget);
         sysAuth.setAuthTargetType(authTargetType);
         sysAuth.setAuthTime(System.currentTimeMillis());
         sysAuth.setUpdateTime(new Date());
         sysAuth.setAuthUser(AuthUtils.getUser().getUsername());
         sysAuthMapper.insert(sysAuth);
-        SysAuthDetail sysAuthDetail = new SysAuthDetail();
-        sysAuthDetail.setId(UUID.randomUUID().toString());
-        sysAuthDetail.setAuthId(sysAuth.getId());
-        sysAuthDetail.setCreateUser(sysAuth.getAuthUser());
-        sysAuthDetail.setPrivilegeType(PANEL_LEVEL_VIEW.getLevel());
-        sysAuthDetail.setPrivilegeValue(SystemConstants.PRIVILEGE_VALUE.ON);
-        sysAuthDetail.setCreateTime(System.currentTimeMillis());
-        sysAuthDetailMapper.insert(sysAuthDetail);
+        for (Integer privilege : privileges) {
+            SysAuthDetail sysAuthDetail = new SysAuthDetail();
+            sysAuthDetail.setId(UUID.randomUUID().toString());
+            sysAuthDetail.setAuthId(sysAuth.getId());
+            sysAuthDetail.setCreateUser(sysAuth.getAuthUser());
+            sysAuthDetail.setPrivilegeType(privilege);
+            sysAuthDetail.setPrivilegeExtend(privilegeExtend);
+            sysAuthDetail.setPrivilegeValue(SystemConstants.PRIVILEGE_VALUE.ON);
+            sysAuthDetail.setCreateTime(System.currentTimeMillis());
+            sysAuthDetailMapper.insert(sysAuthDetail);
+        }
     }
 
     private void buildRedAuthURD(Integer type, List<Long> redIds, AuthURD authURD) {
@@ -325,6 +384,111 @@ public class ShareService {
         result.put("add", newUserIds);
         result.put("red", missNodes);
         return result;
+    }
+
+    /**
+     * 分享数据源
+     *
+     * @param datasetShareFineDto
+     */
+    @Transactional
+    public void fineSave(DatasetShareFineDto datasetShareFineDto) {
+        for (String resourceId : datasetShareFineDto.getResourceId()) {
+            fineSaveByResourceId(resourceId, datasetShareFineDto.getAuthURD());
+        }
+    }
+
+    /**
+     * 处理单个资源的分享操作
+     *
+     * @param datasetResId
+     * @param authURD
+     */
+    private void fineSaveByResourceId(String datasetResId, AuthURD authURD) {
+        AuthURD redAuthURD = new AuthURD();
+        redAuthURD.setUserIds(Lists.newArrayList());
+        redAuthURD.setRoleIds(Lists.newArrayList());
+        redAuthURD.setDeptIds(Lists.newArrayList());
+        AuthURD addAuthURD = new AuthURD();
+        addAuthURD.setUserIds(Lists.newArrayList());
+        addAuthURD.setRoleIds(Lists.newArrayList());
+        addAuthURD.setDeptIds(Lists.newArrayList());
+        // 查询 datasetResId 分享的目标列表 该资源授权情况
+        List<SysAuth> sysAuthList = extAuthMapper.queryByResource(datasetResId);
+        Set<Long> userIds = CollectionUtils.isEmpty(authURD.getUserIds())
+                            ? Sets.newHashSet()
+                            : authURD.getUserIds().stream().collect(Collectors.toSet());
+        Set<Long> roleIds = CollectionUtils.isEmpty(authURD.getRoleIds())
+                            ? Sets.newHashSet()
+                            : authURD.getRoleIds().stream().collect(Collectors.toSet());
+        Set<Long> deptIds = CollectionUtils.isEmpty(authURD.getDeptIds())
+                            ? Sets.newHashSet()
+                            : authURD.getDeptIds().stream().collect(Collectors.toSet());
+        // 根据 authURD 判断，哪些被移除（取消分享），哪些新增（新增分享），去掉重复的（已存在的不需要操作）
+        buildRedSysAuths(redAuthURD, sysAuthList, userIds, roleIds, deptIds);
+        buildAddSysAuths(addAuthURD, sysAuthList, userIds, roleIds, deptIds);
+        // 取消权限 操作sys_auth表
+        if (hasAuthURD(redAuthURD)) {
+            redShareSysAuths(datasetResId, redAuthURD);
+        }
+        // 新增权限 sys_auth表
+        if (hasAuthURD(addAuthURD)) {
+            addShareDatasetSysAuths(datasetResId, addAuthURD);
+        }
+    }
+
+    private void buildRedSysAuths(AuthURD redAuthURD, List<SysAuth> sysAuthList, Set<Long> userIds, Set<Long> roleIds, Set<Long> deptIds) {
+        for (SysAuth sysAuth : sysAuthList) {
+            if (StrUtil.equals(sysAuth.getAuthTargetType(), AUTH_TARGET_USER)) {
+                if (!StrUtil.equals(sysAuth.getAuthUser(), "auto") &&
+                    !userIds.contains(sysAuth.getAuthTarget())) {
+                    redAuthURD.getUserIds().add(Long.valueOf(sysAuth.getAuthTarget()));
+                }
+            } else if (!StrUtil.equals(sysAuth.getAuthUser(), "auto") &&
+                       StrUtil.equals(sysAuth.getAuthTargetType(), AUTH_TARGET_ROLE)) {
+                if (!roleIds.contains(sysAuth.getAuthTarget())) {
+                    redAuthURD.getRoleIds().add(Long.valueOf(sysAuth.getAuthTarget()));
+                }
+            } else if (!StrUtil.equals(sysAuth.getAuthUser(), "auto") &&
+                       StrUtil.equals(sysAuth.getAuthTargetType(), AUTH_TARGET_DEPT)) {
+                if (!deptIds.contains(sysAuth.getAuthTarget())) {
+                    redAuthURD.getDeptIds().add(Long.valueOf(sysAuth.getAuthTarget()));
+                }
+            }
+        }
+    }
+
+    private void buildAddSysAuths(AuthURD addAuthURD, List<SysAuth> sysAuthList, Set<Long> userIds, Set<Long> roleIds, Set<Long> deptIds) {
+        Set<String> sysUserIds = sysAuthList.stream()
+                                            .filter(v -> StrUtil.equals(v.getAuthTargetType(), AUTH_TARGET_USER))
+                                            .map(v -> v.getAuthTarget()).collect(Collectors.toSet());
+        for (Long userId : userIds) {
+            if (!sysUserIds.contains(Long.toString(userId))) {
+                addAuthURD.getUserIds().add(userId);
+            }
+        }
+        Set<String> sysRoleIds = sysAuthList.stream()
+                                            .filter(v -> StrUtil.equals(v.getAuthTargetType(), AUTH_TARGET_ROLE))
+                                            .map(v -> v.getAuthTarget()).collect(Collectors.toSet());
+        for (Long roleId : roleIds) {
+            if (!sysRoleIds.contains(Long.toString(roleId))) {
+                addAuthURD.getRoleIds().add(roleId);
+            }
+        }
+        Set<String> sysDeptIds = sysAuthList.stream()
+                                            .filter(v -> StrUtil.equals(v.getAuthTargetType(), AUTH_TARGET_DEPT))
+                                            .map(v -> v.getAuthTarget()).collect(Collectors.toSet());
+        for (Long deptId : deptIds) {
+            if (!sysDeptIds.contains(Long.toString(deptId))) {
+                addAuthURD.getDeptIds().add(deptId);
+            }
+        }
+    }
+
+    private boolean hasAuthURD(AuthURD authURD) {
+        return CollectionUtils.isNotEmpty(authURD.getDeptIds()) ||
+               CollectionUtils.isNotEmpty(authURD.getUserIds()) ||
+               CollectionUtils.isNotEmpty(authURD.getRoleIds());
     }
 
     @Data
@@ -456,6 +620,19 @@ public class ShareService {
     }
 
     public List<PanelShare> queryWithResource(PanelShareSearchRequest request) {
+        if (StrUtil.equals(request.getResourceType(), AUTH_SOURCE_TYPE_DATASET)) {
+            List<String> resourceIds = request.getResourceIds();
+            Set<Long> resourceIdSet = Sets.newHashSet();
+            for (String resourceId : resourceIds) {
+                List<SysAuth> sysAuthList = extAuthMapper.queryByResource(resourceId);
+                sysAuthList.forEach(s -> resourceIdSet.add(Long.valueOf(s.getAuthTarget())));
+            }
+            return resourceIdSet.stream().map(s -> {
+                PanelShare share = new PanelShare();
+                share.setTargetId(s);
+                return share;
+            }).collect(Collectors.toList());
+        }
         String username = AuthUtils.getUser().getUsername();
         request.setCurrentUserName(username);
         return extPanelShareMapper.queryWithResource(request);

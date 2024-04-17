@@ -140,7 +140,7 @@
         v-if="chartDetailsVisible"
         style="position: absolute;right: 70px;top:15px"
       >
-        <!-- 
+        <!--
         <el-button
           v-if="showChartInfoType==='enlarge' && hasDataPermission('export',panelInfo.privileges)&& showChartInfo && !equalsAny(showChartInfo.type, 'symbol-map', 'flow-map')"
           class="el-icon-picture-outline"
@@ -149,7 +149,7 @@
           @click="exportViewImg"
         >
           {{ $t('chart.export_img') }}
-        </el-button> 
+        </el-button>
         <el-button
           v-if="showChartInfoType==='details' && hasDataPermission('export',panelInfo.privileges)"
           size="mini"
@@ -807,9 +807,8 @@ export default {
           if (response.success) {
             this.chart = response.data
             this.view = response.data
-            if (this.chart.type.includes('table')) {
-              this.$store.commit('setLastViewRequestInfo', { viewId: id, requestInfo: requestInfo })
-            }
+            console.log('setLastViewRequestInfo >>', this.chart, this.view)
+            this.$store.commit('setLastViewRequestInfo', { viewId: id, requestInfo: requestInfo })
             this.buildInnerRefreshTimer(this.chart.refreshViewEnable, this.chart.refreshUnit, this.chart.refreshTime)
             this.$emit('fill-chart-2-parent', this.chart)
             this.getDataOnly(response.data, dataBroadcast)

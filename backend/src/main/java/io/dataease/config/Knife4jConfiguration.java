@@ -14,7 +14,6 @@ import springfox.bean.validators.configuration.BeanValidatorPluginsConfiguration
 import springfox.documentation.RequestHandler;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.oas.annotations.EnableOpenApi;
 import springfox.documentation.service.*;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spi.service.contexts.SecurityContext;
@@ -24,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@EnableOpenApi
+// @EnableOpenApi
 @Configuration
 @Import(BeanValidatorPluginsConfiguration.class)
 public class Knife4jConfiguration implements BeanPostProcessor {
@@ -97,7 +96,7 @@ public class Knife4jConfiguration implements BeanPostProcessor {
                 .apis(basePackage(packageName))
                 .paths(PathSelectors.any())
                 .build()
-                .securityContexts(securityContexts).securitySchemes(securitySchemes)
+                //.securityContexts(securityContexts).securitySchemes(securitySchemes)
                 .extensions(openApiExtensionResolver.buildExtensions(groupName));
         return docket;
     }

@@ -50,6 +50,10 @@ export default {
       type: String,
       default: null
     },
+    resourceType: {
+      type: String,
+      default: null
+    },
     keyWord: {
       type: String,
       default: ''
@@ -214,7 +218,13 @@ export default {
     },
 
     queryShareNodeIds(callBack) {
-      const param = { resourceId: this.resourceId, type: this.type }
+      const param = { resourceType: this.resourceType, type: this.type }
+      if (this.resourceType === 'dataset') {
+        param['resourceIds'] = this.resourceId
+      } else {
+        param['resourceId'] = this.resourceId
+      }
+      console.log('queryShareNodeIds >>', param)
       loadShares(param).then(res => {
         const shares = res.data
         const nodeIds = shares.map(share => share.targetId)

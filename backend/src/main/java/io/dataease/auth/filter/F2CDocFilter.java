@@ -5,8 +5,6 @@ import io.dataease.auth.entity.SysUserEntity;
 import io.dataease.auth.entity.TokenInfo;
 import io.dataease.auth.service.AuthUserService;
 import io.dataease.auth.util.JWTUtils;
-import io.dataease.commons.license.DefaultLicenseService;
-import io.dataease.commons.license.F2CLicenseResponse;
 import io.dataease.commons.utils.CommonBeanFactory;
 import io.dataease.commons.utils.LogUtil;
 import org.apache.commons.lang3.ObjectUtils;
@@ -20,8 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 
-import static io.dataease.commons.license.F2CLicenseResponse.Status;
-
 public class F2CDocFilter extends AccessControlFilter {
 
     private static final String RESULT_URI_KEY = "result_uri_key";
@@ -33,6 +29,7 @@ public class F2CDocFilter extends AccessControlFilter {
     @Override
     protected boolean isAccessAllowed(ServletRequest servletRequest, ServletResponse servletResponse, Object o) throws Exception {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
+        /*
         try {
             DefaultLicenseService defaultLicenseService = CommonBeanFactory.getBean(DefaultLicenseService.class);
             F2CLicenseResponse f2CLicenseResponse = defaultLicenseService.validateLicense();
@@ -45,7 +42,7 @@ public class F2CDocFilter extends AccessControlFilter {
             request.setAttribute(RESULT_URI_KEY, NOLIC_PAGE);
             LogUtil.error(e.getMessage(), e);
             return false;
-        }
+        } //*/
 
         try {
             Boolean isLogin = validateLogin(request);

@@ -1,3 +1,5 @@
+<!-- eslint-disable vue/html-closing-bracket-spacing -->
+<!-- eslint-disable vue/html-indent -->
 <template>
   <el-col class="de-dataset-search">
     <!-- group -->
@@ -249,6 +251,10 @@
                         <svg-icon icon-class="de-ds-move"/>
                         {{ $t('dataset.move_to') }}
                       </el-dropdown-item>
+                      <el-dropdown-item command="share"
+                          icon="el-icon-share">
+                        分享
+                      </el-dropdown-item>
                       <el-dropdown-item command="delete">
                         <svg-icon icon-class="de-ds-trash"/>
                         {{ $t('dataset.delete') }}
@@ -360,10 +366,15 @@
                         <svg-icon icon-class="de-ds-move"/>
                         {{ $t('dataset.move_to') }}
                       </el-dropdown-item>
+                      <el-dropdown-item command="share"
+                          icon="el-icon-share">
+                        分享
+                      </el-dropdown-item>
                       <el-dropdown-item command="deleteTable">
                         <svg-icon icon-class="de-ds-trash"/>
                         {{ $t('dataset.delete') }}
                       </el-dropdown-item>
+                      <!-- 分享菜单 -->
                     </el-dropdown-menu>
                   </el-dropdown>
                 </span>
@@ -535,6 +546,22 @@
 
     <!-- 新增数据集文件夹 -->
     <CreatDsGroup ref="CreatDsGroup"/>
+
+    <!-- 分享数据源 -->
+    <el-dialog
+        v-dialogDrag
+        :title="authTitle"
+        :visible.sync="authVisible"
+        width="800px"
+        class="dialog-css"
+      >
+        <grant-auth
+          v-if="authVisible"
+          :resource-id="authResourceId"
+          :resource-type="authResourceType"
+          @close-grant="closeGrant"
+        />
+      </el-dialog>
   </el-col>
 </template>
 
@@ -542,6 +569,7 @@
 import { addGroup, alter, delGroup, delTable, getScene, isKettleRunning, loadTable, post } from '@/api/dataset/dataset'
 import { getDatasetRelationship } from '@/api/chart/chart.js'
 
+import GrantAuth from '@/views/panel/grantAuth'
 import msgContent from '@/views/system/datasource/MsgContent.vue'
 import GroupMoveSelector from './GroupMoveSelector'
 import CreatDsGroup from './CreatDsGroup'
@@ -554,7 +582,7 @@ import { updateCacheTree } from '@/components/canvas/utils/utils'
 
 export default {
   name: 'Group',
-  components: { GroupMoveSelector, CreatDsGroup },
+  components: { GroupMoveSelector, CreatDsGroup, GrantAuth },
   mixins: [msgCfm],
   props: {
     saveStatus: {
@@ -576,6 +604,9 @@ export default {
       search: '',
       editGroup: false,
       editTable: false,
+      authVisible: false,
+      authResourceType: 'dataset',
+      authResourceId: '',
       tData: [],
       tableData: [],
       tables: [],
@@ -840,6 +871,9 @@ export default {
         case 'deleteTable':
           this.deleteTable(data)
           break
+        case 'share':
+          this.share(data)
+          break
       }
     },
     dfsTdata(arr, id) {
@@ -920,7 +954,30 @@ export default {
         .catch(() => {
         })
     },
-
+    share(data) {
+      // TODO
+      console.log('TODO 分享数据集', data)
+      const resourceIds = []
+      const children = [data]
+      this.getChildren(resourceIds, children)
+      this.authResourceId = resourceIds
+      this.authVisible = true
+    },
+    getChildren(resourceIds, children) {
+      if (!children || children.length === 0) {
+        return
+      }
+      for (const child of children) {
+        resourceIds.push(child.id)
+        if (child.nodeType === 'spine') {
+          this.getChildren(resourceIds, child.children)
+        }
+      }
+    },
+    closeGrant() {
+      this.authResourceId = null
+      this.authVisible = false
+    },
     async deleteTable(data) {
       let confirm_delete_msg = ''
       if (data.modelInnerType === 'union' || data.modelInnerType === 'custom') {

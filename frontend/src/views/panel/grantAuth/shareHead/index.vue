@@ -81,6 +81,7 @@
       <grant-auth
         v-if="authVisible"
         :resource-id="authResourceId"
+        :resource-type="authResourceType"
         @close-grant="closeGrant"
       />
     </el-dialog>
@@ -104,6 +105,7 @@ export default {
       authVisible: false,
       authTitle: '',
       authResourceId: null,
+      authResourceType: 'panel',
       targetData: [],
       tagTypes: { 0: 'info', 1: 'success', 2: 'primary' },
       checked: false

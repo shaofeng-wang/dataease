@@ -96,15 +96,21 @@ public class DePermissionAnnotationHandler {
     }
 
     private Boolean access(Object arg, DePermission annotation, int layer) throws Exception {
+        // TODO 处理读取权限
         if (ObjectUtils.isEmpty(arg))
             return true;
         String type = annotation.type().name().toLowerCase();
         String value = annotation.value();
         Integer requireLevel = annotation.level().getLevel();
-        Set<String> resourceIds = AuthUtils.permissionByType(type).stream().filter(
-                item -> item.getLevel() >= requireLevel).map(AuthItem::getAuthSource).collect(Collectors.toSet());
+        Set<String> resourceIds = AuthUtils.permissionByType(type)
+                                           .stream()
+                                           .filter(item -> item.getLevel() >= requireLevel)
+                                           .map(AuthItem::getAuthSource)
+                                           .collect(Collectors.toSet());
         Class<?> parameterType = arg.getClass();
-        if (parameterType.isPrimitive() || ReflectUtil.isWrapClass(parameterType) || ReflectUtil.isString(parameterType)) {
+        if (parameterType.isPrimitive() ||
+            ReflectUtil.isWrapClass(parameterType) ||
+            ReflectUtil.isString(parameterType)) {
             boolean permissionValid = resourceIds.contains(arg);
             if (permissionValid)
                 return true;
@@ -135,7 +141,6 @@ public class DePermissionAnnotationHandler {
             String fieldName = values[layer];
             Object fieldValue = ReflectUtil.getFieldValue(arg, fieldName);
             return access(fieldValue, annotation, ++layer);
-
         }
         return true;
     }
@@ -158,7 +163,9 @@ public class DePermissionAnnotationHandler {
             if (ObjectUtils.isNotEmpty(sourceInfo))
                 name = StringUtils.isNotBlank(sourceInfo.getName()) ? sourceInfo.getName() : arg.toString();
         }
-        String msg = Translator.get("I18N_NO_PERMISSION") + "[" + Translator.get("I18N_" + annotation.level().name()) + ": " + Translator.get("SOURCE_TYPE_" + annotation.type().name()) + ": " + name + "]," + Translator.get("I18N_PLEASE_CONCAT_ADMIN");
+        String msg = Translator.get("I18N_NO_PERMISSION") + "[" + Translator.get("I18N_" + annotation.level().name()) +
+                     ": " + Translator.get("SOURCE_TYPE_" + annotation.type().name()) +
+                     ": " + name + "]," + Translator.get("I18N_PLEASE_CONCAT_ADMIN");
         return msg;
     }
 }

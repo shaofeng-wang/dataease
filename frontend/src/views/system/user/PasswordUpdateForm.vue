@@ -33,7 +33,7 @@ export default {
   props: {
     oldPwd: {
       type: String,
-      default: ""
+      default: ''
     }
   },
   data() {

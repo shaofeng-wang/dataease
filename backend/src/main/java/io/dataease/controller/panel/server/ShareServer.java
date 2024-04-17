@@ -5,6 +5,7 @@ import io.dataease.controller.request.panel.PanelShareFineDto;
 import io.dataease.controller.request.panel.PanelShareRemoveRequest;
 import io.dataease.controller.request.panel.PanelShareSearchRequest;
 import io.dataease.controller.sys.base.BaseGridRequest;
+import io.dataease.dto.dataset.DatasetShareFineDto;
 import io.dataease.dto.panel.PanelShareDto;
 import io.dataease.dto.panel.PanelShareOutDTO;
 import io.dataease.dto.panel.PanelSharePo;
@@ -46,6 +47,11 @@ public class ShareServer implements ShareApi {
     @Override
     public void fineSave(@RequestBody PanelShareFineDto panelShareFineDto) {
         shareService.fineSave(panelShareFineDto);
+    }
+
+    @Override
+    public void fineSaveDataset(DatasetShareFineDto datasetShareFineDto) {
+        shareService.fineSave(datasetShareFineDto);
     }
 
     @Override

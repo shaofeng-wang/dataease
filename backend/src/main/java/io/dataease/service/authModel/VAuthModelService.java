@@ -61,9 +61,9 @@ public class VAuthModelService {
         }
         if (request.getPrivileges() != null) {
             result = result.stream().filter(vAuthModelDTO -> "spine".equalsIgnoreCase(vAuthModelDTO.getNodeType())
-                    || ("leaf".equalsIgnoreCase(vAuthModelDTO.getNodeType())
-                    && vAuthModelDTO.getPrivileges() != null
-                    && vAuthModelDTO.getPrivileges().contains(request.getPrivileges()))).collect(Collectors.toList());
+                                                             || ("leaf".equalsIgnoreCase(vAuthModelDTO.getNodeType())
+                                                                 && vAuthModelDTO.getPrivileges() != null
+                                                                 && vAuthModelDTO.getPrivileges().contains(request.getPrivileges()))).collect(Collectors.toList());
         }
         return result;
     }

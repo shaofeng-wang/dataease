@@ -69,3 +69,11 @@ export function fineSave(data) {
   })
 }
 
+export function fineSaveDataset(data) {
+  return request({
+    url: '/api/share/fineSaveDataset',
+    method: 'post',
+    loading: true,
+    data
+  })
+}

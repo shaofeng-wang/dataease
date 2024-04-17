@@ -32,11 +32,25 @@
       <el-tab-pane
         :lazy="true"
         class="de-tab"
-        :label="$t('commons.organization')"
+        :label="$t('commons.user')"
         :name="tabNames[0]"
-      ><grant-dept
+      ><grant-user
         :ref="tabNames[0]"
         :resource-id="resourceId"
+        :resource-type="resourceType"
+        :key-word="key"
+      /></el-tab-pane>
+      <!--
+      <el-tab-pane
+        :lazy="true"
+        class="de-tab"
+        :label="$t('commons.organization')"
+        :name="tabNames[0]"
+      >
+        <grant-dept
+        :ref="tabNames[0]"
+        :resource-id="resourceId"
+        :resource-type="resourceType"
         :key-word="key"
       /></el-tab-pane>
       <el-tab-pane
@@ -47,18 +61,10 @@
       ><grant-role
         :ref="tabNames[1]"
         :resource-id="resourceId"
+        :resource-type="resourceType"
         :key-word="key"
       /></el-tab-pane>
-      <el-tab-pane
-        :lazy="true"
-        class="de-tab"
-        :label="$t('commons.user')"
-        :name="tabNames[2]"
-      ><grant-user
-        :ref="tabNames[2]"
-        :resource-id="resourceId"
-        :key-word="key"
-      /></el-tab-pane>
+      -->
     </el-tabs>
     <div class="auth-root-class">
       <span slot="footer">
@@ -78,29 +84,36 @@
 </template>
 
 <script>
-import GrantDept from './dept'
-import GrantRole from './role'
+// import GrantDept from './dept'
+// import GrantRole from './role'
 import GrantUser from './user'
-import { fineSave } from '@/api/panel/share'
+import { fineSave, fineSaveDataset } from '@/api/panel/share'
 export default {
   name: 'GrantAuth',
-  components: { GrantDept, GrantRole, GrantUser },
+  // components: { GrantDept, GrantRole, GrantUser },
+  components: { GrantUser },
   props: {
     resourceId: {
+      type: String,
+      default: null
+    },
+    resourceType: {
       type: String,
       default: null
     }
   },
   data() {
     return {
-      tabNames: ['grantDept', 'grantRole', 'grantUser'],
-      activeName: null,
+      // tabNames: ['grantDept', 'grantRole', 'grantUser'],
+      tabNames: ['grantUser'],
+      activeName: '',
       showSearchInput: false,
       key: ''
     }
   },
   created() {
     this.activeName = this.tabNames[0]
+    console.log('created >> resourceType >>', this.resourceType)
   },
 
   methods: {
@@ -117,6 +130,7 @@ export default {
       this.fineSave()
     },
     fineSave() {
+      // TODO
       let targetDto = {}
       this.tabNames.forEach(tabName => {
         if (this.$refs[tabName] && this.$refs[tabName].getSelected) {
@@ -129,6 +143,16 @@ export default {
         resourceId,
         authURD: targetDto
       }
+      if (this.resourceType === 'dataset') {
+        console.log('fineSaveDataset >>', param)
+        fineSaveDataset(param).then(res => {
+          this.$success(this.$t('commons.share_success'))
+          this.$emit('close-grant', 0)
+        })
+        return
+      }
+      console.log('fineSave >>', param)
+      // 原share保存
       fineSave(param).then(res => {
         this.$success(this.$t('commons.share_success'))
         this.$emit('close-grant', 0)

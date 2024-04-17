@@ -49,9 +49,13 @@
                 <artifactId>dataease-plugin-datasource</artifactId>
                 <version>${dataease.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.dataease</groupId>
+                <artifactId>dataease-plugin-common</artifactId>
+                <version>${dataease.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
-
 
 
     <build>

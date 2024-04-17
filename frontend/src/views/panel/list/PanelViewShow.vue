@@ -364,6 +364,7 @@
       <grant-auth
         v-if="authVisible"
         :resource-id="authResourceId"
+        :resource-type="authResourceType"
         @close-grant="closeGrant"
       />
     </el-dialog>
@@ -412,6 +413,7 @@ export default {
     return {
       authTitle: null,
       authResourceId: null,
+      authResourceType: 'panel',
       authVisible: false,
       canvasInfoTemp: 'preview-temp-canvas-main',
       canvasId: 'canvas-main',

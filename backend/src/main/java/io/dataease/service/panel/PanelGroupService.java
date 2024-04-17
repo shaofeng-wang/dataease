@@ -894,6 +894,9 @@ public class PanelGroupService {
         try {
             List<String> excelHeaderKeys = request.getExcelHeaderKeys();
             ChartExtRequest componentFilterInfo = request.getComponentFilterInfo();
+            if (Objects.isNull(componentFilterInfo)) {
+                componentFilterInfo = new ChartExtRequest();
+            }
             componentFilterInfo.setGoPage(goPage);
             componentFilterInfo.setPageSize(pageSize);
             componentFilterInfo.setExcelExportFlag(true);

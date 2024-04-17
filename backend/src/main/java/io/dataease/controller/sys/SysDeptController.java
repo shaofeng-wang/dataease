@@ -54,8 +54,6 @@ public class SysDeptController extends ResultHolder {
         return nodeResponses;
     }
 
-
-
     @PostMapping("/nodesByDeptId/{deptId}")
     public List<DeptTreeNode> nodesByDeptId(@PathVariable("deptId") Long deptId){
         return deptService.searchTree(deptId);

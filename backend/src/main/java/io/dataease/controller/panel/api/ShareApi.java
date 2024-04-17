@@ -8,6 +8,7 @@ import io.dataease.controller.request.panel.PanelShareFineDto;
 import io.dataease.controller.request.panel.PanelShareRemoveRequest;
 import io.dataease.controller.request.panel.PanelShareSearchRequest;
 import io.dataease.controller.sys.base.BaseGridRequest;
+import io.dataease.dto.dataset.DatasetShareFineDto;
 import io.dataease.dto.panel.PanelShareDto;
 import io.dataease.dto.panel.PanelShareOutDTO;
 import io.dataease.dto.panel.PanelSharePo;
@@ -17,6 +18,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -51,6 +53,11 @@ public interface ShareApi {
     @ApiOperation("创建分享")
     @PostMapping("/fineSave")
     void fineSave(PanelShareFineDto panelShareFineDto);
+
+    @DePermission(type = DePermissionType.DATASET)
+    @ApiOperation("创建分享数据集")
+    @PostMapping("/fineSaveDataset")
+    void fineSaveDataset(@RequestBody DatasetShareFineDto datasetShareFineDto);
 
     @ApiOperation("删除分享")
     @PostMapping("/removeShares")
