@@ -27,6 +27,7 @@ target/
 .DS_Store
 node_modules
 /dist
+**/dist/*
 node/
 
 # local env files
