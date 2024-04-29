@@ -1072,6 +1072,7 @@ export default {
       if (match !== null) {
         for (let index = 0; index < match.length; index++) {
           var name = match[index].substring(2, match[index].length - 1)
+          name = name ? name.trim() : name
           if (names.indexOf(name) < 0) {
             names.push(name)
             // eslint-disable-next-line
