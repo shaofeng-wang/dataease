@@ -1066,7 +1066,7 @@ export default {
     },
     parseVariable() {
       this.variablesTmp = []
-      var reg = new RegExp('\\${(.*?)}', 'gim')
+      var reg = new RegExp('\\${(.*?)}|\\{{(.*?)}', 'gim')
       var match = this.sql.match(reg)
       const names = []
       if (match !== null) {

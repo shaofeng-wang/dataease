@@ -1,10 +1,13 @@
 package io.dataease.service.dataset;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
+import com.hubspot.jinjava.Jinjava;
 import io.dataease.auth.annotation.DeCleaner;
 import io.dataease.auth.api.dto.CurrentUserDto;
 import io.dataease.commons.constants.*;
@@ -18,6 +21,7 @@ import io.dataease.controller.request.dataset.DataSetTaskRequest;
 import io.dataease.controller.response.DataSetDetail;
 import io.dataease.controller.sys.base.BaseGridRequest;
 import io.dataease.controller.sys.base.ConditionEntity;
+import io.dataease.dto.SqlVarParamDTO;
 import io.dataease.dto.SysLogDTO;
 import io.dataease.dto.dataset.*;
 import io.dataease.dto.dataset.union.UnionDTO;
@@ -626,8 +630,8 @@ public class DataSetTableService {
 
                 datasourceRequest.setQuery(
                     qp.createQueryTableWithPage(table, fields, page, pageSize, realSize, false, ds, null, rowPermissionsTree));
-
-                map.put("sql", java.util.Base64.getEncoder().encodeToString(datasourceRequest.getQuery().getBytes()));
+                String sql = handleJinJavaTemplate(java.util.Base64.getEncoder().encodeToString(datasourceRequest.getQuery().getBytes()), Lists.newArrayList());
+                map.put("sql", sql);
                 datasourceRequest.setPage(page);
                 datasourceRequest.setFetchSize(Integer.parseInt(dataSetTableRequest.getRow()));
                 datasourceRequest.setPageSize(pageSize);
@@ -670,7 +674,8 @@ public class DataSetTableService {
                 QueryProvider qp = ProviderFactory.getQueryProvider(ds.getType());
                 datasourceRequest.setQuery(
                     qp.createQueryTableWithPage(table, fields, page, pageSize, realSize, false, ds, null, rowPermissionsTree));
-                map.put("sql", java.util.Base64.getEncoder().encodeToString(datasourceRequest.getQuery().getBytes()));
+                String sql = handleJinJavaTemplate(java.util.Base64.getEncoder().encodeToString(datasourceRequest.getQuery().getBytes()), Lists.newArrayList());
+                map.put("sql", sql);
                 try {
                     data.addAll(jdbcProvider.getData(datasourceRequest));
                 } catch (Exception e) {
@@ -701,6 +706,8 @@ public class DataSetTableService {
                 datasourceRequest.setDatasource(ds);
                 DataTableInfoDTO dataTableInfo = new Gson().fromJson(datasetTable.getInfo(), DataTableInfoDTO.class);
                 String sql = dataTableInfo.isBase64Encryption() ? new String(java.util.Base64.getDecoder().decode(dataTableInfo.getSql())) : dataTableInfo.getSql();
+                sql = handleJinJavaTemplate(sql, Lists.newArrayList());
+                map.put("sql", sql);
                 sql = handleVariableDefaultValue(sql, datasetTable.getSqlVariableDetails(), ds.getType(), false);
                 QueryProvider qp = ProviderFactory.getQueryProvider(ds.getType());
                 datasourceRequest.setQuery(
@@ -741,7 +748,8 @@ public class DataSetTableService {
                 QueryProvider qp = ProviderFactory.getQueryProvider(ds.getType());
                 datasourceRequest.setQuery(
                     qp.createQueryTableWithPage(table, fields, page, pageSize, realSize, false, ds, null, rowPermissionsTree));
-                map.put("sql", java.util.Base64.getEncoder().encodeToString(datasourceRequest.getQuery().getBytes()));
+                String sql = handleJinJavaTemplate(java.util.Base64.getEncoder().encodeToString(datasourceRequest.getQuery().getBytes()), Lists.newArrayList());
+                map.put("sql", sql);
                 try {
                     data.addAll(jdbcProvider.getData(datasourceRequest));
                 } catch (Exception e) {
@@ -823,7 +831,8 @@ public class DataSetTableService {
                 QueryProvider qp = ProviderFactory.getQueryProvider(ds.getType());
                 datasourceRequest.setQuery(
                     qp.createQuerySQLWithPage(sql, fields, page, pageSize, realSize, false, null, rowPermissionsTree));
-                map.put("sql", java.util.Base64.getEncoder().encodeToString(datasourceRequest.getQuery().getBytes()));
+                sql = handleJinJavaTemplate(java.util.Base64.getEncoder().encodeToString(datasourceRequest.getQuery().getBytes()), Lists.newArrayList());
+                map.put("sql", sql);
                 datasourceRequest.setPage(page);
                 datasourceRequest.setFetchSize(Integer.parseInt(dataSetTableRequest.getRow()));
                 datasourceRequest.setPageSize(pageSize);
@@ -854,7 +863,8 @@ public class DataSetTableService {
                 QueryProvider qp = ProviderFactory.getQueryProvider(ds.getType());
                 datasourceRequest.setQuery(
                     qp.createQueryTableWithPage(table, fields, page, pageSize, realSize, false, ds, null, rowPermissionsTree));
-                map.put("sql", java.util.Base64.getEncoder().encodeToString(datasourceRequest.getQuery().getBytes()));
+                String sql = handleJinJavaTemplate(java.util.Base64.getEncoder().encodeToString(datasourceRequest.getQuery().getBytes()), Lists.newArrayList());
+                map.put("sql", sql);
                 try {
                     data.addAll(jdbcProvider.getData(datasourceRequest));
                 } catch (Exception e) {
@@ -893,7 +903,8 @@ public class DataSetTableService {
                 QueryProvider qp = ProviderFactory.getQueryProvider(ds.getType());
                 datasourceRequest.setQuery(
                     qp.createQuerySQLWithPage(sql, fields, page, pageSize, realSize, false, null, rowPermissionsTree));
-                map.put("sql", java.util.Base64.getEncoder().encodeToString(datasourceRequest.getQuery().getBytes()));
+                sql = handleJinJavaTemplate(java.util.Base64.getEncoder().encodeToString(datasourceRequest.getQuery().getBytes()), Lists.newArrayList());
+                map.put("sql", sql);
                 datasourceRequest.setPage(page);
                 datasourceRequest.setFetchSize(Integer.parseInt(dataSetTableRequest.getRow()));
                 datasourceRequest.setPageSize(pageSize);
@@ -924,7 +935,8 @@ public class DataSetTableService {
                 QueryProvider qp = ProviderFactory.getQueryProvider(ds.getType());
                 datasourceRequest.setQuery(
                     qp.createQueryTableWithPage(table, fields, page, pageSize, realSize, false, ds, null, rowPermissionsTree));
-                map.put("sql", java.util.Base64.getEncoder().encodeToString(datasourceRequest.getQuery().getBytes()));
+                String sql = handleJinJavaTemplate(java.util.Base64.getEncoder().encodeToString(datasourceRequest.getQuery().getBytes()), Lists.newArrayList());
+                map.put("sql", sql);
                 try {
                     data.addAll(jdbcProvider.getData(datasourceRequest));
                 } catch (Exception e) {
@@ -1058,16 +1070,22 @@ public class DataSetTableService {
             Matcher matcher = pattern.matcher(sql);
             while (matcher.find()) {
                 SqlVariableDetails defaultsSqlVariableDetail = null;
-                List<SqlVariableDetails> defaultsSqlVariableDetails = new Gson().fromJson(sqlVariableDetails, new TypeToken<List<SqlVariableDetails>>() {
-                }.getType());
+                List<SqlVariableDetails> defaultsSqlVariableDetails = new Gson().fromJson(sqlVariableDetails,
+                                                                                          new TypeToken<List<SqlVariableDetails>>() {
+                                                                                          }.getType());
                 for (SqlVariableDetails sqlVariableDetail : defaultsSqlVariableDetails) {
-                    if (matcher.group().substring(2, matcher.group().length() - 1).equalsIgnoreCase(sqlVariableDetail.getVariableName())) {
+                    if (matcher.group()
+                               .substring(2, matcher.group().length() - 1)
+                               .equalsIgnoreCase(sqlVariableDetail.getVariableName())) {
                         defaultsSqlVariableDetail = sqlVariableDetail;
                         break;
                     }
                 }
-                if (!isEdit && defaultsSqlVariableDetail != null && defaultsSqlVariableDetail.getDefaultValueScope() != null &&
-                    defaultsSqlVariableDetail.getDefaultValueScope().equals(SqlVariableDetails.DefaultValueScope.ALLSCOPE) && StringUtils.isNotEmpty(defaultsSqlVariableDetail.getDefaultValue())) {
+                if (!isEdit && defaultsSqlVariableDetail != null &&
+                    defaultsSqlVariableDetail.getDefaultValueScope() != null &&
+                    defaultsSqlVariableDetail.getDefaultValueScope()
+                                             .equals(SqlVariableDetails.DefaultValueScope.ALLSCOPE) &&
+                    StringUtils.isNotEmpty(defaultsSqlVariableDetail.getDefaultValue())) {
                     sql = sql.replace(matcher.group(), defaultsSqlVariableDetail.getDefaultValue());
                 }
                 if (isEdit && defaultsSqlVariableDetail != null && StringUtils.isNotEmpty(defaultsSqlVariableDetail.getDefaultValue())) {
@@ -1271,6 +1289,33 @@ public class DataSetTableService {
         return datasetSqlLogMapper.selectByExample(example);
     }
 
+    private String handleJinJavaTemplate(String sql, List<SqlVarParamDTO> sqlVarList) {
+        Jinjava jinjava = new Jinjava();
+        Map<String, Object> context = Maps.newHashMap();
+        for (SqlVarParamDTO var : sqlVarList) {
+            context.put(var.getParamName(), var.getFilter());
+        }
+        return jinjava.render(sql, context);
+    }
+
+    private List<SqlVarParamDTO> handleDefaultJinJavaVariables(DataSetTableRequest dataSetTableRequest) {
+        List<SqlVarParamDTO> sqlVarList = Lists.newArrayList();
+        if (StringUtils.isNotEmpty(dataSetTableRequest.getSqlVariableDetails())) {
+            List<SqlVariableDetails> defaultsSqlVariableDetails = new Gson().fromJson(dataSetTableRequest.getSqlVariableDetails(),
+                                                                                      new TypeToken<List<SqlVariableDetails>>() {
+                                                                                      }.getType());
+            for (SqlVariableDetails sqlVariableDetail : defaultsSqlVariableDetails) {
+                if (sqlVariableDetail.getDefaultValue() != null && sqlVariableDetail.getVariableName() != null) {
+                    SqlVarParamDTO dto = new SqlVarParamDTO();
+                    dto.setParamName(sqlVariableDetail.getVariableName());
+                    dto.setFilter(sqlVariableDetail.getDefaultValue());
+                    sqlVarList.add(dto);
+                }
+            }
+        }
+        return sqlVarList;
+    }
+
     public ResultHolder getSQLPreview(DataSetTableRequest dataSetTableRequest, boolean realData) throws Exception {
         DatasetSqlLog datasetSqlLog = new DatasetSqlLog();
 
@@ -1281,6 +1326,8 @@ public class DataSetTableService {
         if (ds == null) {
             throw new Exception(Translator.get("i18n_invalid_ds"));
         }
+        List<SqlVarParamDTO> sqlVarList = handleDefaultJinJavaVariables(dataSetTableRequest);
+        sql = handleJinJavaTemplate(sql, sqlVarList);
         String tmpSql = removeVariables(sql, ds.getType());
         if (!realData) {
             tmpSql.replaceAll(SubstitutedSql, SubstitutedSqlVirtualData);
@@ -1295,8 +1342,10 @@ public class DataSetTableService {
         DatasourceRequest datasourceRequest = new DatasourceRequest();
         datasourceRequest.setDatasource(ds);
 
-        sql = realData ? handleVariableDefaultValue(sql, dataSetTableRequest.getSqlVariableDetails(), ds.getType(), true) : removeVariables(sql, ds.getType()).replaceAll(SubstitutedSql.trim(),
-                                                                                                                                                                          SubstitutedSqlVirtualData);
+        sql = realData
+              ? handleVariableDefaultValue(sql, dataSetTableRequest.getSqlVariableDetails(), ds.getType(), true)
+              : removeVariables(sql, ds.getType()).replaceAll(SubstitutedSql.trim(),
+                                                              SubstitutedSqlVirtualData);
         if (StringUtils.isEmpty(sql)) {
             DataEaseException.throwException(Translator.get("i18n_sql_not_empty"));
         }
@@ -1965,6 +2014,7 @@ public class DataSetTableService {
             QueryProvider qp = ProviderFactory.getQueryProvider(ds.getType());
             DataTableInfoDTO dataTableInfo = new Gson().fromJson(datasetTable.getInfo(), DataTableInfoDTO.class);
             String sql = dataTableInfo.isBase64Encryption() ? new String(java.util.Base64.getDecoder().decode(dataTableInfo.getSql())) : dataTableInfo.getSql();
+            sql = handleJinJavaTemplate(sql, Lists.newArrayList());
             sql = removeVariables(sql, ds.getType()).replaceAll(SubstitutedSql.trim(), SubstitutedSqlVirtualData);
             String sqlAsTable = qp.createSQLPreview(sql, null);
             datasourceRequest.setQuery(sqlAsTable);

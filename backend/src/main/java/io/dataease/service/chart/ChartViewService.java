@@ -3,8 +3,11 @@ package io.dataease.service.chart;
 import cn.hutool.core.lang.Assert;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.hubspot.jinjava.Jinjava;
 import io.dataease.auth.entity.SysUserEntity;
 import io.dataease.auth.service.AuthUserService;
 import io.dataease.commons.constants.CommonConstants;
@@ -17,6 +20,7 @@ import io.dataease.commons.utils.LogUtil;
 import io.dataease.controller.request.chart.*;
 import io.dataease.controller.response.ChartDetail;
 import io.dataease.controller.response.DataSetDetail;
+import io.dataease.dto.SqlVarParamDTO;
 import io.dataease.dto.chart.*;
 import io.dataease.dto.dataset.DataSetTableDTO;
 import io.dataease.dto.dataset.DataSetTableUnionDTO;
@@ -1877,56 +1881,91 @@ public class ChartViewService {
         chartViewMapper.updateByPrimaryKeySelective(chartView);
     }
 
-    private String handleVariable(String sql, ChartExtRequest requestList, QueryProvider qp, DataSetTableDTO table, Datasource ds) throws Exception {
-        List<SqlVariableDetails> sqlVariables = new Gson().fromJson(table.getSqlVariableDetails(), new TypeToken<List<SqlVariableDetails>>() {
-        }.getType());
+    private SqlVarParamDTO parseSqlVariables(QueryProvider qp, DataSetTableDTO table,
+                                             ChartExtFilterRequest chartExtFilterRequest,
+                                             List<SqlVariableDetails> sqlVariables, String parameter) {
+        SqlVarParamDTO dto = new SqlVarParamDTO();
+        String[] parameterArray = parameter.split("\\|DE\\|");
+        Boolean isEndParam = false;
+        if (!parameterArray[0].equals(table.getId())) {
+            return null;
+        }
+        String paramName;
+        if (parameterArray.length > 1) {
+            paramName = parameterArray[1];
+            if (paramName.contains(START_END_SEPARATOR)) {
+                String[] paramNameArray = paramName.split(START_END_SEPARATOR);
+                paramName = paramNameArray[0];
+                isEndParam = true;
+            }
+        } else {
+            return null;
+        }
+        dto.setParamName(paramName);
+        List<SqlVariableDetails> parameters = sqlVariables.stream()
+                                                          .filter(item -> item.getVariableName()
+                                                                              .equalsIgnoreCase(dto.getParamName()))
+                                                          .collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(parameters)) {
+            String filter;
+            if (isEndParam) {
+                filter = transEndParamSql(chartExtFilterRequest, parameters.get(0));
+            } else {
+                filter = qp.transFilter(chartExtFilterRequest, parameters.get(0));
+            }
+            dto.setFilter(filter);
+        }
+        return dto;
+    }
+
+    private String handleJinJavaTemplate(String sql, List<SqlVarParamDTO> sqlVarList) {
+        Jinjava jinjava = new Jinjava();
+        Map<String, Object> context = Maps.newHashMap();
+        for (SqlVarParamDTO var : sqlVarList) {
+            context.put(var.getParamName(), var.getFilter());
+        }
+        return jinjava.render(sql, context);
+    }
+
+    private String handleVariable(String sql, ChartExtRequest requestList,
+                                  QueryProvider qp, DataSetTableDTO table,
+                                  Datasource ds) throws Exception {
+        List<SqlVariableDetails> sqlVariables = new Gson().fromJson(table.getSqlVariableDetails(),
+                                                                    new TypeToken<List<SqlVariableDetails>>() {
+                                                                    }.getType());
+        List<SqlVarParamDTO> sqlVarList = Lists.newArrayList();
         if (requestList != null && CollectionUtils.isNotEmpty(requestList.getFilter())) {
             for (ChartExtFilterRequest chartExtFilterRequest : requestList.getFilter()) {
-                if (CollectionUtils.isEmpty(chartExtFilterRequest.getValue())) {
+                if (CollectionUtils.isEmpty(chartExtFilterRequest.getValue()) ||
+                    CollectionUtils.isEmpty(chartExtFilterRequest.getParameters())) {
                     continue;
                 }
-                if (CollectionUtils.isEmpty(chartExtFilterRequest.getParameters())) {
-                    continue;
-                }
-
-                Boolean isEndParam = false;
                 for (String parameter : chartExtFilterRequest.getParameters()) {
                     if (parameter.contains("|DE|")) {
-                        String[] parameterArray = parameter.split("\\|DE\\|");
-                        if (!parameterArray[0].equals(table.getId())) {
-                            continue;
-                        }
-                        String paramName = null;
-                        if (parameterArray.length > 1) {
-                            paramName = parameterArray[1];
-                            if (paramName.contains(START_END_SEPARATOR)) {
-                                String[] paramNameArray = paramName.split(START_END_SEPARATOR);
-                                paramName = paramNameArray[0];
-                                isEndParam = true;
-                            }
-                        } else {
-                            continue;
-                        }
-                        final String finalParamName = paramName;
-                        List<SqlVariableDetails> parameters = sqlVariables.stream().filter(item -> item.getVariableName().equalsIgnoreCase(finalParamName)).collect(Collectors.toList());
-                        if (CollectionUtils.isNotEmpty(parameters)) {
-                            String filter = null;
-                            if (isEndParam) {
-                                filter = transEndParamSql(chartExtFilterRequest, parameters.get(0));
-                            } else {
-                                filter = qp.transFilter(chartExtFilterRequest, parameters.get(0));
-                            }
-                            sql = sql.replace("${" + finalParamName + "}", filter);
+                        SqlVarParamDTO var = parseSqlVariables(qp, table, chartExtFilterRequest, sqlVariables, parameter);
+                        if (var != null && var.getParamName() != null && var.getFilter() != null) {
+                            sqlVarList.add(var);
                         }
                     } else {
                         List<SqlVariableDetails> parameters = sqlVariables.stream().filter(item -> item.getVariableName().equalsIgnoreCase(parameter)).collect(Collectors.toList());
                         if (CollectionUtils.isNotEmpty(parameters)) {
                             String filter = qp.transFilter(chartExtFilterRequest, parameters.get(0));
-                            sql = sql.replace("${" + parameter + "}", filter);
+                            SqlVarParamDTO var = new SqlVarParamDTO();
+                            var.setParamName(parameter);
+                            var.setFilter(filter);
+                            if (var != null && var.getParamName() != null && var.getFilter() != null) {
+                                sqlVarList.add(var);
+                            }
                         }
                     }
                 }
             }
+        }
+        // JinJava template variables handling
+        sql = handleJinJavaTemplate(sql, sqlVarList);
+        // DataEase variables handling
+        for (SqlVarParamDTO var : sqlVarList) {
+            sql = sql.replace("${" + var.getParamName() + "}", var.getFilter());
         }
         sql = dataSetTableService.handleVariableDefaultValue(sql, null, ds.getType(), false);
         return sql;
