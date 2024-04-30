@@ -6,6 +6,7 @@ import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import io.dataease.auth.api.dto.CurrentRoleDto;
 import io.dataease.auth.api.dto.CurrentUserDto;
+import io.dataease.auth.service.ExtAuthService;
 import io.dataease.commons.constants.SysLogConstants;
 import io.dataease.commons.constants.SystemConstants;
 import io.dataease.commons.model.AuthURD;
@@ -68,6 +69,9 @@ public class ShareService {
 
     @Resource
     private ExtAuthMapper extAuthMapper;
+
+    @Autowired
+    private ExtAuthService extAuthService;
 
     /**
      * 1.查询当前节点已经分享给了哪些目标
@@ -228,16 +232,19 @@ public class ShareService {
         if (CollectionUtils.isNotEmpty(sharedAuthURD.getUserIds())) {
             for (Long userId : sharedAuthURD.getUserIds()) {
                 redSysAuth(authSource, Long.toString(userId), AUTH_TARGET_USER);
+                extAuthService.clearUserResource(userId);
             }
         }
         if (CollectionUtils.isNotEmpty(sharedAuthURD.getDeptIds())) {
             for (Long deptId : sharedAuthURD.getDeptIds()) {
                 redSysAuth(authSource, Long.toString(deptId), AUTH_TARGET_DEPT);
+                extAuthService.clearDeptResource(deptId);
             }
         }
         if (CollectionUtils.isNotEmpty(sharedAuthURD.getRoleIds())) {
             for (Long roleId : sharedAuthURD.getRoleIds()) {
                 redSysAuth(authSource, Long.toString(roleId), AUTH_TARGET_ROLE);
+                extAuthService.clearRoleResource(roleId);
             }
         }
     }
@@ -263,16 +270,19 @@ public class ShareService {
         if (CollectionUtils.isNotEmpty(addAuthURD.getUserIds())) {
             for (Long userId : addAuthURD.getUserIds()) {
                 addSysAuthPanel(authSource, Long.toString(userId), AUTH_TARGET_USER);
+                extAuthService.clearUserResource(userId);
             }
         }
         if (CollectionUtils.isNotEmpty(addAuthURD.getDeptIds())) {
             for (Long deptId : addAuthURD.getDeptIds()) {
                 addSysAuthPanel(authSource, Long.toString(deptId), AUTH_TARGET_DEPT);
+                extAuthService.clearDeptResource(deptId);
             }
         }
         if (CollectionUtils.isNotEmpty(addAuthURD.getRoleIds())) {
             for (Long roleId : addAuthURD.getRoleIds()) {
                 addSysAuthPanel(authSource, Long.toString(roleId), AUTH_TARGET_ROLE);
+                extAuthService.clearRoleResource(roleId);
             }
         }
     }
@@ -281,16 +291,19 @@ public class ShareService {
         if (CollectionUtils.isNotEmpty(addAuthURD.getUserIds())) {
             for (Long userId : addAuthURD.getUserIds()) {
                 addSysAuthDataset(authSource, Long.toString(userId), AUTH_TARGET_USER);
+                extAuthService.clearUserResource(userId);
             }
         }
         if (CollectionUtils.isNotEmpty(addAuthURD.getDeptIds())) {
             for (Long deptId : addAuthURD.getDeptIds()) {
                 addSysAuthDataset(authSource, Long.toString(deptId), AUTH_TARGET_DEPT);
+                extAuthService.clearDeptResource(deptId);
             }
         }
         if (CollectionUtils.isNotEmpty(addAuthURD.getRoleIds())) {
             for (Long roleId : addAuthURD.getRoleIds()) {
                 addSysAuthDataset(authSource, Long.toString(roleId), AUTH_TARGET_ROLE);
+                extAuthService.clearRoleResource(roleId);
             }
         }
     }
@@ -393,6 +406,8 @@ public class ShareService {
      */
     @Transactional
     public void fineSave(DatasetShareFineDto datasetShareFineDto) {
+        if (StringUtils.equals("spine", datasetShareFineDto.getSharedNodeType())) {
+        }
         for (String resourceId : datasetShareFineDto.getResourceId()) {
             fineSaveByResourceId(resourceId, datasetShareFineDto.getAuthURD());
         }
@@ -439,20 +454,21 @@ public class ShareService {
 
     private void buildRedSysAuths(AuthURD redAuthURD, List<SysAuth> sysAuthList, Set<Long> userIds, Set<Long> roleIds, Set<Long> deptIds) {
         for (SysAuth sysAuth : sysAuthList) {
+            Long sysAuthTarget = Long.valueOf(sysAuth.getAuthTarget());
             if (StrUtil.equals(sysAuth.getAuthTargetType(), AUTH_TARGET_USER)) {
                 if (!StrUtil.equals(sysAuth.getAuthUser(), "auto") &&
-                    !userIds.contains(sysAuth.getAuthTarget())) {
-                    redAuthURD.getUserIds().add(Long.valueOf(sysAuth.getAuthTarget()));
+                    !userIds.contains(sysAuthTarget)) {
+                    redAuthURD.getUserIds().add(sysAuthTarget);
                 }
             } else if (!StrUtil.equals(sysAuth.getAuthUser(), "auto") &&
                        StrUtil.equals(sysAuth.getAuthTargetType(), AUTH_TARGET_ROLE)) {
-                if (!roleIds.contains(sysAuth.getAuthTarget())) {
-                    redAuthURD.getRoleIds().add(Long.valueOf(sysAuth.getAuthTarget()));
+                if (!roleIds.contains(sysAuthTarget)) {
+                    redAuthURD.getRoleIds().add(sysAuthTarget);
                 }
             } else if (!StrUtil.equals(sysAuth.getAuthUser(), "auto") &&
                        StrUtil.equals(sysAuth.getAuthTargetType(), AUTH_TARGET_DEPT)) {
-                if (!deptIds.contains(sysAuth.getAuthTarget())) {
-                    redAuthURD.getDeptIds().add(Long.valueOf(sysAuth.getAuthTarget()));
+                if (!deptIds.contains(sysAuthTarget)) {
+                    redAuthURD.getDeptIds().add(sysAuthTarget);
                 }
             }
         }

@@ -148,7 +148,7 @@ public class AuthServer implements AuthApi {
                     }
                 });
                 sysUserService.validateExistUser(ldapUserEntity.getUsername(), ldapUserEntity.getNickname(),
-                        ldapUserEntity.getEmail());
+                                                 ldapUserEntity.getEmail());
                 sysUserService.saveLdapUsers(ldapAddRequest);
             }
 

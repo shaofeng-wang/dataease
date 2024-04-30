@@ -15,6 +15,9 @@ public class DatasetShareFineDto implements Serializable {
     @ApiModelProperty("资源ID列表")
     private List<String> resourceId;
 
+    @ApiModelProperty("分享节点类型：leaf，spine")
+    private String sharedNodeType;
+
     @ApiModelProperty("分享信息")
     private AuthURD authURD;
 }

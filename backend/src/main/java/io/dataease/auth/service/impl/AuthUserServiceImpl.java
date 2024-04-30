@@ -168,9 +168,12 @@ public class AuthUserServiceImpl implements AuthUserService {
      * @param userId
      */
     @Caching(evict = {
-            @CacheEvict(value = AuthConstants.USER_CACHE_NAME, key = "'user' + #userId"),
-            @CacheEvict(value = AuthConstants.USER_ROLE_CACHE_NAME, key = "'user' + #userId"),
-            @CacheEvict(value = AuthConstants.USER_PERMISSION_CACHE_NAME, key = "'user' + #userId")
+        @CacheEvict(value = AuthConstants.USER_CACHE_NAME, key = "'user' + #userId"),
+        @CacheEvict(value = AuthConstants.USER_ROLE_CACHE_NAME, key = "'user' + #userId"),
+        @CacheEvict(value = AuthConstants.USER_PERMISSION_CACHE_NAME, key = "'user' + #userId"),
+        @CacheEvict(value = AuthConstants.USER_LINK_NAME, key = "'user' + #userId"),
+        @CacheEvict(value = AuthConstants.USER_DATASET_NAME, key = "'user' + #userId"),
+        @CacheEvict(value = AuthConstants.USER_PANEL_NAME, key = "'user' + #userId")
     })
     @Override
     public void clearCache(Long userId) {
