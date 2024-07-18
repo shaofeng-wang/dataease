@@ -225,9 +225,6 @@ export default {
     variables() {
       return variables
     },
-    sidebar() {
-      return this.$store.state.app.sidebar
-    },
     isOtherPlatform() {
       return inOtherPlatform()
     },

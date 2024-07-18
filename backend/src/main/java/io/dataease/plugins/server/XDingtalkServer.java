@@ -12,7 +12,7 @@ import io.dataease.commons.utils.ServletUtils;
 import io.dataease.exception.DataEaseException;
 import io.dataease.i18n.Translator;
 import io.dataease.plugins.common.base.domain.SysUserAssist;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.dingtalk.dto.response.DingQrResult;
 import io.dataease.plugins.xpack.dingtalk.dto.response.DingUserEntity;
 import io.dataease.plugins.xpack.dingtalk.dto.response.DingtalkInfo;
@@ -49,7 +49,7 @@ public class XDingtalkServer {
     @ResponseBody
     @GetMapping("/info")
     public DingtalkInfo getDingtalkInfo() {
-        DingtalkXpackService dingtalkXpackService = SpringContextUtil.getBean(DingtalkXpackService.class);
+        DingtalkXpackService dingtalkXpackService = SpringContextBackEndUtil.getBean(DingtalkXpackService.class);
         return dingtalkXpackService.info();
     }
 
@@ -57,14 +57,14 @@ public class XDingtalkServer {
     @RequiresPermissions("sysparam:read")
     @PostMapping("/save")
     public void save(@RequestBody List<SysSettingDto> settings) {
-        DingtalkXpackService dingtalkXpackService = SpringContextUtil.getBean(DingtalkXpackService.class);
+        DingtalkXpackService dingtalkXpackService = SpringContextBackEndUtil.getBean(DingtalkXpackService.class);
         dingtalkXpackService.save(settings);
     }
 
     @ResponseBody
     @PostMapping("/testConn")
     public void testConn(@RequestBody DingtalkInfo dingtalkInfo) {
-        DingtalkXpackService dingtalkXpackService = SpringContextUtil.getBean(DingtalkXpackService.class);
+        DingtalkXpackService dingtalkXpackService = SpringContextBackEndUtil.getBean(DingtalkXpackService.class);
         try {
             dingtalkXpackService.testConn(dingtalkInfo);
         } catch (Exception e) {
@@ -75,7 +75,7 @@ public class XDingtalkServer {
     @ResponseBody
     @PostMapping("/getQrParam")
     public DingQrResult getQrParam() {
-        DingtalkXpackService dingtalkXpackService = SpringContextUtil.getBean(DingtalkXpackService.class);
+        DingtalkXpackService dingtalkXpackService = SpringContextBackEndUtil.getBean(DingtalkXpackService.class);
         return dingtalkXpackService.getQrParam();
     }
 
@@ -84,11 +84,11 @@ public class XDingtalkServer {
         HttpServletResponse response = ServletUtils.response();
         DingtalkXpackService dingtalkXpackService = null;
         try {
-            Map<String, DingtalkXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((DingtalkXpackService.class));
+            Map<String, DingtalkXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((DingtalkXpackService.class));
             if (beansOfType.keySet().size() == 0) {
                 DEException.throwException("缺少钉钉插件");
             }
-            dingtalkXpackService = SpringContextUtil.getBean(DingtalkXpackService.class);
+            dingtalkXpackService = SpringContextBackEndUtil.getBean(DingtalkXpackService.class);
             Boolean isOpen = dingtalkXpackService.isOpen();
             if (!isOpen) {
                 DEException.throwException("未开启钉钉");
@@ -189,7 +189,7 @@ public class XDingtalkServer {
             if (!isOpen) {
                 DEException.throwException("未开启钉钉");
             }
-            dingtalkXpackService = SpringContextUtil.getBean(DingtalkXpackService.class);
+            dingtalkXpackService = SpringContextBackEndUtil.getBean(DingtalkXpackService.class);
             DingUserEntity dingUserEntity = dingtalkXpackService.userInfo(code);
 
             String userId = dingUserEntity.getUserid();

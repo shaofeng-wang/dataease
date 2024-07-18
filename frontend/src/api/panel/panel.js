@@ -249,6 +249,14 @@ export function exportDetails(data) {
   })
 }
 
+export function innerExportDetailStatus(exportKey) {
+  return request({
+    url: `panel/group/innerExportDetailStatus?exportKey=${exportKey}`,
+    method: 'get',
+    loading: false
+  })
+}
+
 export function innerExportDetails(data) {
   return request({
     url: 'panel/group/innerExportDetails',

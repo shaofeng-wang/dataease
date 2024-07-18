@@ -1,6 +1,6 @@
 package io.dataease.plugins.server;
 
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.watermark.WatermarkService;
 import io.dataease.plugins.xpack.watermark.dto.PanelWatermarkDTO;
 import io.swagger.annotations.ApiOperation;
@@ -20,14 +20,14 @@ public class XWatermarkServer {
     @ApiOperation("查询水印配置")
     @GetMapping("/find")
     public PanelWatermarkDTO find() {
-        WatermarkService userXpackService = SpringContextUtil.getBean(WatermarkService.class);
+        WatermarkService userXpackService = SpringContextBackEndUtil.getBean(WatermarkService.class);
         return userXpackService.getWatermarkInfo();
     }
 
     @ApiOperation("保存水印配置")
     @PostMapping("/save")
     public void save(@RequestBody PanelWatermarkDTO panelWatermark) {
-        WatermarkService userXpackService = SpringContextUtil.getBean(WatermarkService.class);
+        WatermarkService userXpackService = SpringContextBackEndUtil.getBean(WatermarkService.class);
         userXpackService.saveWatermarkInfo(panelWatermark);
     }
 }

@@ -2,8 +2,8 @@ package io.dataease.listener;
 
 import io.dataease.plugins.common.base.domain.SysStartupJob;
 import io.dataease.plugins.common.base.mapper.SysStartupJobMapper;
-import io.dataease.plugins.config.SpringContextUtil;
-import io.dataease.plugins.loader.ClassloaderResponsity;
+import io.dataease.plugins.common.util.ClassloaderResponsity;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.auth.service.RowPermissionTreeService;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +29,7 @@ public class RowPermissionMergeListener implements ApplicationListener<Applicati
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
-        Map<String, RowPermissionTreeService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((RowPermissionTreeService.class));
+        Map<String, RowPermissionTreeService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((RowPermissionTreeService.class));
         if (beansOfType.keySet().size() > 0) {
             logger.info("====row permissions merge [start]====");
 
@@ -37,7 +37,7 @@ public class RowPermissionMergeListener implements ApplicationListener<Applicati
             if (ObjectUtils.isNotEmpty(sysStartupJob) && StringUtils.equalsIgnoreCase(sysStartupJob.getStatus(), "ready")) {
                 logger.info("====row permissions merge [doing]====");
 
-                RowPermissionTreeService rowPermissionTreeService = SpringContextUtil.getBean(RowPermissionTreeService.class);
+                RowPermissionTreeService rowPermissionTreeService = SpringContextBackEndUtil.getBean(RowPermissionTreeService.class);
                 rowPermissionTreeService.mergeOldPermissions();
                 sysStartupJob.setStatus("done");
                 sysStartupJobMapper.updateByPrimaryKey(sysStartupJob);

@@ -42,13 +42,15 @@ import io.dataease.service.dataset.DataSetTableService;
 import io.dataease.service.staticResource.StaticResourceService;
 import io.dataease.service.sys.SysAuthService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.pentaho.di.core.util.UUIDUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,10 +62,12 @@ import org.springframework.util.Base64Utils;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.dataease.commons.constants.ExportConstants.EXPORT_DATA_CACHE;
+import static io.dataease.commons.constants.ExportConstants.EXPORT_DATA_HEARTBEAT_CACHE;
 
 /**
  * Author: wangjiahao
@@ -661,7 +665,13 @@ public class PanelGroupService {
      * @return
      */
     public ExportStatusDTO getExportPanelViewStatus(String exportKey) {
-        String json = Objects.toString(CacheUtils.get(EXPORT_DATA_CACHE, exportKey));
+        Object value = CacheUtils.get(EXPORT_DATA_CACHE, exportKey);
+        // 设置存活10秒，如果状态查询10秒未调用，则exportKey对应的导出终止
+        CacheUtils.put(EXPORT_DATA_HEARTBEAT_CACHE, exportKey, true, 10, null);
+        if (value == null) {
+            return new ExportStatusDTO();
+        }
+        String json = Objects.toString(value);
         return JSONUtil.toBean(json, ExportStatusDTO.class);
     }
 
@@ -672,10 +682,13 @@ public class PanelGroupService {
      * @param response
      */
     public void exportPanelViewDetails(PanelViewDetailsRequest request, HttpServletResponse response) {
-        try (OutputStream outputStream = response.getOutputStream()) {
+        long pageSize = 200L;
+        try (OutputStream outputStream = response.getOutputStream();
+             SXSSFWorkbook workbook = new SXSSFWorkbook((int) pageSize)) {
             String snapshot = request.getSnapshot();
             Integer[] excelTypes = request.getExcelTypes();
-            Workbook wb = new XSSFWorkbook();
+            SXSSFWorkbook wb = workbook;
+            wb.setCompressTempFiles(true);
             //明细sheet
             Sheet detailsSheet = wb.createSheet("数据");
             //给单元格设置样式
@@ -699,7 +712,6 @@ public class PanelGroupService {
             // 查询数据
             boolean mergeHead = request.isMergeHead();
             long goPage = 1L;
-            long pageSize = 1000L;
             int timeTTL = 60 * 30;
             boolean hasNext = true;
             ExportStatusDTO statusDTO = new ExportStatusDTO();
@@ -707,7 +719,10 @@ public class PanelGroupService {
                 findExcelData(request, goPage, pageSize);
                 // 获取buildDetailHead，findExcelData结果
                 List<Object[]> details = request.getDetails();
-                hasNext = !(details.size() < pageSize);
+                // details中含有表头行所以，pageSize+1
+                hasNext = goPage == 1L
+                          ? (details.size() >= pageSize + 1) && BooleanUtils.isTrue(request.isTotalPageFlag())
+                          : (details.size() >= pageSize) && BooleanUtils.isTrue(request.isTotalPageFlag());
                 // excel数据
                 if (CollectionUtils.isNotEmpty(details) && (!mergeHead || details.size() > 2)) {
                     int realDetailRowIndex = 2;
@@ -728,12 +743,47 @@ public class PanelGroupService {
                                                                   isHead, realDetailRowIndex, mergeHead,
                                                                   row, rowData);
                         }
+                        // 没有分页，一般为group by查询，一次性查出结果
+                        if (BooleanUtils.isNotTrue(request.isTotalPageFlag()) &&
+                            i >= pageSize &&
+                            i % pageSize == 0) {
+                            // 刷新内存数据到临时文件
+                            ((SXSSFSheet) detailsSheet).flushRows();
+                            long exportedRowCount = i;
+                            long totalItems = (Objects.nonNull(request.getTotalItems()) && request.getTotalItems() > 0 ? request.getTotalItems() : 1);
+                            long percent = Math.round(exportedRowCount * 1.0 / totalItems * 100);
+                            LOGGER.debug("完成百分比：{}%, 导出数据行数：{}, 数据总行数：{}", percent, exportedRowCount, request.getTotalItems());
+                            if (StrUtil.isNotBlank(request.getExportKey()) &&
+                                Objects.isNull(CacheUtils.get(EXPORT_DATA_HEARTBEAT_CACHE, request.getExportKey()))) {
+                                LOGGER.error("{} 导出终止 !!!", EXPORT_DATA_CACHE + request.getExportKey());
+                                response.setContentType("application/text");
+                                response.setStatus(500);
+                                outputStream.write("导出终止".getBytes(StandardCharsets.UTF_8));
+                                return;
+                            }
+                            if (StrUtil.isNotBlank(request.getExportKey())) {
+                                statusDTO.setTotalItems(totalItems);
+                                statusDTO.setPercent(percent);
+                                statusDTO.setCompletedItems(exportedRowCount);
+                                CacheUtils.put(EXPORT_DATA_CACHE, request.getExportKey(), JSONUtil.toJsonStr(statusDTO), timeTTL, timeTTL);
+                            }
+                        }
                     }
                 }
-                long exportedRowCount = goPage * pageSize + details.size();
+                // 刷新内存数据到临时文件
+                ((SXSSFSheet) detailsSheet).flushRows();
+                long exportedRowCount = (goPage - 1) * pageSize + details.size();
                 long totalItems = (Objects.nonNull(request.getTotalItems()) && request.getTotalItems() > 0 ? request.getTotalItems() : 1);
                 long percent = Math.round(exportedRowCount * 1.0 / totalItems * 100);
                 LOGGER.debug("完成百分比：{}%, 导出数据行数：{}, 数据总行数：{}", percent, exportedRowCount, request.getTotalItems());
+                if (StrUtil.isNotBlank(request.getExportKey()) &&
+                    Objects.isNull(CacheUtils.get(EXPORT_DATA_HEARTBEAT_CACHE, request.getExportKey()))) {
+                    LOGGER.error("{} 导出终止 !!!", EXPORT_DATA_CACHE + request.getExportKey());
+                    response.setContentType("application/text");
+                    response.setStatus(500);
+                    outputStream.write("导出终止".getBytes(StandardCharsets.UTF_8));
+                    return;
+                }
                 if (StrUtil.isNotBlank(request.getExportKey())) {
                     statusDTO.setTotalItems(totalItems);
                     statusDTO.setPercent(percent);
@@ -765,6 +815,8 @@ public class PanelGroupService {
             response.setHeader("Content-disposition", "attachment;filename=" + request.getViewName() + ".xlsx");
             wb.write(outputStream);
             outputStream.flush();
+            // 清除导出的临时文件
+            wb.dispose();
         } catch (Exception e) {
             DataEaseException.throwException(e);
         } finally {
@@ -903,10 +955,14 @@ public class PanelGroupService {
             componentFilterInfo.setProxy(request.getProxy());
             componentFilterInfo.setUser(request.getUserId());
             ChartViewDTO chartViewInfo = chartViewService.getData(request.getViewId(), componentFilterInfo);
+            request.setTotalPageFlag(chartViewInfo.isTotalPageFlag());
             if (Objects.isNull(request.getTotalItems())) {
                 request.setTotalItems(chartViewInfo.getTotalItems());
             }
             List<Map> tableRow = (List) chartViewInfo.getData().get("tableRow");
+            if (Objects.equals(chartViewInfo.getTotalItems(), 0L)) {
+                request.setTotalItems((long) tableRow.size());
+            }
             List<Object[]> result = request.getDetails();
             // 添加数据
             for (Map detailMap : tableRow) {

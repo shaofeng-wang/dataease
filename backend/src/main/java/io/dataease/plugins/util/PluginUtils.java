@@ -4,7 +4,7 @@ import io.dataease.commons.license.DefaultLicenseService;
 import io.dataease.commons.license.F2CLicenseResponse;
 import io.dataease.plugins.common.dto.PluginSysMenu;
 import io.dataease.plugins.common.service.PluginMenuService;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -30,13 +30,13 @@ public class PluginUtils {
         F2CLicenseResponse f2CLicenseResponse = currentLic();
         if (f2CLicenseResponse.getStatus() != F2CLicenseResponse.Status.valid)
             return new ArrayList<>();
-        Map<String, PluginMenuService> pluginMenuServiceMap = SpringContextUtil.getApplicationContext().getBeansOfType(PluginMenuService.class);
+        Map<String, PluginMenuService> pluginMenuServiceMap = SpringContextBackEndUtil.getApplicationContext().getBeansOfType(PluginMenuService.class);
         List<PluginSysMenu> menus = pluginMenuServiceMap.values().stream().flatMap(item -> item.menus().stream()).distinct().collect(Collectors.toList());
         return menus;
     }
 
     public static F2CLicenseResponse currentLic() {
-        Environment environment = SpringContextUtil.getBean(Environment.class);
+        Environment environment = SpringContextBackEndUtil.getBean(Environment.class);
         Boolean need_validate_lic = environment.getProperty("dataease.need_validate_lic", Boolean.class, true);
         if (!need_validate_lic) {
             F2CLicenseResponse f2CLicenseResponse = new F2CLicenseResponse();

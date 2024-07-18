@@ -2,7 +2,7 @@ package io.dataease.plugins.loader;
 
 
 import io.dataease.commons.utils.LogUtil;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
@@ -20,11 +20,11 @@ public class ControllerLoader {
      * @param controllerBeanName
      */
     private void unregisterController(String controllerBeanName){
-        final RequestMappingHandlerMapping requestMappingHandlerMapping=(RequestMappingHandlerMapping)SpringContextUtil.getBean("requestMappingHandlerMapping");
+        final RequestMappingHandlerMapping requestMappingHandlerMapping=(RequestMappingHandlerMapping) SpringContextBackEndUtil.getBean("requestMappingHandlerMapping");
 
         if(requestMappingHandlerMapping!=null){
             String handler=controllerBeanName;
-            Object controller= SpringContextUtil.getBean(handler);
+            Object controller= SpringContextBackEndUtil.getBean(handler);
             if(controller==null){
                 return;
             }
@@ -55,11 +55,11 @@ public class ControllerLoader {
      * @throws Exception
      */
     private void registerController(String controllerBeanName) throws Exception{
-        final RequestMappingHandlerMapping requestMappingHandlerMapping=(RequestMappingHandlerMapping) SpringContextUtil.getBean("requestMappingHandlerMapping");
+        final RequestMappingHandlerMapping requestMappingHandlerMapping=(RequestMappingHandlerMapping) SpringContextBackEndUtil.getBean("requestMappingHandlerMapping");
 
         if(requestMappingHandlerMapping!=null){
             String handler=controllerBeanName;
-            Object controller= SpringContextUtil.getBean(handler);
+            Object controller= SpringContextBackEndUtil.getBean(handler);
             if(controller==null){
                 return;
             }

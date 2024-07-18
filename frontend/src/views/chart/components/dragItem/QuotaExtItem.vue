@@ -301,6 +301,7 @@ export default {
     }
   },
   mounted() {
+    console.log("QuotaExtItem >>> ")
     this.init()
     this.isEnableCompare()
     bus.$on('reset-change-table', this.getItemTagType)

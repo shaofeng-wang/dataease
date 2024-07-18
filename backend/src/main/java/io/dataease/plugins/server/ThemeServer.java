@@ -3,7 +3,7 @@ package io.dataease.plugins.server;
 import io.dataease.commons.exception.DEException;
 import io.dataease.commons.utils.LogUtil;
 import io.dataease.i18n.Translator;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.theme.dto.*;
 import io.dataease.plugins.xpack.theme.service.ThemeXpackService;
 import io.swagger.annotations.Api;
@@ -23,7 +23,7 @@ public class ThemeServer {
     @PostMapping("/themes")
     public List<ThemeBaseDTO> themes(@RequestBody List<String> keys) {
 
-        ThemeXpackService themeXpackService = SpringContextUtil.getBean(ThemeXpackService.class);
+        ThemeXpackService themeXpackService = SpringContextBackEndUtil.getBean(ThemeXpackService.class);
 
         return themeXpackService.themes(keys);
     }
@@ -31,7 +31,7 @@ public class ThemeServer {
     @ApiOperation("查询配置项")
     @PostMapping("/items/{themeId}")
     public List<ThemeItem> themeItems(@PathVariable("themeId") int themeId) {
-        ThemeXpackService themeXpackService = SpringContextUtil.getBean(ThemeXpackService.class);
+        ThemeXpackService themeXpackService = SpringContextBackEndUtil.getBean(ThemeXpackService.class);
         return themeXpackService.queryItems(themeId);
     }
 
@@ -39,7 +39,7 @@ public class ThemeServer {
     @RequiresPermissions("sysparam:read")
     @PostMapping("/save")
     public void save(@RequestBody ThemeCreateRequest request) {
-        ThemeXpackService themeXpackService = SpringContextUtil.getBean(ThemeXpackService.class);
+        ThemeXpackService themeXpackService = SpringContextBackEndUtil.getBean(ThemeXpackService.class);
         try {
             themeXpackService.addTheme(request);
         } catch (Exception e) {
@@ -62,7 +62,7 @@ public class ThemeServer {
             throw new RuntimeException("default theme can not execute rename");
         }
         try {
-            ThemeXpackService themeXpackService = SpringContextUtil.getBean(ThemeXpackService.class);
+            ThemeXpackService themeXpackService = SpringContextBackEndUtil.getBean(ThemeXpackService.class);
             themeXpackService.renameTheme(request);
         } catch (Exception e) {
             LogUtil.error(e.getMessage(), e);
@@ -80,14 +80,14 @@ public class ThemeServer {
     @ApiOperation("切换高级开关")
     @PostMapping("/enableSenior/{themeId}")
     public void enableSenior(@PathVariable("themeId") Integer themeId) {
-        ThemeXpackService themeXpackService = SpringContextUtil.getBean(ThemeXpackService.class);
+        ThemeXpackService themeXpackService = SpringContextBackEndUtil.getBean(ThemeXpackService.class);
         themeXpackService.switchSenior(themeId);
     }
 
     @ApiOperation("应用")
     @PostMapping("/activeTheme/{themeId}")
     public void activeTheme(@PathVariable("themeId") Integer themeId) {
-        ThemeXpackService themeXpackService = SpringContextUtil.getBean(ThemeXpackService.class);
+        ThemeXpackService themeXpackService = SpringContextBackEndUtil.getBean(ThemeXpackService.class);
         themeXpackService.switchStatus(themeId);
     }
 
@@ -95,14 +95,14 @@ public class ThemeServer {
     @RequiresPermissions("sysparam:read")
     @PostMapping("/delete/{themeId}")
     public void delete(@PathVariable("themeId") int themeId) {
-        ThemeXpackService themeXpackService = SpringContextUtil.getBean(ThemeXpackService.class);
+        ThemeXpackService themeXpackService = SpringContextBackEndUtil.getBean(ThemeXpackService.class);
         themeXpackService.deleteTheme(themeId);
     }
 
     @ApiOperation("保存配置项")
     @PostMapping("/saveThemeItems")
     public void saveThemeItems(@RequestBody ThemeRequest request) {
-        ThemeXpackService themeXpackService = SpringContextUtil.getBean(ThemeXpackService.class);
+        ThemeXpackService themeXpackService = SpringContextBackEndUtil.getBean(ThemeXpackService.class);
         themeXpackService.saveThemeItems(request);
     }
 

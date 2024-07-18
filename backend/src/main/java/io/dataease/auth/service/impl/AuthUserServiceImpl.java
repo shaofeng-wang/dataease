@@ -17,7 +17,7 @@ import io.dataease.plugins.common.base.domain.SysUser;
 import io.dataease.plugins.common.base.mapper.SysLoginLimitMapper;
 import io.dataease.plugins.common.base.mapper.SysUserMapper;
 import io.dataease.plugins.common.service.PluginCommonService;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.util.PluginUtils;
 import io.dataease.plugins.xpack.cas.service.CasXpackService;
 import io.dataease.plugins.xpack.dingtalk.service.DingtalkXpackService;
@@ -182,81 +182,81 @@ public class AuthUserServiceImpl implements AuthUserService {
 
     @Override
     public boolean supportLdap() {
-        Map<String, LdapXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((LdapXpackService.class));
+        Map<String, LdapXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((LdapXpackService.class));
         if (beansOfType.keySet().size() == 0) return false;
-        LdapXpackService ldapXpackService = SpringContextUtil.getBean(LdapXpackService.class);
+        LdapXpackService ldapXpackService = SpringContextBackEndUtil.getBean(LdapXpackService.class);
         if (ObjectUtils.isEmpty(ldapXpackService)) return false;
         return ldapXpackService.isOpen();
     }
 
     @Override
     public Boolean supportOidc() {
-        Map<String, OidcXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((OidcXpackService.class));
+        Map<String, OidcXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((OidcXpackService.class));
         if (beansOfType.keySet().size() == 0) return false;
-        OidcXpackService oidcXpackService = SpringContextUtil.getBean(OidcXpackService.class);
+        OidcXpackService oidcXpackService = SpringContextBackEndUtil.getBean(OidcXpackService.class);
         if (ObjectUtils.isEmpty(oidcXpackService)) return false;
         return oidcXpackService.isSupportOIDC();
     }
 
     @Override
     public Boolean supportCas() {
-        Map<String, CasXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((CasXpackService.class));
+        Map<String, CasXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((CasXpackService.class));
         if (beansOfType.keySet().size() == 0) return false;
-        CasXpackService casXpackService = SpringContextUtil.getBean(CasXpackService.class);
+        CasXpackService casXpackService = SpringContextBackEndUtil.getBean(CasXpackService.class);
         if (ObjectUtils.isEmpty(casXpackService)) return false;
         return casXpackService.supportCas();
     }
 
     @Override
     public Boolean supportWecom() {
-        Map<String, WecomXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((WecomXpackService.class));
+        Map<String, WecomXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((WecomXpackService.class));
         if (beansOfType.keySet().size() == 0) return false;
-        WecomXpackService wecomXpackService = SpringContextUtil.getBean(WecomXpackService.class);
+        WecomXpackService wecomXpackService = SpringContextBackEndUtil.getBean(WecomXpackService.class);
         if (ObjectUtils.isEmpty(wecomXpackService)) return false;
         return wecomXpackService.isOpen();
     }
 
     @Override
     public Boolean supportDingtalk() {
-        Map<String, DingtalkXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((DingtalkXpackService.class));
+        Map<String, DingtalkXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((DingtalkXpackService.class));
         if (beansOfType.keySet().size() == 0) return false;
-        DingtalkXpackService dingtalkXpackService = SpringContextUtil.getBean(DingtalkXpackService.class);
+        DingtalkXpackService dingtalkXpackService = SpringContextBackEndUtil.getBean(DingtalkXpackService.class);
         if (ObjectUtils.isEmpty(dingtalkXpackService)) return false;
         return dingtalkXpackService.isOpen();
     }
 
     @Override
     public Boolean supportLark() {
-        Map<String, LarkXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((LarkXpackService.class));
+        Map<String, LarkXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((LarkXpackService.class));
         if (beansOfType.keySet().size() == 0) return false;
-        LarkXpackService larkXpackService = SpringContextUtil.getBean(LarkXpackService.class);
+        LarkXpackService larkXpackService = SpringContextBackEndUtil.getBean(LarkXpackService.class);
         if (ObjectUtils.isEmpty(larkXpackService)) return false;
         return larkXpackService.isOpen();
     }
 
     @Override
     public Boolean supportLarksuite() {
-        Map<String, LarksuiteXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((LarksuiteXpackService.class));
+        Map<String, LarksuiteXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((LarksuiteXpackService.class));
         if (beansOfType.keySet().size() == 0) return false;
-        LarksuiteXpackService larkXpackService = SpringContextUtil.getBean(LarksuiteXpackService.class);
+        LarksuiteXpackService larkXpackService = SpringContextBackEndUtil.getBean(LarksuiteXpackService.class);
         if (ObjectUtils.isEmpty(larkXpackService)) return false;
         return larkXpackService.isOpen();
     }
 
     @Override
     public Boolean supportLoginLimit() {
-        Map<String, LoginLimitXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((LoginLimitXpackService.class));
+        Map<String, LoginLimitXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((LoginLimitXpackService.class));
         if (beansOfType.keySet().size() == 0) return false;
-        LoginLimitXpackService loginLimitXpackService = SpringContextUtil.getBean(LoginLimitXpackService.class);
+        LoginLimitXpackService loginLimitXpackService = SpringContextBackEndUtil.getBean(LoginLimitXpackService.class);
         if (ObjectUtils.isEmpty(loginLimitXpackService)) return false;
         return loginLimitXpackService.isOpen();
     }
 
     @Override
     public Boolean pluginLoaded() {
-        Map<String, PluginCommonService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((PluginCommonService.class));
+        Map<String, PluginCommonService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((PluginCommonService.class));
         if (beansOfType.keySet().size() == 0) return false;
-        PluginCommonService pluginCommonService = SpringContextUtil.getBean(PluginCommonService.class);
+        PluginCommonService pluginCommonService = SpringContextBackEndUtil.getBean(PluginCommonService.class);
         if (ObjectUtils.isEmpty(pluginCommonService)) return false;
         return pluginCommonService.isPluginLoaded();
     }
@@ -304,7 +304,7 @@ public class AuthUserServiceImpl implements AuthUserService {
         accountLockStatus.setUsername(username);
         if (!supportLoginLimit()) return accountLockStatus;
 
-        LoginLimitXpackService loginLimitXpackService = SpringContextUtil.getBean(LoginLimitXpackService.class);
+        LoginLimitXpackService loginLimitXpackService = SpringContextBackEndUtil.getBean(LoginLimitXpackService.class);
         LoginLimitInfo info = loginLimitXpackService.info();
         Integer limitTimes = info.getLimitTimes();
         Integer relieveTimes = info.getRelieveTimes();

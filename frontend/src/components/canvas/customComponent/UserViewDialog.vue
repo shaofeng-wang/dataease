@@ -1,73 +1,80 @@
 <template>
-  <de-container
-    v-loading="$store.getters.loadingMap[$store.getters.currentPath] || linkLoading"
-    :class="isAbsoluteContainer ? 'abs-container' : ''"
-  >
-    <de-main-container
-      v-show="showChartCanvas"
-      class=""
+  <span>
+    <b v-if="intervalInnerExportDetailStatus && !exportDetailStatus.percent">数据查询中 >>></b>
+    <div v-if="exportDetailStatus.percent" style="width:calc(100% - 15px);">
+      <b>导出数据共{{exportDetailStatus.totalItems}}条，已处理{{exportDetailStatus.completedItems}}条 >>></b>
+      <el-progress :text-inside="true" :stroke-width="20" :percentage="exportDetailStatus.percent" />
+    </div>
+    <de-container
+      v-loading="$store.getters.loadingMap[$store.getters.currentPath] || linkLoading"
+      :class="isAbsoluteContainer ? 'abs-container' : ''"
     >
-      <div
-        id="chartCanvas"
-        class="canvas-class"
-        :style="customStyle"
+      <de-main-container
+        v-show="showChartCanvas"
+        class=""
       >
         <div
+          id="chartCanvas"
           class="canvas-class"
-          :style="commonStyle"
+          :style="customStyle"
         >
-          <plugin-com
-            v-if="chart.isPlugin"
-            :component-name="chart.type + '-view'"
-            :obj="{chart: mapChart || chart}"
-            :chart="mapChart || chart"
-            :theme-style="element.commonBackground"
-            :canvas-style-data="canvasStyleData"
-            class="chart-class"
-          />
-          <chart-component
-            v-else-if="!chart.type.includes('text') && chart.type !== 'label' && !chart.type.includes('table') && renderComponent() === 'echarts'"
-            :theme-style="element.commonBackground"
-            class="chart-class"
-            :chart="mapChart || chart"
-          />
-          <chart-component-g2
-            v-else-if="!chart.type.includes('text') && chart.type !== 'label' && !chart.type.includes('table') && renderComponent() === 'antv'"
-            class="chart-class"
-            :chart="chart"
-          />
-          <chart-component-s2
-            v-else-if="chart.type.includes('table') && renderComponent() === 'antv'"
-            class="chart-class"
-            :chart="chart"
-          />
-          <label-normal
-            v-else-if="chart.type.includes('text')"
-            :chart="chart"
-            class="table-class"
-          />
-          <label-normal-text
-            v-else-if="chart.type === 'label'"
-            :chart="chart"
-            class="table-class"
-          />
-          <table-normal
-            v-else-if="chart.type.includes('table') && renderComponent() === 'echarts'"
-            :chart="chart"
-            class="table-class"
-          />
+          <div
+            class="canvas-class"
+            :style="commonStyle"
+          >
+            <plugin-com
+              v-if="chart.isPlugin"
+              :component-name="chart.type + '-view'"
+              :obj="{chart: mapChart || chart}"
+              :chart="mapChart || chart"
+              :theme-style="element.commonBackground"
+              :canvas-style-data="canvasStyleData"
+              class="chart-class"
+            />
+            <chart-component
+              v-else-if="!chart.type.includes('text') && chart.type !== 'label' && !chart.type.includes('table') && renderComponent() === 'echarts'"
+              :theme-style="element.commonBackground"
+              class="chart-class"
+              :chart="mapChart || chart"
+            />
+            <chart-component-g2
+              v-else-if="!chart.type.includes('text') && chart.type !== 'label' && !chart.type.includes('table') && renderComponent() === 'antv'"
+              class="chart-class"
+              :chart="chart"
+            />
+            <chart-component-s2
+              v-else-if="chart.type.includes('table') && renderComponent() === 'antv'"
+              class="chart-class"
+              :chart="chart"
+            />
+            <label-normal
+              v-else-if="chart.type.includes('text')"
+              :chart="chart"
+              class="table-class"
+            />
+            <label-normal-text
+              v-else-if="chart.type === 'label'"
+              :chart="chart"
+              class="table-class"
+            />
+            <table-normal
+              v-else-if="chart.type.includes('table') && renderComponent() === 'echarts'"
+              :chart="chart"
+              class="table-class"
+            />
+          </div>
         </div>
-      </div>
-    </de-main-container>
-    <de-main-container v-show="!showChartCanvas">
-      <table-normal
-        :enable-scroll="false"
-        :chart="chartTable"
-        :show-summary="false"
-        class="table-class-dialog"
-      />
-    </de-main-container>
-  </de-container>
+      </de-main-container>
+      <de-main-container v-show="!showChartCanvas">
+        <table-normal
+          :enable-scroll="false"
+          :chart="chartTable"
+          :show-summary="false"
+          class="table-class-dialog"
+        />
+      </de-main-container>
+    </de-container>
+  </span>
 </template>
 
 <script>
@@ -82,7 +89,7 @@ import ChartComponentG2 from '@/views/chart/components/ChartComponentG2'
 import PluginCom from '@/views/system/plugin/PluginCom'
 import ChartComponentS2 from '@/views/chart/components/ChartComponentS2'
 import LabelNormalText from '@/views/chart/components/normal/LabelNormalText'
-import { exportDetails, innerExportDetails } from '@/api/panel/panel'
+import { exportDetails, innerExportDetails, innerExportDetailStatus } from '@/api/panel/panel'
 import html2canvas from 'html2canvasde'
 import { hexColorToRGBA } from '@/views/chart/chart/util'
 import { deepCopy, exportImg, imgUrlTrans } from '@/components/canvas/utils/utils'
@@ -121,7 +128,9 @@ export default {
       refId: null,
       element: {},
       lastMapChart: null,
-      linkLoading: false
+      linkLoading: false,
+      intervalInnerExportDetailStatus: null,
+      exportDetailStatus: {}
     }
   },
   computed: {
@@ -226,7 +235,7 @@ export default {
             }
           })
         }
-        const result = { ...temp, ...{ DetailAreaCode: DetailAreaCode } }
+        const result = { ...temp, ...{ DetailAreaCode: DetailAreaCode }}
         this.setLastMapChart(result)
         return result
       }
@@ -239,7 +248,19 @@ export default {
   },
   mounted() {
   },
+  destroyed() {
+    this.clearInterval()
+  },
   methods: {
+    clearInterval() {
+      console.log('clearInterval >>')
+      this.exportDetailStatus = {}
+      if (this.intervalInnerExportDetailStatus) {
+        clearInterval(this.intervalInnerExportDetailStatus)
+        this.intervalInnerExportDetailStatus = null
+        console.log('clearInterval done <<')
+      }
+    },
     exportExcel(callBack) {
       const _this = this
       if (this.isOnlyDetails) {
@@ -291,6 +312,8 @@ export default {
           return temp
         })
       }
+      const user = this.$store.getters.user
+      const exportKey = user.username + ':' + Date.now()
       const request = {
         proxy: null,
         viewId: this.chart.id,
@@ -303,7 +326,8 @@ export default {
         snapshotHeight: height,
         componentFilterInfo: this.lastViewRequestInfo[this.chart.id],
         excelHeaderKeys: excelHeaderKeys,
-        detailFields
+        detailFields,
+        exportKey
       }
       let method = innerExportDetails
       const token = this.$store.getters.token || getToken()
@@ -312,6 +336,15 @@ export default {
         method = exportDetails
         this.linkLoading = true
       }
+      this.clearInterval()
+      let __this = this
+      innerExportDetailStatus(exportKey).then(res => console.log('innerExportDetailStatus >> ', res))
+      this.intervalInnerExportDetailStatus = setInterval(() => {
+        innerExportDetailStatus(exportKey).then(res => {
+          console.log('innerExportDetailStatus >> ', res)
+          __this.exportDetailStatus = res.data
+      })
+      }, 5000)
 
       if (this.panelInfo.proxy) {
         request.proxy = { userId: this.panelInfo.proxy }
@@ -325,9 +358,11 @@ export default {
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
+        this.clearInterval()
         this.linkLoading = false
         callBack && callBack()
       }).catch(() => {
+        this.clearInterval()
         this.linkLoading = false
         callBack && callBack()
       })

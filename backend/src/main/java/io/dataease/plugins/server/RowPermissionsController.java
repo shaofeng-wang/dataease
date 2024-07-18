@@ -10,7 +10,7 @@ import io.dataease.commons.utils.Pager;
 import io.dataease.i18n.Translator;
 import io.dataease.plugins.common.entity.XpackConditionEntity;
 import io.dataease.plugins.common.entity.XpackGridRequest;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.auth.dto.request.DataSetRowPermissionsDTO;
 import io.dataease.plugins.xpack.auth.dto.request.DatasetRowPermissions;
 import io.dataease.plugins.xpack.auth.service.RowPermissionService;
@@ -31,7 +31,7 @@ public class RowPermissionsController {
     @ApiOperation("保存")
     @PostMapping("save")
     public void save(@RequestBody DatasetRowPermissions datasetRowPermissions) throws Exception {
-        RowPermissionService rowPermissionService = SpringContextUtil.getBean(RowPermissionService.class);
+        RowPermissionService rowPermissionService = SpringContextBackEndUtil.getBean(RowPermissionService.class);
 
         DataSetRowPermissionsDTO request = new DataSetRowPermissionsDTO();
         request.setAuthTargetType(datasetRowPermissions.getAuthTargetType());
@@ -57,7 +57,7 @@ public class RowPermissionsController {
     @ApiOperation("查询")
     @PostMapping("/list")
     public List<DataSetRowPermissionsDTO> rowPermissions(@RequestBody DataSetRowPermissionsDTO request) {
-        RowPermissionService rowPermissionService = SpringContextUtil.getBean(RowPermissionService.class);
+        RowPermissionService rowPermissionService = SpringContextBackEndUtil.getBean(RowPermissionService.class);
        return rowPermissionService.searchRowPermissions(request);
     }
 
@@ -65,7 +65,7 @@ public class RowPermissionsController {
     @ApiOperation("删除")
     @PostMapping("/delete")
     public void dataSetRowPermissionInfo(@RequestBody DatasetRowPermissions datasetRowPermissions) {
-        RowPermissionService rowPermissionService = SpringContextUtil.getBean(RowPermissionService.class);
+        RowPermissionService rowPermissionService = SpringContextBackEndUtil.getBean(RowPermissionService.class);
         rowPermissionService.delete(datasetRowPermissions.getId());
     }
 
@@ -74,7 +74,7 @@ public class RowPermissionsController {
     @PostMapping("/pageList/{datasetId}/{goPage}/{pageSize}")
     public Pager<List<DataSetRowPermissionsDTO>> rowPermissions(@PathVariable String datasetId, @PathVariable int goPage, @PathVariable int pageSize, @RequestBody XpackGridRequest request) {
         Page<Object> page = PageHelper.startPage(goPage, pageSize, true);
-        RowPermissionService rowPermissionService = SpringContextUtil.getBean(RowPermissionService.class);
+        RowPermissionService rowPermissionService = SpringContextBackEndUtil.getBean(RowPermissionService.class);
         List<XpackConditionEntity> conditionEntities = request.getConditions() == null ? new ArrayList<>() : request.getConditions();
         XpackConditionEntity entity = new XpackConditionEntity();
         entity.setField("dataset_row_permissions.dataset_id");
@@ -89,7 +89,7 @@ public class RowPermissionsController {
     @ApiOperation("有权限的对象")
     @PostMapping("/authObjs")
     public List<Object> authObjs(@RequestBody DataSetRowPermissionsDTO request) {
-        RowPermissionService rowPermissionService = SpringContextUtil.getBean(RowPermissionService.class);
+        RowPermissionService rowPermissionService = SpringContextBackEndUtil.getBean(RowPermissionService.class);
         return (List<Object>) rowPermissionService.authObjs(request);
     }
 
@@ -97,7 +97,7 @@ public class RowPermissionsController {
     @ApiOperation("详情")
     @PostMapping("/dataSetRowPermissionInfo")
     public DataSetRowPermissionsDTO dataSetRowPermissionInfo(@RequestBody DataSetRowPermissionsDTO request) {
-        RowPermissionService rowPermissionService = SpringContextUtil.getBean(RowPermissionService.class);
+        RowPermissionService rowPermissionService = SpringContextBackEndUtil.getBean(RowPermissionService.class);
         return rowPermissionService.dataSetRowPermissionInfo(request);
     }
 

@@ -11,7 +11,7 @@ import io.dataease.commons.utils.Pager;
 import io.dataease.i18n.Translator;
 import io.dataease.plugins.common.request.permission.DataSetRowPermissionsTreeDTO;
 import io.dataease.plugins.common.request.permission.DatasetRowPermissionsTreeRequest;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.auth.service.RowPermissionTreeService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -39,7 +39,7 @@ public class RowPermissionsTreeController {
                 DEException.throwException(Translator.get("i18n_row_permission_id"));
             }
         }
-        RowPermissionTreeService rowPermissionTreeService = SpringContextUtil.getBean(RowPermissionTreeService.class);
+        RowPermissionTreeService rowPermissionTreeService = SpringContextBackEndUtil.getBean(RowPermissionTreeService.class);
         rowPermissionTreeService.save(request);
     }
 
@@ -47,7 +47,7 @@ public class RowPermissionsTreeController {
     @ApiOperation("删除")
     @PostMapping("delete")
     public void delete(@RequestBody DataSetRowPermissionsTreeDTO request) {
-        RowPermissionTreeService rowPermissionTreeService = SpringContextUtil.getBean(RowPermissionTreeService.class);
+        RowPermissionTreeService rowPermissionTreeService = SpringContextBackEndUtil.getBean(RowPermissionTreeService.class);
         rowPermissionTreeService.delete(request.getId());
     }
 
@@ -55,7 +55,7 @@ public class RowPermissionsTreeController {
     @ApiOperation("根据ID查找行权限")
     @PostMapping("getById")
     public DataSetRowPermissionsTreeDTO getById(@RequestBody DataSetRowPermissionsTreeDTO request) {
-        RowPermissionTreeService rowPermissionTreeService = SpringContextUtil.getBean(RowPermissionTreeService.class);
+        RowPermissionTreeService rowPermissionTreeService = SpringContextBackEndUtil.getBean(RowPermissionTreeService.class);
         return rowPermissionTreeService.get(request);
     }
 
@@ -63,7 +63,7 @@ public class RowPermissionsTreeController {
     @ApiOperation("根据数据集、当前组织/角色/用户查找行权限")
     @PostMapping("get")
     public DataSetRowPermissionsTreeDTO getBy(@RequestBody DataSetRowPermissionsTreeDTO request) {
-        RowPermissionTreeService rowPermissionTreeService = SpringContextUtil.getBean(RowPermissionTreeService.class);
+        RowPermissionTreeService rowPermissionTreeService = SpringContextBackEndUtil.getBean(RowPermissionTreeService.class);
         return rowPermissionTreeService.get(request);
     }
 
@@ -71,7 +71,7 @@ public class RowPermissionsTreeController {
     @ApiOperation("根据数据集查找行权限")
     @PostMapping("getByDs")
     public List<DataSetRowPermissionsTreeDTO> getByDs(@RequestBody DatasetRowPermissionsTreeRequest request) {
-        RowPermissionTreeService rowPermissionTreeService = SpringContextUtil.getBean(RowPermissionTreeService.class);
+        RowPermissionTreeService rowPermissionTreeService = SpringContextBackEndUtil.getBean(RowPermissionTreeService.class);
         return rowPermissionTreeService.list(request);
     }
 
@@ -79,7 +79,7 @@ public class RowPermissionsTreeController {
     @ApiOperation("根据数据集分页查找行权限")
     @PostMapping("getByDsPage/{goPage}/{pageSize}")
     public Pager<List<DataSetRowPermissionsTreeDTO>> getByDs(@RequestBody DatasetRowPermissionsTreeRequest request, @PathVariable int goPage, @PathVariable int pageSize) {
-        RowPermissionTreeService rowPermissionTreeService = SpringContextUtil.getBean(RowPermissionTreeService.class);
+        RowPermissionTreeService rowPermissionTreeService = SpringContextBackEndUtil.getBean(RowPermissionTreeService.class);
         Page<Object> page = PageHelper.startPage(goPage, pageSize, true);
         List<DataSetRowPermissionsTreeDTO> list = rowPermissionTreeService.list(request);
         Pager<List<DataSetRowPermissionsTreeDTO>> setPageInfo = PageUtils.setPageInfo(page, list);

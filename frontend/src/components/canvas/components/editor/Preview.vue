@@ -701,7 +701,7 @@ export default {
     },
     exportViewImg() {
       this.imageDownloading = true
-      this.$refs['userViewDialog-canvas-main'].exportViewImg(()=>{
+      this.$refs['userViewDialog-canvas-main'].exportViewImg(() => {
         this.imageDownloading = false
       })
     },

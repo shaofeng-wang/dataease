@@ -164,8 +164,6 @@ public class PanelGroupController {
 
     @ApiOperation("站内导出状态查询")
     @GetMapping("/innerExportDetailStatus")
-    @DePermissionProxy(value = "proxy")
-    @I18n
     public ExportStatusDTO innerExportDetailStatus(@RequestParam("exportKey") String exportKey) {
         return panelGroupService.getExportPanelViewStatus(exportKey);
     }

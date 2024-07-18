@@ -8,7 +8,7 @@ import io.dataease.auth.service.ProxyAuthService;
 import io.dataease.commons.constants.DePermissionType;
 import io.dataease.commons.constants.ResourceAuthLevel;
 import io.dataease.commons.model.AuthURD;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.auth.dto.request.XpackBaseTreeRequest;
 import io.dataease.plugins.xpack.auth.dto.response.XpackVAuthModelDTO;
 import io.dataease.plugins.xpack.auth.service.AuthXpackService;
@@ -75,7 +75,7 @@ public class AuthUtils {
     }
 
     public static List<String> getAuthModels(String id, String type, Long userId, Boolean isAdmin) {
-        AuthXpackService sysAuthService = SpringContextUtil.getBean(AuthXpackService.class);
+        AuthXpackService sysAuthService = SpringContextBackEndUtil.getBean(AuthXpackService.class);
         List<XpackVAuthModelDTO> vAuthModelDTOS = sysAuthService
                 .searchAuthModelTree(new XpackBaseTreeRequest(id, type, "children"), userId, isAdmin);
         List<String> authSources = Optional.ofNullable(vAuthModelDTOS).orElse(new ArrayList<>()).stream()

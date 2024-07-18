@@ -9,7 +9,7 @@ import io.dataease.commons.exception.DEException;
 import io.dataease.commons.utils.DeLogUtils;
 import io.dataease.commons.utils.LogUtil;
 import io.dataease.commons.utils.ServletUtils;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.display.dto.response.SysSettingDto;
 import io.dataease.plugins.xpack.oidc.dto.SSOToken;
 import io.dataease.plugins.xpack.oidc.dto.SSOUserInfo;
@@ -50,11 +50,11 @@ public class SSOServer {
         OidcXpackService oidcXpackService = null;
         String idToken = null;
         try {
-            Map<String, OidcXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((OidcXpackService.class));
+            Map<String, OidcXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((OidcXpackService.class));
             if (beansOfType.keySet().size() == 0) {
                 DEException.throwException("缺少oidc插件");
             }
-            oidcXpackService = SpringContextUtil.getBean(OidcXpackService.class);
+            oidcXpackService = SpringContextBackEndUtil.getBean(OidcXpackService.class);
             Boolean supportOIDC = oidcXpackService.isSupportOIDC();
             if (!supportOIDC) {
                 DEException.throwException("未开启oidc");

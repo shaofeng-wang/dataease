@@ -5,7 +5,7 @@ import io.dataease.plugins.common.dto.PluginSysMenu;
 import io.dataease.plugins.common.dto.StaticResource;
 import io.dataease.plugins.common.service.PluginComponentService;
 import io.dataease.plugins.common.service.PluginMenuService;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,7 +28,7 @@ public class PluginCommonServer {
 
     @GetMapping("/async/{menuId}")
     public void menuInfo(@PathVariable Long menuId) {
-        Map<String, PluginMenuService> pluginMenuServiceMap = SpringContextUtil.getApplicationContext().getBeansOfType(PluginMenuService.class);
+        Map<String, PluginMenuService> pluginMenuServiceMap = SpringContextBackEndUtil.getApplicationContext().getBeansOfType(PluginMenuService.class);
         pluginMenuServiceMap.values().stream().forEach(service -> {
             AtomicReference<PluginSysMenu> atomicReference = new AtomicReference<>();
             List<PluginSysMenu> menus = service.menus();
@@ -70,7 +70,7 @@ public class PluginCommonServer {
 
     @GetMapping("/component/{componentName}")
     public void componentInfo(@PathVariable String componentName) {
-        Map<String, PluginComponentService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType(PluginComponentService.class);
+        Map<String, PluginComponentService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType(PluginComponentService.class);
         beansOfType.values().stream().forEach(service -> {
             List<String> components = service.components();
             if (components.contains(componentName)) {
@@ -107,7 +107,7 @@ public class PluginCommonServer {
 
     @GetMapping("/staticInfo/{name}/{suffix}")
     public void staticInfo(@PathVariable("name") String name, @PathVariable("suffix") String suffix) {
-        Map<String, PluginComponentService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType(PluginComponentService.class);
+        Map<String, PluginComponentService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType(PluginComponentService.class);
         beansOfType.values().stream().forEach(service -> {
             List<StaticResource> staticResources = service.staticResources();
 

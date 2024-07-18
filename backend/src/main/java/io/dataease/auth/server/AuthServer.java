@@ -19,7 +19,7 @@ import io.dataease.controller.sys.request.LdapAddRequest;
 import io.dataease.exception.DataEaseException;
 import io.dataease.i18n.Translator;
 import io.dataease.plugins.common.entity.XpackLdapUserEntity;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.util.PluginUtils;
 import io.dataease.plugins.xpack.cas.service.CasXpackService;
 import io.dataease.plugins.xpack.ldap.dto.request.LdapValidateRequest;
@@ -121,7 +121,7 @@ public class AuthServer implements AuthApi {
                 msg = String.format(msg, username, accountLockStatus.getRelieveTimes().toString());
                 DataEaseException.throwException(msg);
             }
-            LdapXpackService ldapXpackService = SpringContextUtil.getBean(LdapXpackService.class);
+            LdapXpackService ldapXpackService = SpringContextBackEndUtil.getBean(LdapXpackService.class);
             LdapValidateRequest request = LdapValidateRequest.builder().userName(username).password(pwd).build();
             ValidateResult<XpackLdapUserEntity> validateResult = ldapXpackService.login(request);
 
@@ -289,7 +289,7 @@ public class AuthServer implements AuthApi {
             HttpServletRequest request = ServletUtils.request();
             HttpSession session = request.getSession();
             session.invalidate();
-            CasXpackService casXpackService = SpringContextUtil.getBean(CasXpackService.class);
+            CasXpackService casXpackService = SpringContextBackEndUtil.getBean(CasXpackService.class);
             result = casXpackService.logout();
         }
         try {
@@ -317,7 +317,7 @@ public class AuthServer implements AuthApi {
             String idToken = request.getHeader("IdToken");
             if (StringUtils.isNotBlank(idToken)) {
                 try {
-                    OidcXpackService oidcXpackService = SpringContextUtil.getBean(OidcXpackService.class);
+                    OidcXpackService oidcXpackService = SpringContextBackEndUtil.getBean(OidcXpackService.class);
                     oidcXpackService.logout(idToken);
                 } catch (Exception e) {
                     LogUtil.error(e.getMessage(), e);
@@ -338,7 +338,7 @@ public class AuthServer implements AuthApi {
                 HttpServletRequest request = ServletUtils.request();
                 HttpSession session = request.getSession();
                 session.invalidate();
-                CasXpackService casXpackService = SpringContextUtil.getBean(CasXpackService.class);
+                CasXpackService casXpackService = SpringContextBackEndUtil.getBean(CasXpackService.class);
                 result = casXpackService.logout();
             } catch (Exception e) {
                 LogUtil.error(e.getMessage(), e);

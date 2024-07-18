@@ -10,7 +10,7 @@ import io.dataease.commons.utils.Pager;
 import io.dataease.i18n.Translator;
 import io.dataease.plugins.common.entity.XpackConditionEntity;
 import io.dataease.plugins.common.entity.XpackGridRequest;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.auth.dto.request.DataSetColumnPermissionsDTO;
 import io.dataease.plugins.xpack.auth.dto.request.DatasetColumnPermissions;
 import io.dataease.plugins.xpack.auth.service.ColumnPermissionService;
@@ -31,7 +31,7 @@ public class ColumnPermissionsController {
     @ApiOperation("保存")
     @PostMapping("save")
     public DatasetColumnPermissions save(@RequestBody DatasetColumnPermissions datasetColumnPermissions) throws Exception {
-        ColumnPermissionService columnPermissionService = SpringContextUtil.getBean(ColumnPermissionService.class);
+        ColumnPermissionService columnPermissionService = SpringContextBackEndUtil.getBean(ColumnPermissionService.class);
         DataSetColumnPermissionsDTO request = new DataSetColumnPermissionsDTO();
         request.setAuthTargetType(datasetColumnPermissions.getAuthTargetType());
         request.setAuthTargetId(datasetColumnPermissions.getAuthTargetId());
@@ -56,7 +56,7 @@ public class ColumnPermissionsController {
     @ApiOperation("查询")
     @PostMapping("/list")
     public List<DataSetColumnPermissionsDTO> searchPermissions(@RequestBody DataSetColumnPermissionsDTO request) {
-        ColumnPermissionService columnPermissionService = SpringContextUtil.getBean(ColumnPermissionService.class);
+        ColumnPermissionService columnPermissionService = SpringContextBackEndUtil.getBean(ColumnPermissionService.class);
        return columnPermissionService.searchPermissions(request);
     }
 
@@ -64,7 +64,7 @@ public class ColumnPermissionsController {
     @ApiOperation("删除")
     @PostMapping("/delete")
     public void delete(@RequestBody DatasetColumnPermissions datasetColumnPermissions) {
-        ColumnPermissionService columnPermissionService = SpringContextUtil.getBean(ColumnPermissionService.class);
+        ColumnPermissionService columnPermissionService = SpringContextBackEndUtil.getBean(ColumnPermissionService.class);
         columnPermissionService.delete(datasetColumnPermissions.getId());
     }
 
@@ -73,7 +73,7 @@ public class ColumnPermissionsController {
     @PostMapping("/pageList/{datasetId}/{goPage}/{pageSize}")
     public Pager<List<DataSetColumnPermissionsDTO>> rowPermissions(@PathVariable String datasetId, @PathVariable int goPage, @PathVariable int pageSize, @RequestBody XpackGridRequest request) {
         Page<Object> page = PageHelper.startPage(goPage, pageSize, true);
-        ColumnPermissionService columnPermissionService = SpringContextUtil.getBean(ColumnPermissionService.class);
+        ColumnPermissionService columnPermissionService = SpringContextBackEndUtil.getBean(ColumnPermissionService.class);
         List<XpackConditionEntity> conditionEntities = request.getConditions() == null ? new ArrayList<>() : request.getConditions();
         XpackConditionEntity entity =  new XpackConditionEntity();
         entity.setField("dataset_column_permissions.dataset_id");
@@ -88,7 +88,7 @@ public class ColumnPermissionsController {
     @ApiOperation("有权限的对象")
     @PostMapping("/authObjs")
     public List<Object> authObjs(@RequestBody DataSetColumnPermissionsDTO request) {
-        ColumnPermissionService columnPermissionService = SpringContextUtil.getBean(ColumnPermissionService.class);
+        ColumnPermissionService columnPermissionService = SpringContextBackEndUtil.getBean(ColumnPermissionService.class);
         return (List<Object>) columnPermissionService.authObjs(request);
     }
 
@@ -96,7 +96,7 @@ public class ColumnPermissionsController {
     @ApiOperation("详情")
     @PostMapping("/permissionInfo")
     public DataSetColumnPermissionsDTO permissionInfo(@RequestBody DataSetColumnPermissionsDTO request) {
-        ColumnPermissionService columnPermissionService = SpringContextUtil.getBean(ColumnPermissionService.class);
+        ColumnPermissionService columnPermissionService = SpringContextBackEndUtil.getBean(ColumnPermissionService.class);
         return columnPermissionService.permissionInfo(request);
     }
 

@@ -2,7 +2,7 @@ package io.dataease.service.message.service.strategy;
 
 import io.dataease.auth.service.AuthUserService;
 import io.dataease.plugins.common.base.domain.SysUserAssist;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.dingtalk.service.DingtalkXpackService;
 import io.dataease.service.message.service.SendService;
 import io.dataease.service.sys.SysUserService;
@@ -29,7 +29,7 @@ public class SendDingtalk implements SendService {
         SysUserAssist sysUserAssist = sysUserService.assistInfo(userId);
         if (ObjectUtils.isNotEmpty(sysUserAssist) && StringUtils.isNotBlank(sysUserAssist.getDingtalkId()) && authUserService.supportDingtalk()) {
             String username = sysUserAssist.getDingtalkId();
-            DingtalkXpackService dingtalkXpackService = SpringContextUtil.getBean(DingtalkXpackService.class);
+            DingtalkXpackService dingtalkXpackService = SpringContextBackEndUtil.getBean(DingtalkXpackService.class);
             List<String> userIds = new ArrayList<>();
             userIds.add(username);
             dingtalkXpackService.pushMsg(userIds, content);

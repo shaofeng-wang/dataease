@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class SpringContextUtil implements ApplicationContextAware {
+public class SpringContextBackEndUtil implements ApplicationContextAware {
 
     //获取bean工厂，用来实现动态注入bean
     //不能使用其他类加载器加载bean

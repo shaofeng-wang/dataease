@@ -11,7 +11,7 @@ import io.dataease.plugins.common.base.domain.DatasetTable;
 import io.dataease.plugins.common.base.domain.DatasetTableField;
 import io.dataease.plugins.common.dto.chart.ChartCustomFilterItemDTO;
 import io.dataease.plugins.common.dto.chart.ChartFieldCustomFilterDTO;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.auth.dto.request.*;
 import io.dataease.plugins.xpack.auth.dto.response.Item;
 import io.dataease.plugins.xpack.auth.service.ColumnPermissionService;
@@ -133,11 +133,11 @@ public class PermissionService {
 
     private List<DatasetRowPermissions> rowPermissions(String datasetId, Long userId, Map<String, String> values) {
         List<DatasetRowPermissions> datasetRowPermissions = new ArrayList<>();
-        Map<String, RowPermissionService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((RowPermissionService.class));
+        Map<String, RowPermissionService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((RowPermissionService.class));
         if (beansOfType.keySet().size() == 0) {
             return new ArrayList<>();
         }
-        RowPermissionService rowPermissionService = SpringContextUtil.getBean(RowPermissionService.class);
+        RowPermissionService rowPermissionService = SpringContextBackEndUtil.getBean(RowPermissionService.class);
         SysUserEntity userEntity = userId != null ? authUserService.getUserById(userId) : AuthUtils.getUser();
         List<Long> roleIds = new ArrayList<>();
         Long deptId = null;
@@ -186,11 +186,11 @@ public class PermissionService {
 
     private List<DataSetColumnPermissionsDTO> columnPermissions(String datasetId, Long userId) {
         List<DataSetColumnPermissionsDTO> datasetColumnPermissions = new ArrayList<>();
-        Map<String, ColumnPermissionService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((ColumnPermissionService.class));
+        Map<String, ColumnPermissionService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((ColumnPermissionService.class));
         if (beansOfType.keySet().size() == 0) {
             return new ArrayList<>();
         }
-        ColumnPermissionService columnPermissionService = SpringContextUtil.getBean(ColumnPermissionService.class);
+        ColumnPermissionService columnPermissionService = SpringContextBackEndUtil.getBean(ColumnPermissionService.class);
         SysUserEntity userEntity = userId != null ? authUserService.getUserById(userId) : AuthUtils.getUser();
         List<Long> roleIds = new ArrayList<>();
         Long deptId = null;

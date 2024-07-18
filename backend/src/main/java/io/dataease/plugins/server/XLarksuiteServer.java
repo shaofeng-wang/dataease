@@ -12,7 +12,7 @@ import io.dataease.commons.utils.ServletUtils;
 import io.dataease.exception.DataEaseException;
 import io.dataease.i18n.Translator;
 import io.dataease.plugins.common.base.domain.SysUserAssist;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.display.dto.response.SysSettingDto;
 import io.dataease.plugins.xpack.lark.dto.entity.LarkQrResult;
 import io.dataease.plugins.xpack.lark.dto.response.LarkInfo;
@@ -50,7 +50,7 @@ public class XLarksuiteServer {
     @ResponseBody
     @GetMapping("/info")
     public LarkInfo getLarkInfo() {
-        LarksuiteXpackService larkXpackService = SpringContextUtil.getBean(LarksuiteXpackService.class);
+        LarksuiteXpackService larkXpackService = SpringContextBackEndUtil.getBean(LarksuiteXpackService.class);
         return larkXpackService.info();
     }
 
@@ -58,14 +58,14 @@ public class XLarksuiteServer {
     @RequiresPermissions("sysparam:read")
     @PostMapping("/save")
     public void save(@RequestBody List<SysSettingDto> settings) {
-        LarksuiteXpackService larkXpackService = SpringContextUtil.getBean(LarksuiteXpackService.class);
+        LarksuiteXpackService larkXpackService = SpringContextBackEndUtil.getBean(LarksuiteXpackService.class);
         larkXpackService.save(settings);
     }
 
     @ResponseBody
     @PostMapping("/testConn")
     public void testConn(@RequestBody LarkInfo larkInfo) {
-        LarksuiteXpackService larkXpackService = SpringContextUtil.getBean(LarksuiteXpackService.class);
+        LarksuiteXpackService larkXpackService = SpringContextBackEndUtil.getBean(LarksuiteXpackService.class);
         try {
             larkXpackService.testConn(larkInfo);
         } catch (Exception e) {
@@ -76,7 +76,7 @@ public class XLarksuiteServer {
     @ResponseBody
     @PostMapping("/getQrParam")
     public LarkQrResult getQrParam() {
-        LarksuiteXpackService larkXpackService = SpringContextUtil.getBean(LarksuiteXpackService.class);
+        LarksuiteXpackService larkXpackService = SpringContextBackEndUtil.getBean(LarksuiteXpackService.class);
         return larkXpackService.getQrParam();
     }
 
@@ -86,11 +86,11 @@ public class XLarksuiteServer {
         HttpServletResponse response = ServletUtils.response();
         LarksuiteXpackService larksuiteXpackService = null;
         try {
-            Map<String, LarksuiteXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((LarksuiteXpackService.class));
+            Map<String, LarksuiteXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((LarksuiteXpackService.class));
             if (beansOfType.keySet().size() == 0) {
                 DEException.throwException("缺少国际飞书插件");
             }
-            larksuiteXpackService = SpringContextUtil.getBean(LarksuiteXpackService.class);
+            larksuiteXpackService = SpringContextBackEndUtil.getBean(LarksuiteXpackService.class);
             Boolean isOpen = larksuiteXpackService.isOpen();
             if (!isOpen) {
                 DEException.throwException("未开启国际飞书");
@@ -175,7 +175,7 @@ public class XLarksuiteServer {
             if (!isOpen) {
                 DEException.throwException("未开启国际飞书");
             }
-            larksuiteXpackService = SpringContextUtil.getBean(LarksuiteXpackService.class);
+            larksuiteXpackService = SpringContextBackEndUtil.getBean(LarksuiteXpackService.class);
             LarksuiteUserResult larksuiteUserResult = larksuiteXpackService.userInfo(code, state, true);
             UserData larkUserInfo = larksuiteUserResult.getData();
             String userId = larkUserInfo.getUser_id();

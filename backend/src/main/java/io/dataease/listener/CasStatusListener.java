@@ -1,6 +1,6 @@
 package io.dataease.listener;
 
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.cas.service.CasXpackService;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -17,9 +17,9 @@ public class CasStatusListener implements ApplicationListener<ApplicationReadyEv
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
-        Map<String, CasXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((CasXpackService.class));
+        Map<String, CasXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((CasXpackService.class));
         if (beansOfType.keySet().size() == 0) return;
-        CasXpackService casXpackService = SpringContextUtil.getBean(CasXpackService.class);
+        CasXpackService casXpackService = SpringContextBackEndUtil.getBean(CasXpackService.class);
         if (ObjectUtils.isEmpty(casXpackService)) return;
         ServletContext servletContext = event.getApplicationContext().getBean(ServletContext.class);
         casXpackService.checkCasStatus(servletContext);

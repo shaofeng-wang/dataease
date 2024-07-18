@@ -2,7 +2,7 @@ package io.dataease.provider;
 
 import io.dataease.plugins.common.constants.DatasourceTypes;
 import io.dataease.plugins.common.dto.datasource.DataSourceType;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.datasource.provider.Provider;
 import io.dataease.plugins.datasource.query.QueryProvider;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -45,7 +45,7 @@ public class ProviderFactory implements ApplicationContextAware {
             return context.getBean("jdbc", Provider.class);
         }
 
-        Map<String, DataSourceType> dataSourceTypeMap = SpringContextUtil.getApplicationContext().getBeansOfType((DataSourceType.class));
+        Map<String, DataSourceType> dataSourceTypeMap = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((DataSourceType.class));
         if(dataSourceTypeMap.keySet().contains(type)){
             DatasourceTypes datasourceType = DatasourceTypes.valueOf(type);
             switch (datasourceType) {
@@ -58,7 +58,7 @@ public class ProviderFactory implements ApplicationContextAware {
             }
         }
 
-        return SpringContextUtil.getApplicationContext().getBean(type + "DsProvider", Provider.class);
+        return SpringContextBackEndUtil.getApplicationContext().getBean(type + "DsProvider", Provider.class);
 
     }
 
@@ -72,7 +72,7 @@ public class ProviderFactory implements ApplicationContextAware {
             case "StarRocks":
                 return context.getBean("dorisQueryProvider", QueryProvider.class);
             default:
-                return SpringContextUtil.getApplicationContext().getBean(type + "QueryProvider", QueryProvider.class);
+                return SpringContextBackEndUtil.getApplicationContext().getBean(type + "QueryProvider", QueryProvider.class);
         }
 
     }

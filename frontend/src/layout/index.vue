@@ -3,7 +3,6 @@
     :class="classObj"
     class="app-wrapper"
   >
-    <licbar />
     <topbar
       v-if="!fullHeightFlag && finishLoad"
       :show-tips="showTips"
@@ -55,7 +54,7 @@
 </template>
 
 <script>
-import { Sidebar, AppMain, Topbar, Licbar } from './components'
+import { Sidebar, AppMain, Topbar } from './components'
 import ResizeMixin from './mixin/ResizeHandler'
 import DeMainContainer from '@/components/dataease/DeMainContainer'
 import DeContainer from '@/components/dataease/DeContainer'
@@ -71,7 +70,6 @@ export default {
     Sidebar,
     AppMain,
     Topbar,
-    Licbar,
     DeMainContainer,
     DeContainer,
     DeAsideContainer
@@ -143,7 +141,6 @@ export default {
   },
   methods: {
     webMsgTopicCall(param) {
-      const ip = param
       const msg = this.$t('multi_login_lang.forced_offline')
       this.$error(eval(msg))
       bus.$emit('sys-logout')

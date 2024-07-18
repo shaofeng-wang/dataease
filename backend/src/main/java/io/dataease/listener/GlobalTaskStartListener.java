@@ -5,7 +5,7 @@ import io.dataease.job.sechedule.ScheduleManager;
 import io.dataease.job.sechedule.strategy.TaskHandler;
 import io.dataease.job.sechedule.strategy.TaskStrategyFactory;
 import io.dataease.plugins.common.entity.GlobalTaskEntity;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.email.service.EmailXpackService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -26,7 +26,7 @@ public class GlobalTaskStartListener implements ApplicationListener<ApplicationR
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
         if (authUserService.pluginLoaded()) {
-            EmailXpackService emailXpackService = SpringContextUtil.getBean(EmailXpackService.class);
+            EmailXpackService emailXpackService = SpringContextBackEndUtil.getBean(EmailXpackService.class);
 
             List<GlobalTaskEntity> tasks = emailXpackService.allTask();
             tasks.stream().forEach(task -> {

@@ -46,4 +46,13 @@ public class ChartViewDTO extends ChartViewWithBLOBs {
     private long totalItems;
     private int datasetMode;
     private String datasourceType;
+    private boolean totalPageFlag;
+
+    public void setTotalPageFlag(boolean totalPageFlag) {
+        this.totalPageFlag = totalPageFlag;
+    }
+
+    public boolean isTotalPageFlag() {
+        return totalPageFlag;
+    }
 }

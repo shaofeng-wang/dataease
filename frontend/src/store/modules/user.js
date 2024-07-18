@@ -4,7 +4,6 @@ import { resetRouter } from '@/router'
 import { format } from '@/utils/formatUi'
 import { getLanguage } from '@/lang/index'
 import Cookies from 'js-cookie'
-import router from '@/router'
 import i18n from '@/lang'
 import { $alert, $confirm } from '@/utils/message'
 const getDefaultState = () => {
@@ -110,8 +109,8 @@ const actions = {
           reject('Verification failed, please Login again.')
         }
         const historyUserId = localStorage.getItem('userId')
-        if(historyUserId && historyUserId !== data.userId+''){
-          const clearLocalStorage = [ 'panel-main-tree', 'panel-default-tree','chart-tree','dataset-tree']
+        if (historyUserId && historyUserId !== data.userId + '') {
+          const clearLocalStorage = ['panel-main-tree', 'panel-default-tree','chart-tree','dataset-tree']
           clearLocalStorage.forEach((item) => {
             localStorage.removeItem(item)
           })

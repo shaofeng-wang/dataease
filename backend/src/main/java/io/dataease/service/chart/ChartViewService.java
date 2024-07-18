@@ -4,10 +4,8 @@ import cn.hutool.core.lang.Assert;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.hubspot.jinjava.Jinjava;
 import io.dataease.auth.entity.SysUserEntity;
 import io.dataease.auth.service.AuthUserService;
 import io.dataease.commons.constants.CommonConstants;
@@ -46,10 +44,11 @@ import io.dataease.plugins.common.dto.dataset.SqlVariableDetails;
 import io.dataease.plugins.common.request.chart.ChartExtFilterRequest;
 import io.dataease.plugins.common.request.datasource.DatasourceRequest;
 import io.dataease.plugins.common.request.permission.DataSetRowPermissionsTreeDTO;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.datasource.entity.PageInfo;
 import io.dataease.plugins.datasource.provider.Provider;
 import io.dataease.plugins.datasource.query.QueryProvider;
+import io.dataease.commons.utils.JinJavaUtils;
 import io.dataease.plugins.view.entity.*;
 import io.dataease.plugins.view.service.ViewPluginService;
 import io.dataease.plugins.xpack.auth.dto.request.ColumnPermissionItem;
@@ -125,6 +124,8 @@ public class ChartViewService {
     private PermissionsTreeService permissionsTreeService;
     @Resource
     private DatasetTableFieldMapper datasetTableFieldMapper;
+    @Resource
+    private JinJavaUtils jinJavaUtils;
 
     private static final Logger logger = LoggerFactory.getLogger(ChartViewService.class);
 
@@ -314,6 +315,7 @@ public class ChartViewService {
     public ChartViewDTO getData(String id, ChartExtRequest request) throws Exception {
         try {
             ChartViewDTO view = this.getOne(id, request.getQueryFrom());
+            view.setTotalPageFlag(false);
             DatasetTable datasetTable = dataSetTableService.get(view.getTableId());
             if (ObjectUtils.isNotEmpty(datasetTable)) {
                 view.setDatasetMode(datasetTable.getMode());
@@ -333,7 +335,6 @@ public class ChartViewService {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
             DataEaseException.throwException(e);
         }
         return null;
@@ -1069,6 +1070,7 @@ public class ChartViewService {
         String querySql = null;
         long totalPage = 0l;
         long totalItems = 0l;
+        boolean isTotalPageFlag = false;
         String totalPageSql = null;
         PageInfo pageInfo = new PageInfo();
         pageInfo.setGoPage(chartExtRequest.getGoPage());
@@ -1182,6 +1184,7 @@ public class ChartViewService {
             if (StringUtils.isNotEmpty(totalPageSql) && StringUtils.equalsIgnoreCase((String) mapSize.get("tablePageMode"), "page")) {
                 datasourceRequest.setQuery(totalPageSql);
                 datasourceRequest.setTotalPageFlag(true);
+                isTotalPageFlag = true;
                 LogUtil.info("Data >> {}", view.getName());
                 java.util.List<java.lang.String[]> tmpData = datasourceProvider.getData(datasourceRequest);
                 LogUtil.info("Data >> END {}", view.getName());
@@ -1440,6 +1443,8 @@ public class ChartViewService {
                                        view, isDrill, drillFilters, dynamicAssistFields, assistData);
         chartViewDTO.setTotalPage(totalPage);
         chartViewDTO.setTotalItems(totalItems);
+        chartViewDTO.setTotalPageFlag(isTotalPageFlag);
+
         return chartViewDTO;
     }
 
@@ -1547,7 +1552,7 @@ public class ChartViewService {
     }
 
     private ViewPluginService getPluginService(String viewType) {
-        Map<String, ViewPluginService> beanMap = SpringContextUtil.getApplicationContext().getBeansOfType(ViewPluginService.class);
+        Map<String, ViewPluginService> beanMap = SpringContextBackEndUtil.getApplicationContext().getBeansOfType(ViewPluginService.class);
 
         if (beanMap.keySet().size() == 0) {
             DEException.throwException("没有此插件");
@@ -1968,15 +1973,6 @@ public class ChartViewService {
         return dto;
     }
 
-    private String handleJinJavaTemplate(String sql, List<SqlVarParamDTO> sqlVarList) {
-        Jinjava jinjava = new Jinjava();
-        Map<String, Object> context = Maps.newHashMap();
-        for (SqlVarParamDTO var : sqlVarList) {
-            context.put(var.getParamName(), var.getFilter());
-        }
-        return jinjava.render(sql, context);
-    }
-
     private String handleVariable(String sql, ChartExtRequest requestList,
                                   QueryProvider qp, DataSetTableDTO table,
                                   Datasource ds) throws Exception {
@@ -2012,7 +2008,7 @@ public class ChartViewService {
             }
         }
         // JinJava template variables handling
-        sql = handleJinJavaTemplate(sql, sqlVarList);
+        sql = jinJavaUtils.handleJinJavaTemplate(sql, sqlVarList);
         // DataEase variables handling
         for (SqlVarParamDTO var : sqlVarList) {
             sql = sql.replace("${" + var.getParamName() + "}", var.getFilter());

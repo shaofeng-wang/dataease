@@ -3,15 +3,18 @@ import Cookies from 'js-cookie'
 const state = {
   sidebar: {
     opened: Cookies.get('sidebarStatus') ? !!+Cookies.get('sidebarStatus') : true,
-    withoutAnimation: false,
-    hide: false
+    withoutAnimation: false
   },
   device: 'desktop',
-
-  size: Cookies.get('size') || 'small'
+  size: Cookies.get('size') || 'small',
+  sidebar_hide: Cookies.get('sidebarHideStatus') === 'true'
 }
 
 const mutations = {
+  SIDEBAR_HIDE: state => {
+    state.sidebar_hide = !state.sidebar_hide
+    Cookies.set('sidebarHideStatus', state.sidebar_hide)
+  },
   TOGGLE_SIDEBAR: state => {
     state.sidebar.opened = !state.sidebar.opened
     state.sidebar.withoutAnimation = false
@@ -40,6 +43,9 @@ const mutations = {
 }
 
 const actions = {
+  sidebarHide({ commit }, status) {
+    commit('SIDEBAR_HIDE', status)
+  },
   toggleSideBarHide({ commit }, status) {
     commit('SET_SIDEBAR_HIDE', status)
   },

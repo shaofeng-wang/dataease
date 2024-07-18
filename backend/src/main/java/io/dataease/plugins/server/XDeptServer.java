@@ -21,7 +21,7 @@ import io.dataease.controller.sys.response.DeptNodeResponse;
 import io.dataease.dto.SysLogDTO;
 import io.dataease.listener.util.CacheUtils;
 import io.dataease.plugins.common.entity.XpackGridRequest;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.dept.dto.request.*;
 import io.dataease.plugins.xpack.dept.dto.response.DeptUserItemDTO;
 import io.dataease.plugins.xpack.dept.dto.response.XpackDeptTreeNode;
@@ -49,7 +49,7 @@ public class XDeptServer {
     @ApiOperation("查询子节点")
     @PostMapping("/childNodes/{pid}")
     public List<DeptNodeResponse> childNodes(@PathVariable("pid") Long pid){
-        DeptXpackService deptService = SpringContextUtil.getBean(DeptXpackService.class);
+        DeptXpackService deptService = SpringContextBackEndUtil.getBean(DeptXpackService.class);
         List<XpackSysDept> nodes = deptService.nodesByPid(pid);
         List<DeptNodeResponse> nodeResponses = nodes.stream().map(node -> {
             DeptNodeResponse deptNodeResponse = BeanUtils.copyBean(new DeptNodeResponse(), node);
@@ -64,7 +64,7 @@ public class XDeptServer {
     @ApiOperation("搜索组织树")
     @PostMapping("/search")
     public List<DeptNodeResponse> search(@RequestBody XpackGridRequest request){
-        DeptXpackService deptService = SpringContextUtil.getBean(DeptXpackService.class);
+        DeptXpackService deptService = SpringContextBackEndUtil.getBean(DeptXpackService.class);
         List<XpackSysDept> ndoes = deptService.nodesTreeByCondition(request);
         List<DeptNodeResponse> nodeResponses = ndoes.stream().map(node -> {
             DeptNodeResponse deptNodeResponse = BeanUtils.copyBean(new DeptNodeResponse(), node);
@@ -79,7 +79,7 @@ public class XDeptServer {
     @ApiIgnore
     @PostMapping("/root")
     public  List<XpackSysDept> rootData(){
-        DeptXpackService deptService = SpringContextUtil.getBean(DeptXpackService.class);
+        DeptXpackService deptService = SpringContextBackEndUtil.getBean(DeptXpackService.class);
         List<XpackSysDept> nodes = deptService.nodesByPid(null);
         return nodes;
     }
@@ -94,7 +94,7 @@ public class XDeptServer {
         value = "deptId"
     )
     public int create(@RequestBody XpackCreateDept dept){
-        DeptXpackService deptService = SpringContextUtil.getBean(DeptXpackService.class);
+        DeptXpackService deptService = SpringContextBackEndUtil.getBean(DeptXpackService.class);
         return deptService.add(dept);
     }
 
@@ -108,7 +108,7 @@ public class XDeptServer {
         value = "deptId"
     )
     public void delete(@RequestBody List<XpackDeleteDept> requests){
-        DeptXpackService deptService = SpringContextUtil.getBean(DeptXpackService.class);
+        DeptXpackService deptService = SpringContextBackEndUtil.getBean(DeptXpackService.class);
         requests.forEach(request -> {
             extAuthService.clearDeptResource(request.getDeptId());
         });
@@ -125,7 +125,7 @@ public class XDeptServer {
         value = "deptId"
     )
     public int update(@RequestBody XpackCreateDept dept){
-        DeptXpackService deptService = SpringContextUtil.getBean(DeptXpackService.class);
+        DeptXpackService deptService = SpringContextBackEndUtil.getBean(DeptXpackService.class);
         return deptService.update(dept);
     }
 
@@ -134,7 +134,7 @@ public class XDeptServer {
     @ApiIgnore
     @PostMapping("/nodesByDeptId/{deptId}")
     public List<XpackDeptTreeNode> nodesByDeptId(@PathVariable("deptId") Long deptId){
-        DeptXpackService deptService = SpringContextUtil.getBean(DeptXpackService.class);
+        DeptXpackService deptService = SpringContextBackEndUtil.getBean(DeptXpackService.class);
         return deptService.searchTree(deptId);
     }
 
@@ -143,7 +143,7 @@ public class XDeptServer {
     @ApiOperation("移动")
     @PostMapping("/move")
     public void move(@RequestBody XpackMoveDept xpackMoveDept){
-        DeptXpackService deptService = SpringContextUtil.getBean(DeptXpackService.class);
+        DeptXpackService deptService = SpringContextBackEndUtil.getBean(DeptXpackService.class);
         deptService.move(xpackMoveDept);
     }
 
@@ -157,7 +157,7 @@ public class XDeptServer {
     @PostMapping("/userGrid/{goPage}/{pageSize}")
     @SqlInjectValidator(value = {"dept_name", "nick_name"})
     public Pager<List<DeptUserItemDTO>> userGrid(@PathVariable int goPage, @PathVariable int pageSize, @RequestBody XpackDeptUserRequest request) {
-        DeptXpackService deptService = SpringContextUtil.getBean(DeptXpackService.class);
+        DeptXpackService deptService = SpringContextBackEndUtil.getBean(DeptXpackService.class);
         Page<Object> page = PageHelper.startPage(goPage, pageSize, true);
         List<DeptUserItemDTO> userItems = deptService.queryBinded(request, true);
         Pager<List<DeptUserItemDTO>> setPageInfo = PageUtils.setPageInfo(page, userItems);
@@ -179,7 +179,7 @@ public class XDeptServer {
     @RequiresPermissions({"dept:edit", "user:edit"})
     @PostMapping("/bindUser")
     public void bindUser(@RequestBody XpackDeptBindRequest request) {
-        DeptXpackService deptService = SpringContextUtil.getBean(DeptXpackService.class);
+        DeptXpackService deptService = SpringContextBackEndUtil.getBean(DeptXpackService.class);
         request.getUserIds().forEach(userId -> {
             SysLogDTO sysLogDTO = DeLogUtils.buildBindRoleUserLog(request.getDeptId(), userId, SysLogConstants.OPERATE_TYPE.BIND, SysLogConstants.SOURCE_TYPE.DEPT);
             DeLogUtils.save(sysLogDTO);
@@ -191,7 +191,7 @@ public class XDeptServer {
     @RequiresPermissions({"dept:edit", "user:edit"})
     @PostMapping("/unBindUser")
     public void unBindUser(@RequestBody XpackDeptBindRequest request) {
-        DeptXpackService deptService = SpringContextUtil.getBean(DeptXpackService.class);
+        DeptXpackService deptService = SpringContextBackEndUtil.getBean(DeptXpackService.class);
         if (CollectionUtil.isEmpty(request.getUserIds())) {
             DEException.throwException("userIds can not be empty");
         }

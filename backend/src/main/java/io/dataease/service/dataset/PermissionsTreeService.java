@@ -12,7 +12,7 @@ import io.dataease.plugins.common.request.permission.DataSetRowPermissionsTreeDT
 import io.dataease.plugins.common.request.permission.DatasetRowPermissionsTreeItem;
 import io.dataease.plugins.common.request.permission.DatasetRowPermissionsTreeObj;
 import io.dataease.plugins.common.request.permission.DatasetRowPermissionsTreeRequest;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.auth.service.RowPermissionTreeService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -45,11 +45,11 @@ public class PermissionsTreeService {
 
     private List<DataSetRowPermissionsTreeDTO> rowPermissionsTree(String datasetId, Long userId) {
         List<DataSetRowPermissionsTreeDTO> datasetRowPermissions = new ArrayList<>();
-        Map<String, RowPermissionTreeService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((RowPermissionTreeService.class));
+        Map<String, RowPermissionTreeService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((RowPermissionTreeService.class));
         if (beansOfType.keySet().size() == 0) {
             return datasetRowPermissions;
         }
-        RowPermissionTreeService rowPermissionTreeService = SpringContextUtil.getBean(RowPermissionTreeService.class);
+        RowPermissionTreeService rowPermissionTreeService = SpringContextBackEndUtil.getBean(RowPermissionTreeService.class);
         SysUserEntity userEntity = userId != null ? authUserService.getUserById(userId) : AuthUtils.getUser();
         List<Long> roleIds = new ArrayList<>();
         Long deptId = null;

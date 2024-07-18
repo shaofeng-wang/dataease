@@ -1,6 +1,6 @@
 package io.dataease.plugins.server.view;
 
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.view.entity.PluginViewType;
 import io.dataease.plugins.view.service.ViewPluginService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,8 +21,8 @@ public class PluginViewServer {
     @PostMapping("/types")
     public List<PluginViewType> types() {
         List<PluginViewType> result = new ArrayList<>();
-        Map<String, ViewPluginService> beanMap = SpringContextUtil.getApplicationContext()
-                .getBeansOfType(ViewPluginService.class);
+        Map<String, ViewPluginService> beanMap = SpringContextBackEndUtil.getApplicationContext()
+                                                                         .getBeansOfType(ViewPluginService.class);
         if (beanMap.keySet().size() == 0) {
             return result;
         }

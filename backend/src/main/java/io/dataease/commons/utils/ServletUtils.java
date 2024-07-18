@@ -1,7 +1,7 @@
 package io.dataease.commons.utils;
 
 import io.dataease.commons.constants.AuthConstants;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import org.springframework.core.env.Environment;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -47,7 +47,7 @@ public class ServletUtils {
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
-        Environment environment = SpringContextUtil.getBean(Environment.class);
+        Environment environment = SpringContextBackEndUtil.getBean(Environment.class);
         Integer port = environment.getProperty("server.port", Integer.class);
         return "http://" + hostAddress + ":" + port;
     }

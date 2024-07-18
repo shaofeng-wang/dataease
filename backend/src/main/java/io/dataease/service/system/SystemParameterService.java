@@ -12,7 +12,7 @@ import io.dataease.plugins.common.base.domain.FileMetadata;
 import io.dataease.plugins.common.base.domain.SystemParameter;
 import io.dataease.plugins.common.base.domain.SystemParameterExample;
 import io.dataease.plugins.common.base.mapper.SystemParameterMapper;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.cas.dto.CasSaveResult;
 import io.dataease.plugins.xpack.cas.service.CasXpackService;
 import io.dataease.plugins.xpack.display.service.DisplayXpackService;
@@ -66,7 +66,7 @@ public class SystemParameterService {
         paramList.addAll(loginLimitList);
         BasicInfo result = new BasicInfo();
         result.setOpenHomePage("true");
-        Map<String, LoginLimitXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((LoginLimitXpackService.class));
+        Map<String, LoginLimitXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((LoginLimitXpackService.class));
         Boolean loginLimitPluginLoaded = beansOfType.keySet().size() > 0;
         if (!CollectionUtils.isEmpty(paramList)) {
             for (SystemParameter param : paramList) {
@@ -182,9 +182,9 @@ public class SystemParameterService {
 
     @Transactional
     public void resetCas() {
-        Map<String, CasXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((CasXpackService.class));
+        Map<String, CasXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((CasXpackService.class));
         if (beansOfType.keySet().size() == 0) DEException.throwException("当前未启用CAS");
-        CasXpackService casXpackService = SpringContextUtil.getBean(CasXpackService.class);
+        CasXpackService casXpackService = SpringContextBackEndUtil.getBean(CasXpackService.class);
         if (ObjectUtils.isEmpty(casXpackService)) DEException.throwException("当前未启用CAS");
 
         String loginTypePk = "basic.loginType";
@@ -199,9 +199,9 @@ public class SystemParameterService {
     public CasSaveResult afterSwitchDefaultLogin(List<SystemParameter> parameters) {
         CasSaveResult casSaveResult = new CasSaveResult();
         casSaveResult.setNeedLogout(false);
-        Map<String, CasXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((CasXpackService.class));
+        Map<String, CasXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((CasXpackService.class));
         if (beansOfType.keySet().size() == 0) return casSaveResult;
-        CasXpackService casXpackService = SpringContextUtil.getBean(CasXpackService.class);
+        CasXpackService casXpackService = SpringContextBackEndUtil.getBean(CasXpackService.class);
         if (ObjectUtils.isEmpty(casXpackService)) return casSaveResult;
 
         AtomicReference<String> loginType = new AtomicReference();
@@ -291,9 +291,9 @@ public class SystemParameterService {
                 }
             }
             if (systemParameter.getType().equalsIgnoreCase("blob")) {
-                Map<String, DisplayXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((DisplayXpackService.class));
+                Map<String, DisplayXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((DisplayXpackService.class));
                 DisplayXpackService displayXpackService = null;
-                if (beansOfType.keySet().size() > 0 && (displayXpackService = SpringContextUtil.getBean(DisplayXpackService.class)) != null) {
+                if (beansOfType.keySet().size() > 0 && (displayXpackService = SpringContextBackEndUtil.getBean(DisplayXpackService.class)) != null) {
                     String paramValue = systemParameter.getParamValue();
                     if (StringUtils.isNotBlank(paramValue)) {
                         long blobId = Long.parseLong(paramValue);

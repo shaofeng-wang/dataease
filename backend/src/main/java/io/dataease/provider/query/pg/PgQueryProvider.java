@@ -114,9 +114,9 @@ public class PgQueryProvider extends QueryProvider {
     @Override
     public String createQuerySQL(String table, List<DatasetTableField> fields, boolean isGroup, Datasource ds, List<ChartFieldCustomFilterDTO> fieldCustomFilter, List<DataSetRowPermissionsTreeDTO> rowPermissionsTree, List<DeSortField> sortFields) {
         SQLObj tableObj = SQLObj.builder()
-                .tableName((table.startsWith("(") && table.endsWith(")")) ? table : String.format(PgConstants.KEYWORD_TABLE, table))
-                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 0))
-                .build();
+                                .tableName((table.startsWith("(") && table.endsWith(")")) ? table : String.format(PgConstants.KEYWORD_TABLE, table))
+                                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 0))
+                                .build();
 
         setSchema(tableObj, ds);
         List<SQLObj> xFields = new ArrayList<>();
@@ -162,9 +162,9 @@ public class PgQueryProvider extends QueryProvider {
                     }
                 }
                 xFields.add(SQLObj.builder()
-                        .fieldName(fieldName)
-                        .fieldAlias(fieldAlias)
-                        .build());
+                                  .fieldName(fieldName)
+                                  .fieldAlias(fieldAlias)
+                                  .build());
             }
         }
 
@@ -272,9 +272,9 @@ public class PgQueryProvider extends QueryProvider {
     @Override
     public String getSQL(String table, List<ChartViewFieldDTO> xAxis, List<ChartViewFieldDTO> yAxis, List<ChartFieldCustomFilterDTO> fieldCustomFilter, List<DataSetRowPermissionsTreeDTO> rowPermissionsTree, List<ChartExtFilterRequest> extFilterRequestList, Datasource ds, ChartViewWithBLOBs view) {
         SQLObj tableObj = SQLObj.builder()
-                .tableName((table.startsWith("(") && table.endsWith(")")) ? table : String.format(PgConstants.KEYWORD_TABLE, table))
-                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 0))
-                .build();
+                                .tableName((table.startsWith("(") && table.endsWith(")")) ? table : String.format(PgConstants.KEYWORD_TABLE, table))
+                                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 0))
+                                .build();
         setSchema(tableObj, ds);
         List<SQLObj> xFields = new ArrayList<>();
         List<SQLObj> xOrders = new ArrayList<>();
@@ -296,10 +296,10 @@ public class PgQueryProvider extends QueryProvider {
                 // 处理横轴排序
                 if (StringUtils.isNotEmpty(x.getSort()) && Utils.joinSort(x.getSort())) {
                     xOrders.add(SQLObj.builder()
-                            .orderField(originField)
-                            .orderAlias(fieldAlias)
-                            .orderDirection(x.getSort())
-                            .build());
+                                      .orderField(originField)
+                                      .orderAlias(fieldAlias)
+                                      .orderDirection(x.getSort())
+                                      .build());
                 }
             }
         }
@@ -387,9 +387,9 @@ public class PgQueryProvider extends QueryProvider {
 
     private String originalTableInfo(String table, List<ChartViewFieldDTO> xAxis, List<ChartFieldCustomFilterDTO> fieldCustomFilter, List<DataSetRowPermissionsTreeDTO> rowPermissionsTree, List<ChartExtFilterRequest> extFilterRequestList, Datasource ds, ChartViewWithBLOBs view) {
         SQLObj tableObj = SQLObj.builder()
-                .tableName((table.startsWith("(") && table.endsWith(")")) ? table : String.format(PgConstants.KEYWORD_TABLE, table))
-                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 0))
-                .build();
+                                .tableName((table.startsWith("(") && table.endsWith(")")) ? table : String.format(PgConstants.KEYWORD_TABLE, table))
+                                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 0))
+                                .build();
         setSchema(tableObj, ds);
         List<SQLObj> xFields = new ArrayList<>();
         List<SQLObj> xOrders = new ArrayList<>();
@@ -415,10 +415,10 @@ public class PgQueryProvider extends QueryProvider {
                 // 处理横轴排序
                 if (StringUtils.isNotEmpty(x.getSort()) && Utils.joinSort(x.getSort())) {
                     xOrders.add(SQLObj.builder()
-                            .orderField(originField)
-                            .orderAlias(fieldAlias)
-                            .orderDirection(x.getSort())
-                            .build());
+                                      .orderField(originField)
+                                      .orderAlias(fieldAlias)
+                                      .orderDirection(x.getSort())
+                                      .build());
                 }
             }
         }
@@ -452,9 +452,9 @@ public class PgQueryProvider extends QueryProvider {
         ST st = stg.getInstanceOf("previewSql");
         st.add("isGroup", false);
         SQLObj tableSQL = SQLObj.builder()
-                .tableName(String.format(PgConstants.BRACKETS, sql))
-                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 1))
-                .build();
+                                .tableName(String.format(PgConstants.BRACKETS, sql))
+                                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 1))
+                                .build();
         if (CollectionUtils.isNotEmpty(orders)) st.add("orders", orders);
         if (ObjectUtils.isNotEmpty(tableSQL)) st.add("table", tableSQL);
         return st.render();
@@ -479,9 +479,9 @@ public class PgQueryProvider extends QueryProvider {
     @Override
     public String getSQLStack(String table, List<ChartViewFieldDTO> xAxis, List<ChartViewFieldDTO> yAxis, List<ChartFieldCustomFilterDTO> fieldCustomFilter, List<DataSetRowPermissionsTreeDTO> rowPermissionsTree, List<ChartExtFilterRequest> extFilterRequestList, List<ChartViewFieldDTO> extStack, Datasource ds, ChartViewWithBLOBs view) {
         SQLObj tableObj = SQLObj.builder()
-                .tableName((table.startsWith("(") && table.endsWith(")")) ? table : String.format(PgConstants.KEYWORD_TABLE, table))
-                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 0))
-                .build();
+                                .tableName((table.startsWith("(") && table.endsWith(")")) ? table : String.format(PgConstants.KEYWORD_TABLE, table))
+                                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 0))
+                                .build();
         setSchema(tableObj, ds);
         List<SQLObj> xFields = new ArrayList<>();
         List<SQLObj> xOrders = new ArrayList<>();
@@ -506,10 +506,10 @@ public class PgQueryProvider extends QueryProvider {
                 // 处理横轴排序
                 if (StringUtils.isNotEmpty(x.getSort()) && Utils.joinSort(x.getSort())) {
                     xOrders.add(SQLObj.builder()
-                            .orderField(originField)
-                            .orderAlias(fieldAlias)
-                            .orderDirection(x.getSort())
-                            .build());
+                                      .orderField(originField)
+                                      .orderAlias(fieldAlias)
+                                      .orderDirection(x.getSort())
+                                      .build());
                 }
             }
         }
@@ -536,10 +536,10 @@ public class PgQueryProvider extends QueryProvider {
                 // 处理纵轴排序
                 if (StringUtils.isNotEmpty(y.getSort()) && Utils.joinSort(y.getSort())) {
                     yOrders.add(SQLObj.builder()
-                            .orderField(originField)
-                            .orderAlias(fieldAlias)
-                            .orderDirection(y.getSort())
-                            .build());
+                                      .orderField(originField)
+                                      .orderAlias(fieldAlias)
+                                      .orderDirection(y.getSort())
+                                      .build());
                 }
             }
         }
@@ -576,9 +576,9 @@ public class PgQueryProvider extends QueryProvider {
 
         ST st = stg.getInstanceOf("querySql");
         SQLObj tableSQL = SQLObj.builder()
-                .tableName(String.format(PgConstants.BRACKETS, sql))
-                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 1))
-                .build();
+                                .tableName(String.format(PgConstants.BRACKETS, sql))
+                                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 1))
+                                .build();
         if (CollectionUtils.isNotEmpty(aggWheres)) st.add("filters", aggWheres);
         if (CollectionUtils.isNotEmpty(orders)) st.add("orders", orders);
         if (ObjectUtils.isNotEmpty(tableSQL)) st.add("table", tableSQL);
@@ -593,9 +593,9 @@ public class PgQueryProvider extends QueryProvider {
     @Override
     public String getSQLScatter(String table, List<ChartViewFieldDTO> xAxis, List<ChartViewFieldDTO> yAxis, List<ChartFieldCustomFilterDTO> fieldCustomFilter, List<DataSetRowPermissionsTreeDTO> rowPermissionsTree, List<ChartExtFilterRequest> extFilterRequestList, List<ChartViewFieldDTO> extBubble, Datasource ds, ChartViewWithBLOBs view) {
         SQLObj tableObj = SQLObj.builder()
-                .tableName((table.startsWith("(") && table.endsWith(")")) ? table : String.format(PgConstants.KEYWORD_TABLE, table))
-                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 0))
-                .build();
+                                .tableName((table.startsWith("(") && table.endsWith(")")) ? table : String.format(PgConstants.KEYWORD_TABLE, table))
+                                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 0))
+                                .build();
         setSchema(tableObj, ds);
         List<SQLObj> xFields = new ArrayList<>();
         List<SQLObj> xOrders = new ArrayList<>();
@@ -617,10 +617,10 @@ public class PgQueryProvider extends QueryProvider {
                 // 处理横轴排序
                 if (StringUtils.isNotEmpty(x.getSort()) && Utils.joinSort(x.getSort())) {
                     xOrders.add(SQLObj.builder()
-                            .orderField(originField)
-                            .orderAlias(fieldAlias)
-                            .orderDirection(x.getSort())
-                            .build());
+                                      .orderField(originField)
+                                      .orderAlias(fieldAlias)
+                                      .orderDirection(x.getSort())
+                                      .build());
                 }
             }
         }
@@ -650,10 +650,10 @@ public class PgQueryProvider extends QueryProvider {
                 // 处理纵轴排序
                 if (StringUtils.isNotEmpty(y.getSort()) && Utils.joinSort(y.getSort())) {
                     yOrders.add(SQLObj.builder()
-                            .orderField(originField)
-                            .orderAlias(fieldAlias)
-                            .orderDirection(y.getSort())
-                            .build());
+                                      .orderField(originField)
+                                      .orderAlias(fieldAlias)
+                                      .orderDirection(y.getSort())
+                                      .build());
                 }
             }
         }
@@ -690,9 +690,9 @@ public class PgQueryProvider extends QueryProvider {
 
         ST st = stg.getInstanceOf("querySql");
         SQLObj tableSQL = SQLObj.builder()
-                .tableName(String.format(PgConstants.BRACKETS, sql))
-                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 1))
-                .build();
+                                .tableName(String.format(PgConstants.BRACKETS, sql))
+                                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 1))
+                                .build();
         if (CollectionUtils.isNotEmpty(aggWheres)) st.add("filters", aggWheres);
         if (CollectionUtils.isNotEmpty(orders)) st.add("orders", orders);
         if (ObjectUtils.isNotEmpty(tableSQL)) st.add("table", tableSQL);
@@ -713,9 +713,9 @@ public class PgQueryProvider extends QueryProvider {
     public String getSQLSummary(String table, List<ChartViewFieldDTO> yAxis, List<ChartFieldCustomFilterDTO> fieldCustomFilter, List<DataSetRowPermissionsTreeDTO> rowPermissionsTree, List<ChartExtFilterRequest> extFilterRequestList, ChartViewWithBLOBs view, Datasource ds) {
         // 字段汇总 排序等
         SQLObj tableObj = SQLObj.builder()
-                .tableName((table.startsWith("(") && table.endsWith(")")) ? table : String.format(PgConstants.KEYWORD_TABLE, table))
-                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 0))
-                .build();
+                                .tableName((table.startsWith("(") && table.endsWith(")")) ? table : String.format(PgConstants.KEYWORD_TABLE, table))
+                                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 0))
+                                .build();
         setSchema(tableObj, ds);
         List<SQLObj> yFields = new ArrayList<>();
         List<String> yWheres = new ArrayList<>();
@@ -740,10 +740,10 @@ public class PgQueryProvider extends QueryProvider {
                 // 处理纵轴排序
                 if (StringUtils.isNotEmpty(y.getSort()) && Utils.joinSort(y.getSort())) {
                     yOrders.add(SQLObj.builder()
-                            .orderField(originField)
-                            .orderAlias(fieldAlias)
-                            .orderDirection(y.getSort())
-                            .build());
+                                      .orderField(originField)
+                                      .orderAlias(fieldAlias)
+                                      .orderDirection(y.getSort())
+                                      .build());
                 }
             }
         }
@@ -776,9 +776,9 @@ public class PgQueryProvider extends QueryProvider {
 
         ST st = stg.getInstanceOf("querySql");
         SQLObj tableSQL = SQLObj.builder()
-                .tableName(String.format(PgConstants.BRACKETS, sql))
-                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 1))
-                .build();
+                                .tableName(String.format(PgConstants.BRACKETS, sql))
+                                .tableAlias(String.format(TABLE_ALIAS_PREFIX, 1))
+                                .build();
         if (CollectionUtils.isNotEmpty(aggWheres)) st.add("filters", aggWheres);
         if (CollectionUtils.isNotEmpty(orders)) st.add("orders", orders);
         if (ObjectUtils.isNotEmpty(tableSQL)) st.add("table", tableSQL);
@@ -898,9 +898,9 @@ public class PgQueryProvider extends QueryProvider {
                 whereValue = String.format(PgConstants.WHERE_VALUE_VALUE, value);
             }
             SQLObj build = SQLObj.builder()
-                    .whereField(whereName)
-                    .whereTermAndValue(whereTerm + whereValue)
-                    .build();
+                                 .whereField(whereName)
+                                 .whereTermAndValue(whereTerm + whereValue)
+                                 .build();
             res = build.getWhereField() + " " + build.getWhereTermAndValue();
         }
         return res;
@@ -1024,9 +1024,9 @@ public class PgQueryProvider extends QueryProvider {
                         whereValue = String.format(PgConstants.WHERE_VALUE_VALUE, value);
                     }
                     list.add(SQLObj.builder()
-                            .whereField(whereName)
-                            .whereTermAndValue(whereTerm + whereValue)
-                            .build());
+                                   .whereField(whereName)
+                                   .whereTermAndValue(whereTerm + whereValue)
+                                   .build());
                 }
 
                 List<String> strList = new ArrayList<>();
@@ -1075,25 +1075,25 @@ public class PgQueryProvider extends QueryProvider {
                     String format = transDateFormat(request.getDateStyle(), request.getDatePattern());
                     if (field.getDeExtractType() == 0 || field.getDeExtractType() == 5 || field.getDeExtractType() == 1) {
                         String timestamp = String.format(PgConstants.STR_TO_DATE, originName, StringUtils.isNotEmpty(field.getDateFormat()) ? field.getDateFormat() : PgConstants.DEFAULT_DATE_FORMAT);
-                        if(request.getOperator().equals("between")){
+                        if (request.getOperator().equals("between")) {
                             whereName = timestamp;
-                        }else {
+                        } else {
                             whereName = String.format(PgConstants.DATE_FORMAT, timestamp, format);
                         }
                     }
                     if (field.getDeExtractType() == 2 || field.getDeExtractType() == 3 || field.getDeExtractType() == 4) {
                         String cast = String.format(PgConstants.CAST, originName, "bigint");
                         String timestamp = String.format(PgConstants.FROM_UNIXTIME, cast);
-                        if(request.getOperator().equals("between")){
+                        if (request.getOperator().equals("between")) {
                             whereName = timestamp;
-                        }else {
+                        } else {
                             whereName = String.format(PgConstants.DATE_FORMAT, timestamp, format);
                         }
                     }
                     if (field.getDeExtractType() == 1) {
-                        if(request.getOperator().equals("between")){
+                        if (request.getOperator().equals("between")) {
                             whereName = originName;
-                        }else {
+                        } else {
                             whereName = String.format(PgConstants.DATE_FORMAT, originName, format);
                         }
 
@@ -1142,9 +1142,9 @@ public class PgQueryProvider extends QueryProvider {
                 whereValue = String.format(PgConstants.WHERE_VALUE_VALUE, value.get(0));
             }
             list.add(SQLObj.builder()
-                    .whereField(whereName)
-                    .whereTermAndValue(whereTerm + whereValue)
-                    .build());
+                           .whereField(whereName)
+                           .whereTermAndValue(whereTerm + whereValue)
+                           .build());
         }
         List<String> strList = new ArrayList<>();
         list.forEach(ele -> strList.add(ele.getWhereField() + " " + ele.getWhereTermAndValue()));
@@ -1206,8 +1206,8 @@ public class PgQueryProvider extends QueryProvider {
                 String format = transDateFormat(x.getDateStyle(), x.getDatePattern());
                 if (x.getDeExtractType() == DeTypeConstants.DE_STRING) {
                     fieldName = String.format(PgConstants.DATE_FORMAT,
-                            String.format(PgConstants.STR_TO_DATE, originField, StringUtils.isNotEmpty(x.getDateFormat()) ? x.getDateFormat() : PgConstants.DEFAULT_DATE_FORMAT),
-                            format);
+                                              String.format(PgConstants.STR_TO_DATE, originField, StringUtils.isNotEmpty(x.getDateFormat()) ? x.getDateFormat() : PgConstants.DEFAULT_DATE_FORMAT),
+                                              format);
                 } else {
                     String cast = String.format(PgConstants.CAST, originField, "bigint");
                     String from_unixtime = String.format(PgConstants.FROM_UNIXTIME, cast);
@@ -1224,9 +1224,9 @@ public class PgQueryProvider extends QueryProvider {
             }
         }
         return SQLObj.builder()
-                .fieldName(fieldName)
-                .fieldAlias(fieldAlias)
-                .build();
+                     .fieldName(fieldName)
+                     .fieldAlias(fieldAlias)
+                     .build();
     }
 
     private SQLObj getYFields(ChartViewFieldDTO y, String originField, String fieldAlias) {
@@ -1256,9 +1256,9 @@ public class PgQueryProvider extends QueryProvider {
             }
         }
         return SQLObj.builder()
-                .fieldName(fieldName)
-                .fieldAlias(fieldAlias)
-                .build();
+                     .fieldName(fieldName)
+                     .fieldAlias(fieldAlias)
+                     .build();
     }
 
     private String getYWheres(ChartViewFieldDTO y, String originField, String fieldAlias) {
@@ -1284,10 +1284,10 @@ public class PgQueryProvider extends QueryProvider {
                     whereValue = String.format(PgConstants.WHERE_VALUE_VALUE, f.getValue());
                 }
                 list.add(SQLObj.builder()
-                        .whereField(fieldAlias)
-                        .whereAlias(fieldAlias)
-                        .whereTermAndValue(whereTerm + whereValue)
-                        .build());
+                               .whereField(fieldAlias)
+                               .whereAlias(fieldAlias)
+                               .whereTermAndValue(whereTerm + whereValue)
+                               .build());
             });
         }
         List<String> strList = new ArrayList<>();
@@ -1314,7 +1314,7 @@ public class PgQueryProvider extends QueryProvider {
         List<DatasetTableField> calcFields = datasetTableFieldMapper.selectByExample(datasetTableFieldExample);
         for (DatasetTableField ele : calcFields) {
             originField = originField.replaceAll("\\[" + ele.getId() + "]",
-                    String.format(PgConstants.KEYWORD_FIX, tableObj.getTableAlias(), ele.getOriginName()));
+                                                 String.format(PgConstants.KEYWORD_FIX, tableObj.getTableAlias(), ele.getOriginName()));
         }
         return originField;
     }
@@ -1336,12 +1336,12 @@ public class PgQueryProvider extends QueryProvider {
 
     public List<Dateformat> dateformat() {
         return JSONArray.parseArray("[\n" +
-                "{\"dateformat\": \"YYYY-MM-DD\"},\n" +
-                "{\"dateformat\": \"YYYY/MM/DD\"},\n" +
-                "{\"dateformat\": \"YYYYMMDD\"},\n" +
-                "{\"dateformat\": \"YYYY-MM-DD HH24:MI:SS\"},\n" +
-                "{\"dateformat\": \"YYYY/MM/DD HH24:MI:SS\"},\n" +
-                "{\"dateformat\": \"YYYYMMDD HH24:MI:SS\"}\n" +
-                "]", Dateformat.class);
+                                    "{\"dateformat\": \"YYYY-MM-DD\"},\n" +
+                                    "{\"dateformat\": \"YYYY/MM/DD\"},\n" +
+                                    "{\"dateformat\": \"YYYYMMDD\"},\n" +
+                                    "{\"dateformat\": \"YYYY-MM-DD HH24:MI:SS\"},\n" +
+                                    "{\"dateformat\": \"YYYY/MM/DD HH24:MI:SS\"},\n" +
+                                    "{\"dateformat\": \"YYYYMMDD HH24:MI:SS\"}\n" +
+                                    "]", Dateformat.class);
     }
 }

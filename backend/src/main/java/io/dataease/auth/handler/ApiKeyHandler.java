@@ -2,7 +2,7 @@ package io.dataease.auth.handler;
 
 import io.dataease.auth.entity.ASKToken;
 import io.dataease.commons.utils.CodingUtil;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.ukey.dto.request.XpackUkeyDto;
 import io.dataease.plugins.xpack.ukey.service.UkeyXpackService;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +46,7 @@ public class ApiKeyHandler {
     }
 
     public static XpackUkeyDto ukey(String accessKey) {
-        UkeyXpackService ukeyXpackService = SpringContextUtil.getBean(UkeyXpackService.class);
+        UkeyXpackService ukeyXpackService = SpringContextBackEndUtil.getBean(UkeyXpackService.class);
         XpackUkeyDto userKey = ukeyXpackService.getUserKey(accessKey);
         return userKey;
     }

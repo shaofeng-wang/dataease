@@ -1,7 +1,7 @@
 package io.dataease.plugins.server;
 
 
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.display.dto.response.SysSettingDto;
 import io.dataease.plugins.xpack.oidc.service.OidcXpackService;
 import org.apache.commons.lang3.StringUtils;
@@ -23,20 +23,20 @@ public class XOidcServer {
 
     @PostMapping("/info")
     public List<SysSettingDto> getOidcInfo() {
-        OidcXpackService oidcXpackService = SpringContextUtil.getBean(OidcXpackService.class);
+        OidcXpackService oidcXpackService = SpringContextBackEndUtil.getBean(OidcXpackService.class);
         return oidcXpackService.oidcSettings();
     }
 
     @RequiresPermissions("sysparam:read")
     @PostMapping("/save")
     public void save(@RequestBody List<SysSettingDto> settings) {
-        OidcXpackService oidcXpackService = SpringContextUtil.getBean(OidcXpackService.class);
+        OidcXpackService oidcXpackService = SpringContextBackEndUtil.getBean(OidcXpackService.class);
         oidcXpackService.save(settings);
     }
 
     @PostMapping(value="/authInfo")
     public Map<String, Object> authInfo() {
-        OidcXpackService oidcXpackService = SpringContextUtil.getBean(OidcXpackService.class);
+        OidcXpackService oidcXpackService = SpringContextBackEndUtil.getBean(OidcXpackService.class);
         Map<String, Object> result = new HashMap<String, Object>();
         List<SysSettingDto> oidcSettings = oidcXpackService.oidcSettings();
         

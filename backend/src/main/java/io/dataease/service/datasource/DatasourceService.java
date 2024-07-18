@@ -43,7 +43,7 @@ import io.dataease.plugins.common.dto.datasource.DataSourceType;
 import io.dataease.plugins.common.dto.datasource.TableDesc;
 import io.dataease.plugins.common.entity.GlobalTaskEntity;
 import io.dataease.plugins.common.request.datasource.DatasourceRequest;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.datasource.entity.JdbcConfiguration;
 import io.dataease.plugins.datasource.provider.Provider;
 import io.dataease.provider.ProviderFactory;
@@ -98,8 +98,8 @@ public class DatasourceService {
 
     public Collection<DataSourceType> types() {
         Collection<DataSourceType> types = new ArrayList<>();
-        types.addAll(SpringContextUtil.getApplicationContext().getBeansOfType(DataSourceType.class).values());
-        SpringContextUtil.getApplicationContext().getBeansOfType(io.dataease.plugins.datasource.service.DatasourceService.class).values().forEach(datasourceService -> {
+        types.addAll(SpringContextBackEndUtil.getApplicationContext().getBeansOfType(DataSourceType.class).values());
+        SpringContextBackEndUtil.getApplicationContext().getBeansOfType(io.dataease.plugins.datasource.service.DatasourceService.class).values().forEach(datasourceService -> {
             types.add(datasourceService.getDataSourceType());
         });
         return types;
@@ -325,7 +325,7 @@ public class DatasourceService {
         String cacheType = env.getProperty("spring.cache.type");
         if (cacheType != null && cacheType.equalsIgnoreCase("redis")) {
             handleConnectionPool(datasourceId, "delete");
-            RedisTemplate redisTemplate = SpringContextUtil.getBean("redisTemplate", RedisTemplate.class);
+            RedisTemplate redisTemplate = SpringContextBackEndUtil.getBean("redisTemplate", RedisTemplate.class);
             redisTemplate.convertAndSend(RedisConstants.DS_REDIS_TOPIC, datasourceId);
         } else {
             handleConnectionPool(datasourceId, "edit");

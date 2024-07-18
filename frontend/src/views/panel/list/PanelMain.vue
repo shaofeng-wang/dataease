@@ -1,6 +1,6 @@
 <template>
   <de-container>
-    <de-aside-container type="panel">
+    <de-aside-container type="panel" v-if="!sidebar">
       <el-tabs
         v-model="activeName"
         class="tab-panel"
@@ -35,6 +35,12 @@
       </el-tabs>
     </de-aside-container>
     <de-main-container>
+      <!-- TODO 未完成
+      <div style="position: absolute;width: 20px;z-index: 20000;margin-top:16px;margin-left:5px;cursor:pointer;"
+           @click="toggleSidebar">
+           <i class="el-icon-caret-left" v-if="!sidebar" />
+           <i class="el-icon-caret-right" v-else />
+      </div> -->
       <PanelViewShow
         v-if="mainActiveName==='PanelMain'"
         :active-tab="activeName"
@@ -69,6 +75,9 @@ export default {
   computed: {
     mainActiveName() {
       return this.$store.state.panel.mainActiveName
+    },
+    sidebar() {
+      return this.$store.state.app.sidebar_hide
     }
   },
   watch: {
@@ -85,6 +94,7 @@ export default {
     }
   },
   mounted() {
+    console.log('sidebar >>', this.sidebar)
     this.$store.commit('setMobileLayoutStatus', false)
     // init all views (include plugins) base info
     localStorage.removeItem('plugin-views')
@@ -99,6 +109,10 @@ export default {
     // this.clear()
   },
   methods: {
+    toggleSidebar() {
+      this.$store.dispatch('app/sidebarHide')
+      console.log('handleSelect >> sidebar', this.sidebar)
+    },
     clear() {
       // 清空
       this.$store.dispatch('panel/setPanelInfo', {

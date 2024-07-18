@@ -31,7 +31,7 @@
             :span="12"
             style="font-size: 14px;display: flex"
           >
-            <div :title="showName" style="text-overflow:ellipsis;overflow: hidden;white-space: nowrap;font-size: 14px;max-width: 300px"><span
+            <div :title="showName" style="padding-left:20px;text-overflow:ellipsis;overflow: hidden;white-space: nowrap;font-size: 14px;max-width: 300px"><span
               class="panel-name"
             >
               {{ panelInfo.name || '测试仪表板' }}</span>

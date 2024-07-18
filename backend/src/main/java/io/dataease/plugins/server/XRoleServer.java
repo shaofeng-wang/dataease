@@ -17,7 +17,7 @@ import io.dataease.commons.utils.Pager;
 import io.dataease.dto.SysLogDTO;
 import io.dataease.listener.util.CacheUtils;
 import io.dataease.plugins.common.entity.XpackGridRequest;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.role.dto.request.RoleUserMappingRequest;
 import io.dataease.plugins.xpack.role.dto.request.RoleUserRequest;
 import io.dataease.plugins.xpack.role.dto.response.RoleUserItem;
@@ -55,7 +55,7 @@ public class XRoleServer {
         value = "roleId"
     )
     public void create(@RequestBody XpackRoleDto role){
-        RoleXpackService roleXpackService = SpringContextUtil.getBean(RoleXpackService.class);
+        RoleXpackService roleXpackService = SpringContextBackEndUtil.getBean(RoleXpackService.class);
         roleXpackService.save(role);
     }
 
@@ -68,7 +68,7 @@ public class XRoleServer {
         sourcetype = SysLogConstants.SOURCE_TYPE.ROLE
     )
     public void delete(@PathVariable("roleId") Long roleId){
-        RoleXpackService roleXpackService = SpringContextUtil.getBean(RoleXpackService.class);
+        RoleXpackService roleXpackService = SpringContextBackEndUtil.getBean(RoleXpackService.class);
         extAuthService.clearRoleResource(roleId);
         roleXpackService.delete(roleId);
     }
@@ -83,7 +83,7 @@ public class XRoleServer {
         value = "roleId"
     )
     public void update(@RequestBody XpackRoleDto role){
-        RoleXpackService roleXpackService = SpringContextUtil.getBean(RoleXpackService.class);
+        RoleXpackService roleXpackService = SpringContextBackEndUtil.getBean(RoleXpackService.class);
         roleXpackService.update(role);
     }
 
@@ -97,7 +97,7 @@ public class XRoleServer {
     })
     @SqlInjectValidator(value = {"create_time", "name"})
     public Pager<List<XpackRoleDto>> roleGrid(@PathVariable int goPage, @PathVariable int pageSize, @RequestBody XpackGridRequest request) {
-        RoleXpackService roleXpackService = SpringContextUtil.getBean(RoleXpackService.class);
+        RoleXpackService roleXpackService = SpringContextBackEndUtil.getBean(RoleXpackService.class);
         Page<Object> page = PageHelper.startPage(goPage, pageSize, true);
         Pager<List<XpackRoleDto>> listPager = PageUtils.setPageInfo(page, roleXpackService.query(request));
         return listPager;
@@ -106,7 +106,7 @@ public class XRoleServer {
     @ApiIgnore
     @PostMapping("/all")
     public List<XpackRoleItemDto> all() {
-        RoleXpackService roleXpackService = SpringContextUtil.getBean(RoleXpackService.class);
+        RoleXpackService roleXpackService = SpringContextBackEndUtil.getBean(RoleXpackService.class);
         return roleXpackService.allRoles();
     }
 
@@ -119,7 +119,7 @@ public class XRoleServer {
     })
     @PostMapping("/userGrid/{goPage}/{pageSize}")
     public Pager<List<RoleUserItem>> userGrid(@PathVariable int goPage, @PathVariable int pageSize, @RequestBody RoleUserRequest request) {
-        RoleXpackService roleXpackService = SpringContextUtil.getBean(RoleXpackService.class);
+        RoleXpackService roleXpackService = SpringContextBackEndUtil.getBean(RoleXpackService.class);
         Page<Object> page = PageHelper.startPage(goPage, pageSize, true);
         List<RoleUserItem> userItems = roleXpackService.userItems(request);
         Pager<List<RoleUserItem>> setPageInfo = PageUtils.setPageInfo(page, userItems);
@@ -142,7 +142,7 @@ public class XRoleServer {
     @ApiOperation("绑定用户")
     @PostMapping("/bindUser")
     public void bindUser(@RequestBody RoleUserMappingRequest request) {
-        RoleXpackService roleXpackService = SpringContextUtil.getBean(RoleXpackService.class);
+        RoleXpackService roleXpackService = SpringContextBackEndUtil.getBean(RoleXpackService.class);
         if (CollectionUtils.isNotEmpty(request.getUserIds())) {
             request.getUserIds().forEach(userId -> {
                 SysLogDTO sysLogDTO = DeLogUtils.buildBindRoleUserLog(request.getRoleId(), userId, OPERATE_TYPE.BIND, SOURCE_TYPE.ROLE);
@@ -158,7 +158,7 @@ public class XRoleServer {
     @ApiOperation("解绑用户")
     @PostMapping("/unBindUsers")
     public void unBindUsers(@RequestBody RoleUserMappingRequest request) {
-        RoleXpackService roleXpackService = SpringContextUtil.getBean(RoleXpackService.class);
+        RoleXpackService roleXpackService = SpringContextBackEndUtil.getBean(RoleXpackService.class);
         if (CollectionUtils.isNotEmpty(request.getUserIds())) {
             request.getUserIds().forEach(userId -> {
                 SysLogDTO sysLogDTO = DeLogUtils.buildBindRoleUserLog(request.getRoleId(), userId, OPERATE_TYPE.UNBIND, SOURCE_TYPE.ROLE);

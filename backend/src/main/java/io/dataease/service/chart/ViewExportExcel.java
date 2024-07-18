@@ -14,7 +14,7 @@ import io.dataease.dto.chart.ChartViewDTO;
 import io.dataease.dto.panel.PanelGroupDTO;
 import io.dataease.plugins.common.dto.chart.ChartViewFieldDTO;
 import io.dataease.plugins.common.request.chart.ChartExtFilterRequest;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.service.panel.PanelGroupService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -41,7 +41,7 @@ public class ViewExportExcel {
         if (CollectionUtils.isEmpty(viewIds)) {
             return null;
         }
-        PanelGroupService panelGroupService = SpringContextUtil.getBean(PanelGroupService.class);
+        PanelGroupService panelGroupService = SpringContextBackEndUtil.getBean(PanelGroupService.class);
 
         PanelGroupDTO panelDto = panelGroupService.findOne(panelId);
 
@@ -84,7 +84,7 @@ public class ViewExportExcel {
         ExcelSheetModel result = new ExcelSheetModel();
         ChartViewDTO chartViewDTO = null;
         try {
-            ChartViewService chartViewService = SpringContextUtil.getBean(ChartViewService.class);
+            ChartViewService chartViewService = SpringContextBackEndUtil.getBean(ChartViewService.class);
             chartViewDTO = chartViewService.getData(viewId, request);
         } catch (Exception e) {
             LogUtil.error(e.getMessage());

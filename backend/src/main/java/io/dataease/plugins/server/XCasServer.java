@@ -1,7 +1,7 @@
 package io.dataease.plugins.server;
 
 
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.cas.dto.CasSaveResult;
 import io.dataease.plugins.xpack.cas.service.CasXpackService;
 import io.dataease.plugins.xpack.display.dto.response.SysSettingDto;
@@ -22,14 +22,14 @@ public class XCasServer {
 
     @PostMapping("/info")
     public List<SysSettingDto> getOidcInfo() {
-        CasXpackService casXpackService = SpringContextUtil.getBean(CasXpackService.class);
+        CasXpackService casXpackService = SpringContextBackEndUtil.getBean(CasXpackService.class);
         return casXpackService.casSettings();
     }
 
     @RequiresPermissions("sysparam:read")
     @PostMapping("/save")
     public CasSaveResult save(@RequestBody List<SysSettingDto> settings) {
-        CasXpackService casXpackService = SpringContextUtil.getBean(CasXpackService.class);
+        CasXpackService casXpackService = SpringContextBackEndUtil.getBean(CasXpackService.class);
         return casXpackService.save(settings);
     }
 }

@@ -13,7 +13,7 @@ import io.dataease.commons.utils.ServletUtils;
 import io.dataease.exception.DataEaseException;
 import io.dataease.i18n.Translator;
 import io.dataease.plugins.common.base.domain.SysUserAssist;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.display.dto.response.SysSettingDto;
 import io.dataease.plugins.xpack.wecom.dto.entity.BaseQrResult;
 import io.dataease.plugins.xpack.wecom.dto.entity.WecomAuthResult;
@@ -50,7 +50,7 @@ public class XWecomServer {
     @ResponseBody
     @GetMapping("/info")
     public WecomInfo getWecomInfo() {
-        WecomXpackService wecomXpackService = SpringContextUtil.getBean(WecomXpackService.class);
+        WecomXpackService wecomXpackService = SpringContextBackEndUtil.getBean(WecomXpackService.class);
         return wecomXpackService.info();
     }
 
@@ -58,14 +58,14 @@ public class XWecomServer {
     @RequiresPermissions("sysparam:read")
     @PostMapping("/save")
     public void save(@RequestBody List<SysSettingDto> settings) {
-        WecomXpackService wecomXpackService = SpringContextUtil.getBean(WecomXpackService.class);
+        WecomXpackService wecomXpackService = SpringContextBackEndUtil.getBean(WecomXpackService.class);
         wecomXpackService.save(settings);
     }
 
     @ResponseBody
     @PostMapping("/testConn")
     public void testConn(@RequestBody WecomInfo wecomInfo) {
-        WecomXpackService wecomXpackService = SpringContextUtil.getBean(WecomXpackService.class);
+        WecomXpackService wecomXpackService = SpringContextBackEndUtil.getBean(WecomXpackService.class);
         try {
             wecomXpackService.testConn(wecomInfo);
         } catch (Exception e) {
@@ -76,7 +76,7 @@ public class XWecomServer {
     @ResponseBody
     @PostMapping("/getQrParam")
     public BaseQrResult getQrParam() {
-        WecomXpackService wecomXpackService = SpringContextUtil.getBean(WecomXpackService.class);
+        WecomXpackService wecomXpackService = SpringContextBackEndUtil.getBean(WecomXpackService.class);
         return wecomXpackService.getQrParam();
     }
 
@@ -95,11 +95,11 @@ public class XWecomServer {
         HttpServletResponse response = ServletUtils.response();
         WecomXpackService wecomXpackService = null;
         try {
-            Map<String, WecomXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((WecomXpackService.class));
+            Map<String, WecomXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((WecomXpackService.class));
             if (beansOfType.keySet().size() == 0) {
                 DEException.throwException("缺少企业微信插件");
             }
-            wecomXpackService = SpringContextUtil.getBean(WecomXpackService.class);
+            wecomXpackService = SpringContextBackEndUtil.getBean(WecomXpackService.class);
             Boolean isOpen = wecomXpackService.isOpen();
             if (!isOpen) {
                 DEException.throwException("未开启企业微信");
@@ -198,7 +198,7 @@ public class XWecomServer {
                 DEException.throwException("未开启企业微信");
                 return;
             }
-            wecomXpackService = SpringContextUtil.getBean(WecomXpackService.class);
+            wecomXpackService = SpringContextBackEndUtil.getBean(WecomXpackService.class);
             WecomAuthResult authResult = wecomXpackService.auth(code);
             String userId = authResult.getUserId();
 

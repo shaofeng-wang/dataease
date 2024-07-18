@@ -48,5 +48,14 @@ public class PanelViewDetailsRequest {
     private boolean mergeHead;
 
     private Long totalItems;
+    
+    private boolean totalPageFlag;
 
+    public void setTotalPageFlag(boolean totalPageFlag) {
+        this.totalPageFlag = totalPageFlag;
+    }
+
+    public boolean isTotalPageFlag() {
+        return totalPageFlag;
+    }
 }

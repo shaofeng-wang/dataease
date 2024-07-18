@@ -15,7 +15,7 @@ import io.dataease.job.sechedule.strategy.TaskHandler;
 import io.dataease.plugins.common.base.domain.SysUserAssist;
 import io.dataease.plugins.common.entity.GlobalTaskEntity;
 import io.dataease.plugins.common.entity.GlobalTaskInstance;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.dingtalk.dto.entity.DingtalkMsgResult;
 import io.dataease.plugins.xpack.dingtalk.service.DingtalkXpackService;
 import io.dataease.plugins.xpack.email.dto.request.XpackEmailTaskRequest;
@@ -93,7 +93,7 @@ public class EmailTaskHandler extends TaskHandler implements Job {
         JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
         Boolean isTempTask = (Boolean) jobDataMap.getOrDefault(IS_TEMP_TASK, false);
         GlobalTaskEntity taskEntity = (GlobalTaskEntity) jobDataMap.get("taskEntity");
-        ScheduleManager scheduleManager = SpringContextUtil.getBean(ScheduleManager.class);
+        ScheduleManager scheduleManager = SpringContextBackEndUtil.getBean(ScheduleManager.class);
         if (!isTempTask && (CronUtils.taskExpire(taskEntity.getEndTime()) || !taskEntity.getStatus())) {
             removeTask(scheduleManager, taskEntity);
             return;
@@ -124,7 +124,7 @@ public class EmailTaskHandler extends TaskHandler implements Job {
     }
 
     public Long saveInstance(GlobalTaskInstance taskInstance) {
-        EmailXpackService emailXpackService = SpringContextUtil.getBean(EmailXpackService.class);
+        EmailXpackService emailXpackService = SpringContextBackEndUtil.getBean(EmailXpackService.class);
         return emailXpackService.saveInstance(taskInstance);
     }
 
@@ -139,12 +139,12 @@ public class EmailTaskHandler extends TaskHandler implements Job {
     protected void success(GlobalTaskInstance taskInstance) {
         taskInstance.setStatus(SUCCESS);
         taskInstance.setFinishTime(System.currentTimeMillis());
-        EmailXpackService emailXpackService = SpringContextUtil.getBean(EmailXpackService.class);
+        EmailXpackService emailXpackService = SpringContextBackEndUtil.getBean(EmailXpackService.class);
         emailXpackService.saveInstance(taskInstance);
     }
 
     protected void removeInstance(GlobalTaskInstance taskInstance) {
-        EmailXpackService emailXpackService = SpringContextUtil.getBean(EmailXpackService.class);
+        EmailXpackService emailXpackService = SpringContextBackEndUtil.getBean(EmailXpackService.class);
         Optional.ofNullable(taskInstance).ifPresent(instance ->
                 Optional.ofNullable(taskInstance.getInstanceId()).ifPresent(instanceId ->
                         emailXpackService.delInstance(instanceId)));
@@ -153,16 +153,16 @@ public class EmailTaskHandler extends TaskHandler implements Job {
     protected void error(GlobalTaskInstance taskInstance, Throwable t) {
         taskInstance.setStatus(ERROR);
         taskInstance.setInfo(t.getMessage());
-        EmailXpackService emailXpackService = SpringContextUtil.getBean(EmailXpackService.class);
+        EmailXpackService emailXpackService = SpringContextBackEndUtil.getBean(EmailXpackService.class);
         emailXpackService.saveInstance(taskInstance);
     }
 
     @Async("priorityExecutor")
     public void sendReport(GlobalTaskInstance taskInstance, SysUserEntity user, Boolean isTempTask) {
 
-        EmailXpackService emailXpackService = SpringContextUtil.getBean(EmailXpackService.class);
-        AuthUserServiceImpl userService = SpringContextUtil.getBean(AuthUserServiceImpl.class);
-        SysUserService sysUserService = SpringContextUtil.getBean(SysUserService.class);
+        EmailXpackService emailXpackService = SpringContextBackEndUtil.getBean(EmailXpackService.class);
+        AuthUserServiceImpl userService = SpringContextBackEndUtil.getBean(AuthUserServiceImpl.class);
+        SysUserService sysUserService = SpringContextBackEndUtil.getBean(SysUserService.class);
         List<File> files = null;
         String token = null;
         try {
@@ -198,7 +198,7 @@ public class EmailTaskHandler extends TaskHandler implements Job {
 
 
             byte[] content = emailTemplateDTO.getContent();
-            EmailService emailService = SpringContextUtil.getBean(EmailService.class);
+            EmailService emailService = SpringContextBackEndUtil.getBean(EmailService.class);
 
             String contentStr = "";
             if (ObjectUtils.isNotEmpty(content)) {
@@ -207,7 +207,7 @@ public class EmailTaskHandler extends TaskHandler implements Job {
 
 
             String viewIds = emailTemplateDTO.getViewIds();
-            ChartViewService chartViewService = SpringContextUtil.getBean(ChartViewService.class);
+            ChartViewService chartViewService = SpringContextBackEndUtil.getBean(ChartViewService.class);
             List<ViewOption> viewOptions = chartViewService.viewOptions(panelId);
             if (StringUtils.isNotBlank(viewIds) && CollectionUtils.isNotEmpty(viewOptions)) {
                 List<String> viewOptionIdList = viewOptions.stream().map(ViewOption::getId).collect(Collectors.toList());
@@ -241,7 +241,7 @@ public class EmailTaskHandler extends TaskHandler implements Job {
                             }
                         break;
                     case "wecom":
-                        if (SpringContextUtil.getBean(AuthUserService.class).supportWecom()) {
+                        if (SpringContextBackEndUtil.getBean(AuthUserService.class).supportWecom()) {
                             List<String> wecomUsers = new ArrayList<>();
                             for (int j = 0; j < reciLists.size(); j++) {
                                 String reci = reciLists.get(j);
@@ -255,7 +255,7 @@ public class EmailTaskHandler extends TaskHandler implements Job {
                             }
 
                             if (CollectionUtils.isNotEmpty(wecomUsers)) {
-                                WecomXpackService wecomXpackService = SpringContextUtil.getBean(WecomXpackService.class);
+                                WecomXpackService wecomXpackService = SpringContextBackEndUtil.getBean(WecomXpackService.class);
                                 WecomMsgResult wecomMsgResult = wecomXpackService.pushOaMsg(wecomUsers, emailTemplateDTO.getTitle(), contentStr, bytes, files);
                                 if (wecomMsgResult.getErrcode() != 0) {
                                     errorMsgs.add("wecom: " + wecomMsgResult.getErrmsg());
@@ -265,7 +265,7 @@ public class EmailTaskHandler extends TaskHandler implements Job {
                         }
                         break;
                     case "dingtalk":
-                        if (SpringContextUtil.getBean(AuthUserService.class).supportDingtalk()) {
+                        if (SpringContextBackEndUtil.getBean(AuthUserService.class).supportDingtalk()) {
                             List<String> dingTalkUsers = new ArrayList<>();
                             for (int j = 0; j < reciLists.size(); j++) {
                                 String reci = reciLists.get(j);
@@ -279,7 +279,7 @@ public class EmailTaskHandler extends TaskHandler implements Job {
                             }
 
                             if (CollectionUtils.isNotEmpty(dingTalkUsers)) {
-                                DingtalkXpackService dingtalkXpackService = SpringContextUtil.getBean(DingtalkXpackService.class);
+                                DingtalkXpackService dingtalkXpackService = SpringContextBackEndUtil.getBean(DingtalkXpackService.class);
                                 DingtalkMsgResult dingtalkMsgResult = dingtalkXpackService.pushOaMsg(dingTalkUsers, emailTemplateDTO.getTitle(), contentStr, bytes, files);
                                 if (dingtalkMsgResult.getErrcode() != 0) {
                                     errorMsgs.add("dingtalk: " + dingtalkMsgResult.getErrmsg());
@@ -289,7 +289,7 @@ public class EmailTaskHandler extends TaskHandler implements Job {
                         }
                         break;
                     case "lark":
-                        if (SpringContextUtil.getBean(AuthUserService.class).supportLark()) {
+                        if (SpringContextBackEndUtil.getBean(AuthUserService.class).supportLark()) {
                             List<String> larkUsers = new ArrayList<>();
                             for (int j = 0; j < reciLists.size(); j++) {
                                 String reci = reciLists.get(j);
@@ -303,7 +303,7 @@ public class EmailTaskHandler extends TaskHandler implements Job {
                             }
 
                             if (CollectionUtils.isNotEmpty(larkUsers)) {
-                                LarkXpackService larkXpackService = SpringContextUtil.getBean(LarkXpackService.class);
+                                LarkXpackService larkXpackService = SpringContextBackEndUtil.getBean(LarkXpackService.class);
                                 LarkMsgResult larkMsgResult = larkXpackService.pushOaMsg(larkUsers, emailTemplateDTO.getTitle(), contentStr, bytes, files);
                                 if (larkMsgResult.getCode() != 0) {
                                     errorMsgs.add("lark: " + larkMsgResult.getMsg());
@@ -313,7 +313,7 @@ public class EmailTaskHandler extends TaskHandler implements Job {
                         }
                         break;
                     case "larksuite":
-                        if (SpringContextUtil.getBean(AuthUserService.class).supportLarksuite()) {
+                        if (SpringContextBackEndUtil.getBean(AuthUserService.class).supportLarksuite()) {
                             List<String> larksuiteUsers = new ArrayList<>();
                             for (int j = 0; j < reciLists.size(); j++) {
                                 String reci = reciLists.get(j);
@@ -327,7 +327,7 @@ public class EmailTaskHandler extends TaskHandler implements Job {
                             }
 
                             if (CollectionUtils.isNotEmpty(larksuiteUsers)) {
-                                LarksuiteXpackService larksuiteXpackService = SpringContextUtil.getBean(LarksuiteXpackService.class);
+                                LarksuiteXpackService larksuiteXpackService = SpringContextBackEndUtil.getBean(LarksuiteXpackService.class);
                                 LarksuiteMsgResult larksuiteMsgResult = larksuiteXpackService.pushOaMsg(larksuiteUsers, emailTemplateDTO.getTitle(), contentStr, bytes, files);
                                 if (larksuiteMsgResult.getCode() != 0) {
                                     errorMsgs.add("larksuite: " + larksuiteMsgResult.getMsg());

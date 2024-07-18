@@ -2,7 +2,7 @@ package io.dataease.service.message.service.strategy;
 
 import io.dataease.auth.service.AuthUserService;
 import io.dataease.plugins.common.base.domain.SysUserAssist;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.wecom.service.WecomXpackService;
 import io.dataease.service.message.service.SendService;
 import io.dataease.service.sys.SysUserService;
@@ -30,7 +30,7 @@ public class SendWecom implements SendService {
         if (ObjectUtils.isNotEmpty(sysUserAssist) && StringUtils.isNotBlank(sysUserAssist.getWecomId()) && authUserService.supportWecom()) {
 
             String username = sysUserAssist.getWecomId();
-            WecomXpackService wecomXpackService = SpringContextUtil.getBean(WecomXpackService.class);
+            WecomXpackService wecomXpackService = SpringContextBackEndUtil.getBean(WecomXpackService.class);
             List<String> userIds = new ArrayList<>();
             userIds.add(username);
             wecomXpackService.pushMsg(userIds, content);

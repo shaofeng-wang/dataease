@@ -13,7 +13,7 @@ import io.dataease.commons.utils.ServletUtils;
 import io.dataease.exception.DataEaseException;
 import io.dataease.i18n.Translator;
 import io.dataease.plugins.common.base.domain.SysUserAssist;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.display.dto.response.SysSettingDto;
 import io.dataease.plugins.xpack.lark.dto.entity.LarkAppUserEntity;
 import io.dataease.plugins.xpack.lark.dto.entity.LarkQrResult;
@@ -53,14 +53,14 @@ public class XLarkServer {
     @ResponseBody
     @GetMapping("/appId")
     public String getAppId() {
-        LarkXpackService larkXpackService = SpringContextUtil.getBean(LarkXpackService.class);
+        LarkXpackService larkXpackService = SpringContextBackEndUtil.getBean(LarkXpackService.class);
         return larkXpackService.appId();
     }
 
     @ResponseBody
     @GetMapping("/info")
     public LarkInfo getLarkInfo() {
-        LarkXpackService larkXpackService = SpringContextUtil.getBean(LarkXpackService.class);
+        LarkXpackService larkXpackService = SpringContextBackEndUtil.getBean(LarkXpackService.class);
         return larkXpackService.info();
     }
 
@@ -68,14 +68,14 @@ public class XLarkServer {
     @RequiresPermissions("sysparam:read")
     @PostMapping("/save")
     public void save(@RequestBody List<SysSettingDto> settings) {
-        LarkXpackService larkXpackService = SpringContextUtil.getBean(LarkXpackService.class);
+        LarkXpackService larkXpackService = SpringContextBackEndUtil.getBean(LarkXpackService.class);
         larkXpackService.save(settings);
     }
 
     @ResponseBody
     @PostMapping("/testConn")
     public void testConn(@RequestBody LarkInfo larkInfo) {
-        LarkXpackService larkXpackService = SpringContextUtil.getBean(LarkXpackService.class);
+        LarkXpackService larkXpackService = SpringContextBackEndUtil.getBean(LarkXpackService.class);
         try {
             larkXpackService.testConn(larkInfo);
         } catch (Exception e) {
@@ -86,7 +86,7 @@ public class XLarkServer {
     @ResponseBody
     @PostMapping("/getQrParam")
     public LarkQrResult getQrParam() {
-        LarkXpackService larkXpackService = SpringContextUtil.getBean(LarkXpackService.class);
+        LarkXpackService larkXpackService = SpringContextBackEndUtil.getBean(LarkXpackService.class);
         return larkXpackService.getQrParam();
     }
 
@@ -101,11 +101,11 @@ public class XLarkServer {
         HttpServletResponse response = ServletUtils.response();
         LarkXpackService larkXpackService = null;
         try {
-            Map<String, LarkXpackService> beansOfType = SpringContextUtil.getApplicationContext().getBeansOfType((LarkXpackService.class));
+            Map<String, LarkXpackService> beansOfType = SpringContextBackEndUtil.getApplicationContext().getBeansOfType((LarkXpackService.class));
             if (beansOfType.keySet().size() == 0) {
                 DEException.throwException("缺少飞书插件");
             }
-            larkXpackService = SpringContextUtil.getBean(LarkXpackService.class);
+            larkXpackService = SpringContextBackEndUtil.getBean(LarkXpackService.class);
             Boolean isOpen = larkXpackService.isOpen();
             if (!isOpen) {
                 DEException.throwException("未开启飞书");
@@ -206,7 +206,7 @@ public class XLarkServer {
             if (!isOpen) {
                 DEException.throwException("未开启飞书");
             }
-            larkXpackService = SpringContextUtil.getBean(LarkXpackService.class);
+            larkXpackService = SpringContextBackEndUtil.getBean(LarkXpackService.class);
             LarkUserInfo larkUserInfo = larkXpackService.userInfo(code, state, true);
             String userId = larkUserInfo.getUser_id();
 

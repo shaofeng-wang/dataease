@@ -2,7 +2,7 @@ package io.dataease.plugins.server;
 
 import io.dataease.commons.constants.AuthConstants;
 import io.dataease.commons.utils.LogUtil;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.user.service.UserXpackService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -25,7 +25,7 @@ public class XUserServer {
     @ApiOperation("下载模版")
     @PostMapping("/template")
     public void template(HttpServletResponse response) {
-        UserXpackService userXpackService = SpringContextUtil.getBean(UserXpackService.class);
+        UserXpackService userXpackService = SpringContextBackEndUtil.getBean(UserXpackService.class);
         userXpackService.templateDown(response);
     }
 
@@ -38,7 +38,7 @@ public class XUserServer {
             response.setHeader(AuthConstants.DE_DOWN_ERROR_KEY, msgKey);
             return;
         }
-        UserXpackService userXpackService = SpringContextUtil.getBean(UserXpackService.class);
+        UserXpackService userXpackService = SpringContextBackEndUtil.getBean(UserXpackService.class);
         try{
             userXpackService.upload(file, response);
         }catch (Exception e) {

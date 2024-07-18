@@ -2,7 +2,7 @@
 
 export IMAGE_REPO=hospv3.test.yiyunhp.com:9443
 export IMAGE_TAG=1.18.7
-export IMAGE_BUILD=1007
+export IMAGE_BUILD=1009
 
 docker images | grep '/dataease/dataease-server' | awk '{print $3}' | xargs docker rmi
 

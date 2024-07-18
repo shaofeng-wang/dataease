@@ -1,6 +1,6 @@
 export IMAGE_REPO=hospv3.test.yiyunhp.com:9443
 export IMAGE_TAG=1.18.7
-export IMAGE_BUILD=1006
+export IMAGE_BUILD=1008
 
 docker ps | grep '/dataease/dataease-server' | awk '{print $1}' | xargs docker stop | xargs docker rm
 

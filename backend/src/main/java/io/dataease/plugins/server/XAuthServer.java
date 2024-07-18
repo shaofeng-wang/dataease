@@ -10,7 +10,7 @@ import io.dataease.dto.SysLogDTO;
 import io.dataease.listener.util.CacheUtils;
 import io.dataease.plugins.common.dto.DatasourceBaseType;
 import io.dataease.plugins.common.dto.datasource.DataSourceType;
-import io.dataease.plugins.config.SpringContextUtil;
+import io.dataease.plugins.config.SpringContextBackEndUtil;
 import io.dataease.plugins.xpack.auth.dto.request.XpackBaseTreeRequest;
 import io.dataease.plugins.xpack.auth.dto.request.XpackSysAuthRequest;
 import io.dataease.plugins.xpack.auth.dto.response.XpackSysAuthDetail;
@@ -44,7 +44,7 @@ public class XAuthServer {
     @I18n
     @ApiOperation("根据类型查询权限树")
     public List<XpackVAuthModelDTO> authModels(@RequestBody XpackBaseTreeRequest request) {
-        AuthXpackService sysAuthService = SpringContextUtil.getBean(AuthXpackService.class);
+        AuthXpackService sysAuthService = SpringContextBackEndUtil.getBean(AuthXpackService.class);
         CurrentUserDto user = AuthUtils.getUser();
         return sysAuthService.searchAuthModelTree(request, user.getUserId(), user.getIsAdmin());
     }
@@ -53,7 +53,7 @@ public class XAuthServer {
     @PostMapping("/authDetails")
     @ApiOperation("查询权限源目标映射关系")
     public Map<String, List<XpackSysAuthDetailDTO>> authDetails(@RequestBody XpackSysAuthRequest request) {
-        AuthXpackService sysAuthService = SpringContextUtil.getBean(AuthXpackService.class);
+        AuthXpackService sysAuthService = SpringContextBackEndUtil.getBean(AuthXpackService.class);
         return sysAuthService.searchAuthDetails(request);
     }
 
@@ -62,7 +62,7 @@ public class XAuthServer {
     @I18n
     @ApiOperation("查询授权明细")
     public List<XpackSysAuthDetail> authDetailsModel(@PathVariable String authType, @PathVariable String direction) {
-        AuthXpackService sysAuthService = SpringContextUtil.getBean(AuthXpackService.class);
+        AuthXpackService sysAuthService = SpringContextBackEndUtil.getBean(AuthXpackService.class);
         List<XpackSysAuthDetail> authDetails = sysAuthService.searchAuthDetailsModel(authType);
         if (authType.equalsIgnoreCase("dataset")) {
             XpackSysAuthDetail xpackSysAuthDetail = new XpackSysAuthDetail();
@@ -78,7 +78,7 @@ public class XAuthServer {
     @PostMapping("/authChange")
     @ApiOperation("变更授权信息")
     public void authChange(@RequestBody XpackSysAuthRequest request) {
-        AuthXpackService sysAuthService = SpringContextUtil.getBean(AuthXpackService.class);
+        AuthXpackService sysAuthService = SpringContextBackEndUtil.getBean(AuthXpackService.class);
         CurrentUserDto user = AuthUtils.getUser();
         sysAuthService.authChange(request, user.getUserId(), user.getUsername(), user.getIsAdmin());
         // 当权限发生变化 前端实时刷新对应菜单
@@ -167,7 +167,7 @@ public class XAuthServer {
         Collection<DataSourceType> activeType = datasourceService.types();
         Map<String, String> activeTypeMap = activeType.stream().collect(Collectors.toMap(DataSourceType::getType, DataSourceType::getName));
         activeTypeMap.put("all", "所有数据源");
-        AuthXpackService sysAuthService = SpringContextUtil.getBean(AuthXpackService.class);
+        AuthXpackService sysAuthService = SpringContextBackEndUtil.getBean(AuthXpackService.class);
         List<DatasourceBaseType> presentTypes = sysAuthService.getDatasourceTypes();
         presentTypes.stream().forEach(datasourceBaseType -> {
             if (activeTypeMap.get(datasourceBaseType.getType()) != null) {

@@ -1,10 +1,10 @@
 package io.dataease.plugins.config;
 
 import io.dataease.plugins.common.base.domain.MyPlugin;
-import io.dataease.plugins.loader.ClassloaderResponsity;
+import io.dataease.plugins.common.util.ClassloaderResponsity;
+import io.dataease.plugins.common.util.ModuleClassLoader;
+import io.dataease.plugins.common.util.MybatisLoader;
 import io.dataease.plugins.loader.ControllerLoader;
-import io.dataease.plugins.loader.ModuleClassLoader;
-import io.dataease.plugins.loader.MybatisLoader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +33,7 @@ public class LoadjarUtil {
         }
 
         ModuleClassLoader classLoader = new ModuleClassLoader(new URL[]{uri.toURL()}, Thread.currentThread().getContextClassLoader());
-        SpringContextUtil.getBeanFactory().setBeanClassLoader(classLoader);
+        SpringContextBackEndUtil.getBeanFactory().setBeanClassLoader(classLoader);
         Thread.currentThread().setContextClassLoader(classLoader);
         classLoader.initBean();
         mybatisLoader.loadMybatis(myPlugin);
@@ -44,7 +44,7 @@ public class LoadjarUtil {
         ClassloaderResponsity.getInstance().addClassLoader(moduleName,classLoader);
 
 
-        return SpringContextUtil.getAllBean();
+        return SpringContextBackEndUtil.getAllBean();
     }
 
     public List<Map<String, Object>> deleteModule(String moduleName){
@@ -54,6 +54,6 @@ public class LoadjarUtil {
         return beans();
     }
     public List<Map<String, Object>> beans(){
-        return SpringContextUtil.getAllBean();
+        return SpringContextBackEndUtil.getAllBean();
     }
 }
