@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import io.dataease.commons.exception.DEException;
 import io.dataease.commons.model.BaseTreeNode;
 import io.dataease.commons.utils.BeanUtils;
+import io.dataease.commons.utils.JinJavaUtils;
 import io.dataease.commons.utils.LogUtil;
 import io.dataease.commons.utils.TreeUtils;
 import io.dataease.dto.dataset.DataSetTableUnionDTO;
@@ -27,6 +28,7 @@ import io.dataease.service.dataset.*;
 import io.dataease.service.datasource.DatasourceService;
 import io.dataease.service.engine.EngineService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -53,6 +55,8 @@ public class DirectFieldService implements DataSetFieldService {
     private EngineService engineService;
     @Resource
     private PermissionsTreeService permissionsTreeService;
+    @Resource
+    private JinJavaUtils jinJavaUtils;
 
     @Override
     public List<Object> fieldValues(String fieldId, Long userId, Boolean userPermissions, Boolean rowAndColumnMgm) throws Exception {
@@ -170,6 +174,7 @@ public class DirectFieldService implements DataSetFieldService {
                 if (dataTableInfoDTO.isBase64Encryption()) {
                     sql = new String(java.util.Base64.getDecoder().decode(sql));
                 }
+                sql = jinJavaUtils.handleJinJavaTemplate(sql, Lists.newArrayList());
                 sql = dataSetTableService.handleVariableDefaultValue(sql, null, ds.getType(), false);
                 datasourceRequest.setQuery(qp.createQuerySQLAsTmp(sql, permissionFields, !needSort, customFilter, rowPermissionsTree, deSortFields));
             } else if (StringUtils.equalsIgnoreCase(datasetTable.getType(), DatasetType.CUSTOM.toString())) {
