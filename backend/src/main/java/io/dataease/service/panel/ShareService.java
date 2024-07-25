@@ -664,7 +664,7 @@ public class ShareService {
                                                             ArrayList::new));
     }
 
-    public void removeSharesyPanel(String panelId) {
+    public void removeSharesPanel(String panelId) {
         PanelGroup panelGroup = panelGroupMapper.selectByPrimaryKey(panelId);
         PanelShareRemoveRequest request = new PanelShareRemoveRequest();
         request.setPanelId(panelId);
