@@ -41,8 +41,8 @@ public class JWTUtils {
 
         Algorithm algorithm = Algorithm.HMAC256(secret);
         Verification verification = JWT.require(algorithm)
-                .withClaim("username", tokenInfo.getUsername())
-                .withClaim("userId", tokenInfo.getUserId());
+                                       .withClaim("username", tokenInfo.getUsername())
+                                       .withClaim("userId", tokenInfo.getUserId());
         JWTVerifier verifier = verification.build();
 
         verifySign(algorithm, token);
@@ -68,6 +68,21 @@ public class JWTUtils {
             DataEaseException.throwException("token格式错误！");
         }
         TokenInfoBuilder tokenInfoBuilder = TokenInfo.builder().username(username).userId(userId);
+        return tokenInfoBuilder.build();
+    }
+
+    /**
+     * 获得token中的信息无需secret解密也能获得
+     *
+     * @return token中包含的用户名
+     */
+    public static TokenInfo linkTokenInfoByToken(String token) {
+        DecodedJWT jwt = JWT.decode(token);
+        Long userId = jwt.getClaim("userId").asLong();
+        if (ObjectUtils.isEmpty(userId)) {
+            DataEaseException.throwException("token格式错误！");
+        }
+        TokenInfoBuilder tokenInfoBuilder = TokenInfo.builder().userId(userId);
         return tokenInfoBuilder.build();
     }
 
@@ -143,8 +158,8 @@ public class JWTUtils {
         Date date = new Date(System.currentTimeMillis() + expireTimeMillis);
         Algorithm algorithm = Algorithm.HMAC256(secret);
         Builder builder = JWT.create()
-                .withClaim("username", tokenInfo.getUsername())
-                .withClaim("userId", userId);
+                             .withClaim("username", tokenInfo.getUsername())
+                             .withClaim("userId", userId);
         String sign = builder.withExpiresAt(date).sign(algorithm);
 
         if (StringUtils.equals("2", multiLoginType)) {

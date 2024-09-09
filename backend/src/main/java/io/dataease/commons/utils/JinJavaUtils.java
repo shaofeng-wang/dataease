@@ -14,6 +14,7 @@ import io.dataease.commons.utils.ServletUtils;
 import io.dataease.dto.SqlVarParamDTO;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.shiro.SecurityUtils;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -59,9 +60,13 @@ public class JinJavaUtils {
         CurrentUserDto userDto = (CurrentUserDto) SecurityUtils.getSubject().getPrincipal();
         if (ObjectUtils.isEmpty(userDto)) {
             String token = ServletUtils.getToken();
-            Long userId = JWTUtils.tokenInfoByToken(token).getUserId();
-            SysUserEntity user = authUserService.getUserById(userId);
-            userDto = BeanUtils.copyBean(new CurrentUserDto(), user, "password");
+            if (ObjectUtils.isNotEmpty(token)) {
+                Long userId = JWTUtils.tokenInfoByToken(token).getUserId();
+                SysUserEntity user = authUserService.getUserById(userId);
+                userDto = BeanUtils.copyBean(new CurrentUserDto(), user, "password");
+            } else {
+                userDto = new CurrentUserDto();
+            }
         } else {
             userDto = BeanUtils.copyBean(new CurrentUserDto(), userDto, "password");
         }

@@ -335,6 +335,7 @@ public class ChartViewService {
             }
 
         } catch (Exception e) {
+            logger.error("获取数据失败", e);
             DataEaseException.throwException(e);
         }
         return null;
