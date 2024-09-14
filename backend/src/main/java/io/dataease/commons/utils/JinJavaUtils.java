@@ -1,7 +1,8 @@
 package io.dataease.commons.utils;
 
-import cn.hutool.core.date.DateField;
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.NumberUtil;
 import com.google.common.collect.Maps;
 import com.hubspot.jinjava.Jinjava;
 import com.hubspot.jinjava.lib.fn.ELFunctionDefinition;
@@ -9,17 +10,14 @@ import io.dataease.auth.api.dto.CurrentUserDto;
 import io.dataease.auth.entity.SysUserEntity;
 import io.dataease.auth.service.AuthUserService;
 import io.dataease.auth.util.JWTUtils;
-import io.dataease.commons.utils.BeanUtils;
-import io.dataease.commons.utils.ServletUtils;
 import io.dataease.dto.SqlVarParamDTO;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.shiro.SecurityUtils;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Base64;
-import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +39,23 @@ public class JinJavaUtils {
         return DateUtil.format(DateUtil.tomorrow(), format);
     }
 
+    public static Integer stats_month_days(String ym) {
+        DateTime dateYm = DateUtil.parse(ym, "yyyy-MM");
+        Date today = DateUtil.date();
+        boolean isSame = DateUtil.isSameMonth(today, dateYm);
+        if (isSame) {
+            return NumberUtil.parseInt(today("dd")) - 1;
+        }
+        if (DateUtil.compare(today, dateYm, "yyyy-MM") < 0) {
+            return 0;
+        }
+        return DateUtil.lengthOfMonth(dateYm.month(), DateUtil.isLeapYear(dateYm.year()));
+    }
+
     public static void main(String[] args) {
+        System.out.println(stats_month_days("2024-10"));
+        System.out.println(stats_month_days("2024-09"));
+        System.out.println(stats_month_days("2024-08"));
         System.out.println(today("dd"));
         System.out.println(yesterday("dd"));
         System.out.println(tomorrow("dd"));
@@ -53,6 +67,7 @@ public class JinJavaUtils {
         jinjava.getGlobalContext().registerFunction(new ELFunctionDefinition("dt", "today", JinJavaUtils.class, "today", String.class));
         jinjava.getGlobalContext().registerFunction(new ELFunctionDefinition("dt", "yesterday", JinJavaUtils.class, "yesterday", String.class));
         jinjava.getGlobalContext().registerFunction(new ELFunctionDefinition("dt", "tomorrow", JinJavaUtils.class, "tomorrow", String.class));
+        jinjava.getGlobalContext().registerFunction(new ELFunctionDefinition("dt", "stats_month_days", JinJavaUtils.class, "stats_month_days", String.class));
         Map<String, Object> context = Maps.newHashMap();
         for (SqlVarParamDTO var : sqlVarList) {
             context.put(var.getParamName(), var.getFilter());
