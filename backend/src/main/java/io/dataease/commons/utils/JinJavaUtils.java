@@ -79,7 +79,7 @@ public class JinJavaUtils {
         jinjava.getGlobalContext().registerFunction(new ELFunctionDefinition("dt", "yesterday", JinJavaUtils.class, "yesterday", String.class));
         jinjava.getGlobalContext().registerFunction(new ELFunctionDefinition("dt", "tomorrow", JinJavaUtils.class, "tomorrow", String.class));
         jinjava.getGlobalContext().registerFunction(new ELFunctionDefinition("dt", "stats_month_days", JinJavaUtils.class, "stats_month_days", String.class));
-        jinjava.getGlobalContext().registerFunction(new ELFunctionDefinition("dt", "stats_month_days_list", JinJavaUtils.class, "stats_month_days", String.class));
+        jinjava.getGlobalContext().registerFunction(new ELFunctionDefinition("dt", "stats_month_days_list", JinJavaUtils.class, "stats_month_days_list", String.class));
         Map<String, Object> context = Maps.newHashMap();
         for (SqlVarParamDTO var : sqlVarList) {
             context.put(var.getParamName(), var.getFilter());
