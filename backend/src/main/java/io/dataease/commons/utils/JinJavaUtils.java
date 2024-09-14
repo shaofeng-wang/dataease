@@ -11,6 +11,7 @@ import io.dataease.auth.entity.SysUserEntity;
 import io.dataease.auth.service.AuthUserService;
 import io.dataease.auth.util.JWTUtils;
 import io.dataease.dto.SqlVarParamDTO;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.shiro.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,10 +53,20 @@ public class JinJavaUtils {
         return DateUtil.lengthOfMonth(dateYm.month(), DateUtil.isLeapYear(dateYm.year()));
     }
 
+    public static List<Integer> stats_month_days_list(String ym) {
+        Integer days = stats_month_days(ym);
+        List<Integer> days_list = Lists.newArrayList();
+        for (int i = 1; i <= days; ++i) {
+            days_list.add(i);
+        }
+        return days_list;
+    }
+
     public static void main(String[] args) {
         System.out.println(stats_month_days("2024-10"));
         System.out.println(stats_month_days("2024-09"));
         System.out.println(stats_month_days("2024-08"));
+        System.out.println(stats_month_days_list("2024-09"));
         System.out.println(today("dd"));
         System.out.println(yesterday("dd"));
         System.out.println(tomorrow("dd"));
@@ -68,6 +79,7 @@ public class JinJavaUtils {
         jinjava.getGlobalContext().registerFunction(new ELFunctionDefinition("dt", "yesterday", JinJavaUtils.class, "yesterday", String.class));
         jinjava.getGlobalContext().registerFunction(new ELFunctionDefinition("dt", "tomorrow", JinJavaUtils.class, "tomorrow", String.class));
         jinjava.getGlobalContext().registerFunction(new ELFunctionDefinition("dt", "stats_month_days", JinJavaUtils.class, "stats_month_days", String.class));
+        jinjava.getGlobalContext().registerFunction(new ELFunctionDefinition("dt", "stats_month_days_list", JinJavaUtils.class, "stats_month_days", String.class));
         Map<String, Object> context = Maps.newHashMap();
         for (SqlVarParamDTO var : sqlVarList) {
             context.put(var.getParamName(), var.getFilter());
